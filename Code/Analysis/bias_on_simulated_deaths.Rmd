@@ -1,11 +1,13 @@
 ```{r}
+git_directory <- system("git rev-parse --show-toplevel", intern = TRUE)
+data_folder <- file.path(git_directory, "Data", "National_Data")
+code_folder <- file.path(git_directory, "Code", "Analysis")
+source(file.path(code_folder, "helper_functions.R"))
 library(tidyverse)
-code_path <- "/Users/jeremygoldwasser/Desktop/HFR/repo/HFR/Code/Surprises"
-source(file.path(code_path, "helper_functions.R"))
 library(epidatr)
 library(extraDistr)
 library(patchwork)
-data_folder <- "/Users/jeremygoldwasser/Desktop/HFR/repo/HFR/Data/National_Data"
+
 
 ```
 

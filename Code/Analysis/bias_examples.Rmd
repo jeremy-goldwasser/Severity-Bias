@@ -5,12 +5,13 @@ date: "2024-10-04"
 ---
 
 ```{r}
-data_folder <- "/Users/jeremygoldwasser/Desktop/HFR/repo/HFR/Data/National_Data"
+git_directory <- system("git rev-parse --show-toplevel", intern = TRUE)
+data_folder <- file.path(git_directory, "Data", "National_Data")
+code_folder <- file.path(git_directory, "Code", "Analysis")
 nhcs_hfrs_all <- readRDS(file.path(data_folder, "hfrs_rescaled.RData"))
 nhcs_hfr_dates <- as.Date(names(nhcs_hfrs_all))
+source(file.path(code_folder, "helper_functions.R"))
 
-code_path <- "/Users/jeremygoldwasser/Desktop/HFR/repo/HFR/Code/Surprises"
-source(file.path(code_path, "helper_functions.R"))
 ```
 
 # Example 1: One-hot delay distribution elucidates bias due to changing severity rate

@@ -3,10 +3,12 @@ library(lubridate)
 library(tidyverse)
 
 # Load data
-nat_data_path <- "/Users/jeremygoldwasser/Desktop/HFR/repo/HFR/Data/National_Data"
+git_directory <- system("git rev-parse --show-toplevel", intern = TRUE)
+nat_data_path <- file.path(git_directory, "Data", "National_Data")
+variant_path <- file.path(git_directory, "Data", "Variants")
 
 ###### Preprocess ######
-df <- read.csv(file.path(nat_data_path, "seq_df_us_biweekly.csv"))
+df <- read.csv(file.path(variant_path, "seq_df_us_biweekly.csv"))
 
 # Let other = OG variant. It shouldn't come back in 2022
 df$Other[df$Date >= as.Date("2022-01-01")] <- 0
@@ -58,15 +60,6 @@ omicron_start <- min(df$Date[df$Omicron > 0.5])
 nchs_df <- data.frame(pub_covidcast(source="nchs-mortality",signals= "deaths_covid_incidence_num", 
                                    geo_type = "nation", geo_values="*", 
                                    time_type="week"))
-
-# # Compare to saved NCHS source
-# nchs_df2 <- read.csv(file.path(nat_data_path, "us_deaths.csv"), skip=2, header=T)
-# nchs_df2 <- nchs_df2[nrow(nchs_df2):1,]
-# weekly_dates_nchs <- as.Date(nchs_df2$Date, format = "%b %d %Y")
-# plot(weekly_dates_nchs, nchs_df2$Weekly.Deaths, type='l')
-# lines(nchs_df$time_value+6, nchs_df$value, col='red')
-# head(nchs_df2 %>% select(Date, Weekly.Deaths), 15)
-# head(nchs_df %>% select(time_value, value), 11)
 
 # Shift, to use end-of-week
 nchs_df$time_value <- nchs_df$time_value + 6

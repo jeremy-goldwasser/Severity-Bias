@@ -1,4 +1,7 @@
-data_folder <- "/Users/jeremygoldwasser/Desktop/HFR/repo/HFR/Data/National_Data"
+git_directory <- system("git rev-parse --show-toplevel", intern = TRUE)
+data_folder <- file.path(git_directory, "Data", "National_Data")
+
+# data_folder <- "/Users/jeremygoldwasser/Desktop/HFR/repo/HFR/Data/National_Data"
 dat <- read.csv(file.path(data_folder, "COVID-19_Hospital_Data_from_the_National_Hospital_Care_Survey.csv"))
 library(tidyverse)
 library(stats)
