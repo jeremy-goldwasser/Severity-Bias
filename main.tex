@@ -26,7 +26,8 @@ A number of public health metrics express the probability that a second, more se
 
 In an ideal setting, severity rates can be obtained directly from line-list data of individual patient outcomes \cite{HFR_line_list1,HFR_linelist2,HFR_linelist3,cfr_line_list}. In fast-moving epidemics like Covid-19, however, large-scale tracking is infeasible, especially in real-time \cite{UKpaper}. Instead, these rates are estimated from aggregate count data. While many works assume they are constant over time \cite{reich2012estimating,ghani,jewell2007nonparametric,lancet_controversial}, in reality they are constantly changing in response to factors such as new therapeutics, vaccines, and variants \cite{nyt}. Time-varying severity rates are typically estimated with a ratio of the two aggregate data streams such as cases and deaths. These ratios have been widely used to report Covid CFRs, both in academic literature \cite{germany,horita2022global,timevar_ifr,yuan2020monitoring,LIU2023100350} and major news publications like the Atlantic \cite{atlantic} and Wall Street Journal \cite{wsj}. While other methods exist, ratio estimators are so common that IFR, for example, is often referred to as the Infection-Fatality \textit{Ratio} \cite{timevar_ifr, lancet_ifr}.
 
-In this work, we demonstrate that these ratio estimators exhibit fundamental statistical bias. Bias arises when true severity rates change, precisely when time-varying estimates should be most useful. For example, the ratio estimators would have failed to quickly identify the rise in hospitalization-fatality rate (HFR) during the Delta wave. After the initial Omicron surge, the ratios spiked as the true HFRs fell. We study the sources of this bias, and suggest alternative methodology which overcomes it.
+In this work, we demonstrate these ratio estimators exhibit fundamental statistical bias, and identify three factors that drive it. Bias arises as a consequence of changing severity rates, precisely when time-varying estimates should be most useful. This bias may be influenced by changes in primary incidence levels, as well as long time delays between events. During COVID-19, the ratio estimators would have failed to quickly identify the rise in hospitalization-fatality rate (HFR) during the onset of the Delta wave. After the initial Omicron surge, the ratios spiked as the true HFRs fell. We study the sources of this bias, and suggest alternative methodology which overcomes it.
+% For example, 
 %Moreover, bias is exacerbated in the real-time setting, in which it is particularly important to accurately detect these changes as soon as they occur. 
 
 %, or at least leverage information on time-to-recovery (e.g. Ghani, Reich, and Jewell)
@@ -49,7 +50,9 @@ The canonical estimator for time-varying severity rates is a ratio between $X_t$
 
 
 % An alternative ratio
-Many methods use the delay distribution that relates the two time series. Let $\pi_k^{(t)}$ denote the probability that the secondary event occurs $k$ days after the primary event, given it occurs at all. The expected number of secondary events at any given day can be expressed by convolving the delay distribution against hospitalizations and severity rates.\footnote{Throughout this work, we assume primary incidence is known, and condition on $X_{s\leq t}$ implicitly. We also assume the delay distribution $\pi$ is the same over all time.}
+Alternative methods use the delay distribution that relates the two time series. Let $\pi_k^{(t)}$ denote the probability that the secondary event occurs $k$ days after the primary event, given it occurs at all. A number of tools exist to estimate delay distributions from aggregate or line-list data \cite{delay_distrs}. It is necessary to truncate the delay distribution at $d$ days, in essence assuming all secondary events occur within this period. 
+
+The expected number of secondary events at any given day can be expressed by convolving the delay distribution against hospitalizations and severity rates.\footnote{Throughout this work, we assume primary incidence is known, and condition on $X_{s\leq t}$ implicitly. We also assume the delay distribution $\pi$ is the same over all time.}
 
 \begin{align}\label{eq:model}
     E[Y_t] &= \sum_{k=0}^\infty X_{t-k} \mathbb{P}(\text{secondary at $t$ }\vert\text{ primary at }t-k) \nonumber \\
@@ -59,18 +62,24 @@ Many methods use the delay distribution that relates the two time series. Let $\
 \end{align}
 % $$Y_t := \sum_{k=0}^d X_{t-k} \mathbb{P}(\text{die at $t$ }\vert\text{ hosp at }t-k) = \sum_{k=0}^d X_{t-k} \pi_k p_{t-k}.$$
 
-A number of tools exist to estimate delay distributions from aggregate or line-list data \cite{delay_distrs}. It is necessary to truncate the delay distribution at $d$ days, in essence assuming all secondary events occur within this period. \citeauthor{UKpaper} proposed the following convolutional ratio, using a plug-in estimate of the delay distribution:
-% Assume the delay distribution is a constant $\pi$ for all time
+\noindent If the severity rates are a constant $p$, Eq. \ref{eq:model} simplifies to $E[Y_t] = p\sum_{k=0}^\infty X_{t-k}\pi_k$. \citeauthor{nishiura} rearranged this expression to estimate the stationary rate, using a plug-in estimate of the delay distribution and smoothing with cumulative counts.
+% Using observed counts $Y_t$ and a plug-in estimate of the delay distribution, \citeauthor{nishiura} proposed the following estimator to track a stationary severity rate:
+
+\begin{equation}\label{eq:nish}
+    \hat{p}_t = \frac{\sum_{s=t_0}^t Y_s}{\sum_{s=t_0}^t \sum_{k=0}^d X_{s-k}\hat\pi_k}.
+\end{equation}
+This estimator is widely used in practice \cite{nishiuraEx1, nishiuraEx2, Russell2020}. Assuming the true rate is indeed stationary and the delay distribution is correctly specified, it is unbiased. \citeauthor{UKpaper} adapted Eq. \ref{eq:nish} for the time-varying setting, using daily rather than cumulative counts:
+%Similarly, a common approach for a presumed stationary rate takes a ratio of cumulative counts $\sum_s X_s$ and 
+
+% \citeauthor{UKpaper} proposed the following convolutional ratio, using a plug-in estimate of the delay distribution:
 % Presuming all secondary events occur within $d$ days, it is necessary to estimate these probabilities as $\hat\pi_k \; \forall k \in \{0, 1, \ldots, d\}$. A number of works propose methods to do so from aggregate or line-list data \cite{delay_distrs}. 
 \begin{equation}\label{eq:conv}
     \hat{p}_t^{\text{Conv}} = \frac{Y_t}{\sum_{k=0}^d X_{t-k}\hat\pi_k}.%^{(t-k)}
 \end{equation}
 
-\noindent This can be understood as a generalization of \ref{eq:lagged}. If all secondary events occur after $L$ days, then it reduces to the same ratio. Otherwise, it expresses a more accurate relation the two time series. 
+\noindent This convolutional ratio can be understood as a generalization of Equation \ref{eq:lagged}. If all secondary events occur after $L$ days, then it reduces to the same ratio. Otherwise, it expresses a more accurate relation the two time series. In practice, however, we have not come across work that applies it for time-varying estimation. Rather, the lagged ratio is standard \cite{germany,horita2022global,timevar_ifr,yuan2020monitoring,LIU2023100350}.
 
-The ratios in Equations \ref{eq:lagged} and \ref{eq:conv} track a time-varying severity rate. To estimate the average rate over all time, they are often used with cumulative counts. That is, each time series is the sum of all counts from the first timestep. This version of Eq. \ref{eq:conv} is unbiased if the severity rate is stationary, and is widely used in practice \cite{nishiura}. For the time-varying setting, however, the lagged ratio is much more common.
-% The above ratios are designed to estimate a time-varying severity rate. To estimate the average rate over all history, Equations \ref{eq:lagged} and \ref{eq:conv} are often used with cumulative counts. 
-
+% The ratios in Equations \ref{eq:lagged} and \ref{eq:conv} track a time-varying severity rate. To estimate the average rate over all time, they are often used with cumulative counts. That is, each time series is the sum of all counts from the first timestep. This version of Eq. \ref{eq:conv} is unbiased if the severity rate is stationary, and is widely used in practice \cite{nishiura}. For the time-varying setting, however, the lagged ratio is much more common.
 
 
 \subsection{Mathematical Analysis}\label{sec:analysis}
@@ -182,7 +191,7 @@ Our experiments focus on the Hospitalization-Fatality Rate, or HFR. While this i
 
 During the pandemic, data sources counted deaths in different ways. John Hopkins University (JHU) provided the definitive resource for real-time death counts, releasing figures daily. However, these counts reflected the times at which deaths were reported to health authorities, not necessarily when they actually happened. In contrast, the National Center for Health Statistics (NCHS) provide weekly totals for deaths aligned by occurrence. Unlike JHU, the NCHS deaths were not available in real time.
 
-To compute real-time HFRs, we use hospitalizations from HHS and deaths from JHU. Data was pulled from the \texttt{epidatr} API, developed by the Delphi Group. HHS reported hospitalizations weekly, so we smoothed them with a spline to produce daily counts. Raw JHU death counts exhibit high volatility due to reporting idiosyncrasies like day-of-week effects and data dumps. For that reason, we used a 7-day trailing average of counts. For each dataset, we used the finalized counts, not the versions that would have been available in real time. Doing so would have likely resulted in even more volatile HFR estimates. We also obtained finalized weekly deaths from NCHS, again smoothing with a spline.
+To estimate real-time HFRs, we use hospitalizations from HHS and deaths from JHU. Data was pulled from the \texttt{epidatr} API, developed by the Delphi Group. HHS reported hospitalizations weekly, so we smoothed them with a spline to produce daily counts. Raw JHU death counts exhibit high volatility due to reporting idiosyncrasies like day-of-week effects and data dumps. For that reason, we used a 7-day trailing average of counts. For each dataset, we used the finalized counts, not the versions that would have been available in real time. Doing so would have likely resulted in even more volatile HFR estimates. We also obtained finalized weekly deaths from NCHS, again smoothing with a spline.
 
 The two ratio estimators (Eq. \ref{eq:lagged} and \ref{eq:conv}) require choices of lag and delay distribution. We tested the robustness of findings against different hyperparameter values. A common choice for delay distribution is a discrete gamma distribution, which we use for the convolutional ratio.
 
@@ -251,7 +260,7 @@ We performed several robustness checks to assess the stability of these findings
 
 \subsection{Simulated Data}
 
-We further evaluated these methods on simulated deaths whose true HFRs is known. For a series of time-varying HFRs $p_t$ and delay distribution $\pi$, deaths are defined as
+We further evaluated these methods on simulated deaths whose true HFRs is known. Throughout these experiments, we used observed, finalized hospitalization reports $X_t$. For a series of time-varying HFRs $p_t$ and delay distribution $\pi$, deaths are defined without noise as according to \ref{eq:model}
 $$Y_t := \sum_{k=0}^d X_{t-k} \mathbb{P}(\text{die at $t$ }\vert\text{ hosp at }t-k) = \sum_{k=0}^d X_{t-k} \pi_k p_{t-k}.$$
 
 To mimic the real data, we used the same HFRs from NHCS used for validation in \ref{sec:results_real}. We also inverted them and rescaled in order to simulate the opposite trend. Lastly, we explored a stationary HFR of 10\% over all time. In addition, we used the delay distributions that produced the most reasonable convolutional HFRs on the observed death counts. For NCHS, this was a gamma distribution with mean 11 and standard deviation 10; for JHU, these quantities were 28 and 21, respectively. 
