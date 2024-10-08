@@ -12,6 +12,8 @@ nhcs_hfrs_all <- readRDS(file.path(data_folder, "hfrs_rescaled.RData"))
 nhcs_hfr_dates <- as.Date(names(nhcs_hfrs_all))
 source(file.path(code_folder, "helper_functions.R"))
 
+library(ggplot2)
+library(patchwork)
 ```
 
 # Example 1: One-hot delay distribution elucidates bias due to changing severity rate
@@ -29,19 +31,25 @@ lines(ratio_hfr_dates, ratio_hfrs, type="l", col="red")
 # Example 1/2: one-hot delay, short and long delay
 
 ```{r}
-lag <- 14
-ratio_hfr_dates1 <- nhcs_hfr_dates + lag
-ratio_hfrs1 <- nhcs_hfrs_all; names(ratio_hfrs1) <-  ratio_hfr_dates1
+short_lag <- 14
+long_lag <- 28
+estDates <- nhcs_hfr_dates[(long_lag+1):length(nhcs_hfr_dates)]
+est_hfrs_short <- nhcs_hfrs_all[nhcs_hfr_dates %in% (estDates-short_lag)]
+est_hfrs_long <- nhcs_hfrs_all[nhcs_hfr_dates %in% (estDates-long_lag)]
+gt_nhcs <- nhcs_hfrs_all[nhcs_hfr_dates %in% estDates]
+HFRtypes <- c("GT", "Est, Short Delay", "Est, Long Delay")
+df <- data.frame(Date=rep(estDates, 3),
+                  HFR=c(gt_nhcs,est_hfrs_short,est_hfrs_long),
+                  Method=factor(rep(HFRtypes, each=length(estDates)), levels=HFRtypes))
 
-lag <- 28
-ratio_hfr_dates <- nhcs_hfr_dates + lag
-ratio_hfrs2 <- nhcs_hfrs_all; names(ratio_hfrs2) <-  ratio_hfr_dates
+pConst <- ggplot(df, aes(x=Date, y=HFR, color=Method, linetype=Method)) + 
+  geom_line() + 
+  ggtitle("All deaths at same delay. True & Estimated HFRs.") +#Constant Primary Incidence. 
+  theme(legend.position="bottom",
+        legend.title = element_blank())
+plot(pConst)
 
-plot(nhcs_hfr_dates, nhcs_hfrs_all, type="l", xlab="Date", ylab="HFR", main="True vs Est HFR, one-hot delay, short and long delay")
-lines(ratio_hfr_dates1, ratio_hfrs1, type="l", col="red")
-lines(ratio_hfr_dates, ratio_hfrs2, type="l", col="blue")
 ```
-
 
 # Example 2: Constant primary incidence elucidates bias due to delay distribution shape.
 
@@ -88,7 +96,20 @@ est_hfrs_long <- sapply(death_dates, function(t) {
 plot(nhcs_hfr_dates, nhcs_hfrs_all, type="l", xlab="Date", ylab="HFR", main="True vs Est HFR, const primary, short & long delay distr")
 lines(death_dates, est_hfrs_short, type="l", col="red")
 lines(death_dates, est_hfrs_long, type="l", col="blue")
+
 ```
+
+```{r}
+# short_bias <- est_hfrs_short - gt_nhcs
+# trans_factor <- max(gt_nhcs) * 0.75 / max(short_bias)
+# 
+# plot(nhcs_hfr_dates, nhcs_hfrs_all, type="l", xlab="Date", ylab="HFR", main="True vs Est HFR, const primary, short & long delay distr",
+#      ylim=c(min(short_bias*trans_factor), max(gt_nhcs)))
+# lines(death_dates, short_bias*trans_factor, type="l", col="red")
+# lines(death_dates, est_hfrs_long*trans_factor, type="l", col="blue")
+
+```
+
 
 # Example 3: Two-day delay distribution elucidates bias due to primary incidence
 # 3a, Linear trend. Predictable relation on convolutional ratio; lagged usually same but fails at inflection points
@@ -208,7 +229,7 @@ As ggplot
 
 
 ```{r}
-library(ggplot2)
+
 
 # Calculate the scale transformation factor for the secondary axis
 trans_factor <- max(sim_hfrs) * 0.75 / max(conv_bias)
@@ -221,15 +242,89 @@ data <- data.frame(
   Line = factor(rep(c("True HFR", "Hospitalizations", "Lagged Bias", "Conv Bias"), each=n_est), 
                     levels=c("True HFR", "Hospitalizations", "Lagged Bias", "Conv Bias"))
 )
-ggplot(data, aes(x = Date, y = Value, colour = Line)) +
+pChg <- ggplot(data, aes(x = Date, y = Value, colour = Line)) +
   geom_line() +
-  labs(x = "Date", y = "HFR Level", title = "True HFR, biases, and changing primary",
+  labs(x = "Date", y = "HFR Level", title = "Changing Primary Incidence. True HFR and Estimation Bias.",
        colour = "Legend") +
   scale_colour_manual(values = c("True HFR" = "black", "Hospitalizations" = "green", 
                                  "Lagged Bias" = "blue", "Conv Bias" = "red")) +
+  theme(legend.title=element_blank(), legend.position="bottom") +
   ylim(range(c(min(conv_bias_rescaled, lagged_bias_rescaled, gt_hfrs), 
                max(conv_bias_rescaled, lagged_bias_rescaled, gt_hfrs)))) +
   scale_y_continuous(sec.axis = sec_axis(~ . / trans_factor, name = "Bias Level"))
+plot(pChg)
 
+```
+
+```{r}
+n_dates <- 300
+sim_hfrs <- seq(0.5, 0, length.out=n_dates)
+
+sigmoid <- function(x) {
+  return (1/(1+exp(-x)))
+}
+xs <- seq(-9, 7, length.out=n_dates/2)
+hosps <- (c(sigmoid(xs), rev(sigmoid(xs)))*9000 + 1000)
+plot(hosps)
+# hosps <- dcauchy(seq(-5, 5, length.out=n_dates))/dnorm(0)*10000
+
+
+days <- c(0, 10)
+two_day_d <- max(days)
+two_day_delay <- rep(0, two_day_d+1); two_day_delay[days+1] <- 0.5
+est_indices <- (two_day_d+1):n_dates
+
+exp_deaths <- sapply(est_indices, function(t) {
+  trailing_idx <- (t-two_day_d):t
+  trailing_hfrs <- sim_hfrs[trailing_idx]
+  hosps_in_trailing_window <- hosps[trailing_idx]
+  exp_deaths_t <- sum(hosps_in_trailing_window * trailing_hfrs * rev(two_day_delay))
+})
+
+conv_hfrs <- sapply(est_indices, function(t) {
+  trailing_idx <- (t-two_day_d):t
+  hosps_in_trailing_window <- hosps[trailing_idx]
+  deaths_t <- exp_deaths[t-two_day_d]
+  hfr_t <- deaths_t/sum(hosps_in_trailing_window * rev(two_day_delay))
+})
+lag <- mean(days)
+# lag <- min(days)
+lagged_hfrs <- sapply(est_indices, function(t) {
+  hfr_t <- exp_deaths[t-two_day_d]/hosps[t-lag]
+})
+n_est <- length(est_indices)
+gt_hfrs <- sim_hfrs[est_indices]
+
+plot(1:n_est, gt_hfrs, type="l", xlab="Date", ylab="HFR", main="True vs Est HFR", 
+     ylim=c(min(conv_hfrs, lagged_hfrs, gt_hfrs), max(conv_hfrs, lagged_hfrs, gt_hfrs)))
+lines(1:n_est, conv_hfrs, type="l", col="red")
+lines(1:n_est, lagged_hfrs, type="l", col="blue")
+lines(1:n_est, hosps[est_indices]/max(hosps)*max(sim_hfrs)*.75, type="l", col="green")
+
+
+hosps_rescaled <- hosps[est_indices]/max(hosps)*max(sim_hfrs, lagged_hfrs, conv_hfrs)*1.5 #0.75
+conv_bias <- conv_hfrs-gt_hfrs
+conv_bias_rescaled <- conv_bias/max(conv_bias)*max(sim_hfrs)*.75
+lagged_bias <- lagged_hfrs-gt_hfrs
+trans_factor <- max(sim_hfrs) * 0.75 / max(conv_bias)
+lagged_bias_rescaled <- lagged_bias/max(conv_bias)*max(sim_hfrs)*.75
+
+data <- data.frame(
+  Date = rep(1:n_est, 4),
+  Value = c(gt_hfrs, hosps_rescaled, lagged_bias*trans_factor, conv_bias*trans_factor),
+  Line = factor(rep(c("True HFR", "Hospitalizations", "Lagged Bias", "Conv Bias"), each=n_est), 
+                    levels=c("True HFR", "Hospitalizations", "Lagged Bias", "Conv Bias"))
+)
+pChg <- ggplot(data, aes(x = Date, y = Value, colour = Line)) +
+  geom_line() +
+  labs(x = "Date", y = "HFR Level", title = "Changing Primary Incidence. True HFR and Estimation Bias.",
+       colour = "Legend") +
+  scale_colour_manual(values = c("True HFR" = "black", "Hospitalizations" = "green", 
+                                 "Lagged Bias" = "blue", "Conv Bias" = "red")) +
+  theme(legend.title=element_blank(), legend.position="bottom") +
+  ylim(range(c(min(conv_bias_rescaled, lagged_bias_rescaled, gt_hfrs), 
+               max(conv_bias_rescaled, lagged_bias_rescaled, gt_hfrs)))) +
+  scale_y_continuous(sec.axis = sec_axis(~ . / trans_factor, name = "Bias Level"))
+plot(pChg)
 ```
 

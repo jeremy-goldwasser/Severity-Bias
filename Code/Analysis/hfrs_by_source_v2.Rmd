@@ -761,9 +761,19 @@ ggplot(data=dfHFR, aes(x = Date, y = HFR, color = Method, linetype = Method)) +
 
 ```
 
+```{r}
+l <- list()
+for (i in 1:5) {
+  l <- c(l, i)
+}
+l[[3]]
+```
+
 
 
 ```{r, fig.width=7, fig.height=5}
+l <- list()
+
 # Select state
 BiggestStates <- c("California", "Texas", "Florida", "New York", "Pennsylvania")
 BiggestSTs <- c("CA","TX","FL","NY","PA")
@@ -827,11 +837,12 @@ for (i in 1:5) {
   HFRtypes <- c(paste(ST, "NCHS/HHS"), paste(ST, "JHU/HHS"))#"US:NHCS", 
   dfHFR <- data.frame(Date=rep(est_weeks, length(HFRtypes)),
                    HFR=c(hfrsHN, hfrsHJ),#hfrsNHCS
-                   Method=rep(HFRtypes, each=length(est_weeks)))
-  
-  plot(ggplot(dfHFR, aes(x = Date, y = HFR, color = Method, linetype = Method)) + 
+                   Method=factor(rep(HFRtypes, each=length(est_weeks)), levels=HFRtypes))
+  p <- ggplot(dfHFR, aes(x = Date, y = HFR, color = Method, linetype = Method)) + 
     geom_line() + 
-    labs(color = "HFR", linetype = "HFR") + ggtitle(paste("HFRs,", State)))
+    labs(color = "HFR", linetype = "HFR") + ggtitle(paste("HFRs,", State))
+  plot(p)
+  l <- c(l, p)
 }
 
 

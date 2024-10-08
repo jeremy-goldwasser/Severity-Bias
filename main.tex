@@ -5,6 +5,8 @@
 \usepackage{amsmath}
 \usepackage[authoryear,sort&compress]{natbib}
 \usepackage{hyperref}
+\usepackage{caption}
+\usepackage{subcaption}
 
 \title{Severity Bias Paper Draft}
 \author{Jeremy Goldwasser}
@@ -87,14 +89,12 @@ In this section, we demonstrate that these time-varying severity ratios are bias
 
 The degree of bias in Eq. \ref{eq:ConvBias} depends on three factors.
 \begin{enumerate}
-    \item \textbf{Changes in severity rate}. The central component of this bias expression is the $p_{t-k}-p_t$ term. When severity rates are constant in the $d$ preceding days, this estimator is unbiased. This is in line with the unbiasedness of estimator using cumulative counts assuming a globally stationary rate \cite{nishiura}. But when severity rates change before $t$, the numerator will likely not equal 0, in which case the estimator will be biased. 
+    \item \textbf{Changes in severity rate}. The central component of this bias expression is the $p_{t-k}-p_t$ term. When severity rates are constant in the $d$ preceding days, this estimator is unbiased. This is in line with the unbiasedness of estimator using cumulative counts assuming a globally stationary rate \cite{nishiura}. But when severity rates change before $t$, the numerator will likely not equal 0, in which case the estimator will be biased. Figure \ref{fig:onehot} illustrates this: The estimated severity rates are most inaccurate at periods where the true rate is changing sharply. 
 
 The bias is in the opposite direction of the trend we want to detect. For example, if the severity rate is falling, then $p_{t-k} > p_t$ for many $k\in \{1, \ldots, d\}$. As a result, the bias is positive, meaning the ratio estimates do not decline at the true rate. In fact, the estimated severity may even rise, not fall. Conversely, when true severity rates are rising, the ratio estimates will be too low. %This is especially troubling, as increases in risk may not be quickly detected by these real-time estimators.
 
-\textbf{Example.} To elucidate the extent to which changing severity rates bias this estimator, consider the trivial case where all secondary events occur after exactly $\ell$ days. By definition, $\pi_k = \mathds{1}\{k=\ell\}$, so the bias reduces to $p_{t-\ell} - p_t$. So if the true severity rate was 20\% lower $\ell$ days ago, the ratio will be 20\% too low. 
-    \item \textbf{The delay distribution}. How much the changing severity rates impact the bias depends on the shape of the delay distribution. In general, the bias is greatest when the delay distribution is long-tailed enough to upweight significant differences in severity rate. While this distinction may appear subtle, the Results section highlights its surprisingly large effects.
+    \item \textbf{The delay distribution}. How much the changing severity rates impact the bias depends on the shape of the delay distribution. In general, the bias is greatest when the delay distribution is long-tailed enough to upweight significant differences in severity rate. While this distinction may appear subtle, the Results section highlights its surprisingly large effects. The simple example in Fig. \ref{fig:onehot} shows significant differences in bias between shorter and longer delay distributions. 
 
-\textbf{Example.} Constructing another simple case, let the severity rate be changing monotonically before $t-m$, then constant until $t$. If the delay distribution assigns all probability mass within the first $m$ days, the convolutional ratio will be unbiased. Otherwise, it will be biased, with longer delay distributions producing greater bias. 
 \ahcomment{
     In this and maybe the other examples, a figure would help the reader...
     \begin{enumerate}
@@ -117,16 +117,28 @@ The bias is in the opposite direction of the trend we want to detect. For exampl
     subsequent sections more easily
 }
 
-\item \textbf{The primary incidence curve.} Changing primary incidences will also affect the bias, presuming the severity rate changes roughly monotonically in the recent past. Intuitively, this up- or down-weights the terms $X_{t-k}\pi_k(p_{t-k} - p_t)$ for dates further from the present, which are likely to contribute the most bias. Falling primary incidences will amplify the bias, whereas rising events will minimize it. 
+\item \textbf{The primary incidence curve.} Changing primary incidences will also affect the bias, presuming the severity rate changes roughly monotonically in the recent past. Intuitively, this up- or down-weights the terms $X_{t-k}\pi_k(p_{t-k} - p_t)$ for dates further from the present, which are likely to contribute the most bias. Falling primary incidences will amplify the bias, whereas rising events will minimize it. Fig. \ref{fig:chging_primary} illustrates this trend on the convolutional ratio. This relation is not quite as straightforward for the lagged ratio, analyzed in Appendix \ref{apx:analysis}. 
 
-\textbf{Example.} Suppose half of the secondary events occur after exactly $a$ days, and the other half after $b>a$. Further assume severity rate is the same $a$ days before $t$, but different $b$ days prior. Then%Define $c\geq 0$ such that $X_{t-a} = cX_{t-b}$, indicating the proportion change in primary incidence between $t-a$ and $t-b$. Then 
-% $$\text{Bias}(\hat{p}_t^{\text{Conv}}) =  \frac{X_{t-b}(p_{t-k}-p_t)}{X_{t-b}+X_{t-a}} = \frac{p_{t-k}-p_t}{1+c}$$
-\begin{align*}
-    \text{Bias}(\hat{p}_t^{\text{Conv}}) &= \frac{\frac{1}{2}\big(X_{t-a}(p_{t-a}-p_t) + X_{t-b}(p_{t-b}-p_t)\big)}{\frac{1}{2}(X_{t-a}+X_{t-b})} \\
-    &=\frac{X_{t-b}(p_{t-b}-p_t)}{X_{t-b}(1+\frac{X_{t-a}}{X_{t-b}})} = \frac{p_{t-b}-p_t}{1+\frac{X_{t-a}}{X_{t-b}}}
-\end{align*}
-This bias is monotonically decreasing in $\frac{X_{t-a}}{X_{t-b}}$, the rate of change in primary incidence. Rising primary incidence ($\frac{X_{t-a}}{X_{t-b}}>1)$ yields less bias, while falling levels yield more.
 \end{enumerate}
+
+\begin{figure}
+     \centering
+     \begin{subfigure}[b]{0.45\linewidth}
+         \centering
+         \includegraphics[width=\linewidth]{Figs/sim_onehot.png}
+         \caption{Constant primary incidence. All deaths after $\ell$ days. HFR ratios equivalent; plotting delays of $\ell=14$ and 28 days.}
+         \label{fig:onehot}
+     \end{subfigure}
+     \hfill
+     \begin{subfigure}[b]{0.45\linewidth}
+         \centering
+         \includegraphics[width=\linewidth]{Figs/sim_chging_primary.png}
+         \caption{Changing primary incidence. Plotting bias of lagged and convolutional ratios.}
+         \label{fig:chging_primary}
+     \end{subfigure}
+        \caption{Simple examples of severity rate bias. Analysis in Appendix \ref{apx:analysis}.}
+        \label{fig:bias_ex}
+\end{figure}
 
 
 % Empirically, we observe roughly the same biases in the lagged ratio. Its bias expression is highly similar:
@@ -208,7 +220,8 @@ HFRs obtained from aggregate hospitalization and death counts are significantly 
 
 % Assuming the NHCS HFRs are forward-looking and the lagged model is correct (lol), the number of inpatient deaths $Y_{t+L}^{in}\approx X_t \eta_t$. Let $s_t$ be the proportion of deaths that die in-hospital at $t$ (this is reported in a monthly window surrounding $t$). Then $s_t Y_t \approx Y_t^{in}$. So $Y_{t+L} \approx \frac{X_t \eta_t}{s_{t+L}}$. That is, I can use $\eta_t/s_{t+L}$ as the HFRs, and ultimately rescale as before if needed. 
 
-We considered two other sources for ground truth HFRs, discussed in Appendix \ref{apx:alt_gt}. These are fairly consistent with the rescaled NHCS data, but entail making worse assumptions. 
+We considered two other sources for ground truth HFRs, discussed in Appendix \ref{apx:alt_gt}. Unlike NHCS, these HFRs are obtained from aggregate counts, not line-list data. Fortunately, they are fairly consistent with the rescaled NHCS data, bolstering our trust in it. 
+% but entail making worse assumptions. 
 
 \section{Results}\label{sec:results}
 
@@ -251,7 +264,7 @@ We performed several robustness checks to assess the stability of these findings
 
 \subsection{Simulated Data}
 
-We further evaluated these methods on simulated deaths whose true HFRs is known. For a series of time-varying HFRs $p_t$ and delay distribution $\pi$, deaths are defined as
+We further evaluated these methods on simulated deaths whose true HFRs is known. Throughout these experiments, we used observed, finalized hospitalization counts from HHS as the primary incidence curve $X_t$.  For a series of time-varying HFRs $p_t$ and delay distribution $\pi$, deaths are defined as
 $$Y_t := \sum_{k=0}^d X_{t-k} \mathbb{P}(\text{die at $t$ }\vert\text{ hosp at }t-k) = \sum_{k=0}^d X_{t-k} \pi_k p_{t-k}.$$
 
 To mimic the real data, we used the same HFRs from NHCS used for validation in \ref{sec:results_real}. We also inverted them and rescaled in order to simulate the opposite trend. Lastly, we explored a stationary HFR of 10\% over all time. In addition, we used the delay distributions that produced the most reasonable convolutional HFRs on the observed death counts. For NCHS, this was a gamma distribution with mean 11 and standard deviation 10; for JHU, these quantities were 28 and 21, respectively. 
@@ -301,6 +314,26 @@ As defined in \ref{eq:severity}, the severity rate is analogous to case $R_t$. B
 
 \pagebreak
 \appendix
+\section{Simulation Analysis}\label{apx:analysis}
+
+To elucidate the extent to which changing severity rates bias the convolutional ratio, consider the trivial case where all secondary events occur after exactly $\ell$ days with no noise. By definition, $\pi_k = \mathds{1}\{k=\ell\}$, so the convolutional and lagged ratios are both $\hat{p}_t = \frac{X_{t-\ell}p_{t-\ell}}{X_{t-\ell}} = p_{t-\ell}$. In this case, the bias is the change in the true severity rate $p_{t-\ell} - p_t$. The estimator is unbiased only when the severity rate is stationary. Otherwise, for example, the ratio will be 20\% too low if the true severity rate was 20\% lower $\ell$ days ago. Figure \ref{fig:bias_ex} displays this with the approximate ground truth HFRs from NHCS. 
+
+Intuitively, severity rates are liable to be less similar to the present value $p_t$ further back in time. Therefore heavier-tailed delay distributions should have more bias. In the above example, the bias $p_{t-\ell}-p_t$ is generally larger when $\ell=28$ than $\ell=14$ (Fig \ref{fig:onehot}). Constructing another simple case, consider a severity rate that changes monotonically before $t-m$, then is constant until $t$. If the delay distribution assigns all probability mass within the first $m$ days, the convolutional ratio will be unbiased at $t$. Otherwise, it will be biased, with longer delay distributions producing greater bias. 
+
+Section \ref{sec:analysis} claims that changes in primary incidence levels affect the magnitude of bias for the convolutional ratio. Here, we present a simple example that formalizes this claim. Suppose half of the secondary events occur immediately after the primary event ($t=0$), and the other half after $\ell$ days. Further assume $p_{t-\ell}\neq p_t$, so there is some degree of bias. Then
+\begin{align*}
+    \lvert\text{Bias}(\hat{p}_t^{\text{Conv}})\rvert &= \frac{\frac{1}{2}\big\lvert X_{t}(p_t-p_t) + X_{t-\ell}(p_{t-\ell}-p_t)\big\rvert}{\frac{1}{2}(X_{t}+X_{t-\ell})} \\
+    &=\frac{X_{t-\ell}\lvert p_{t-\ell}-p_t\rvert}{X_{t-\ell}(1+\frac{X_{t}}{X_{t-\ell}})} = \frac{\lvert p_{t-\ell}-p_t \rvert}{1+\frac{X_{t}}{X_{t-\ell}}}
+\end{align*}
+
+The absolute bias is monotonically decreasing in $\frac{X_{t}}{X_{t-\ell}}$, the proportion change in primary incidence. Rising primary incidence ($\frac{X_{t}}{X_{t-\ell}}>1)$ yields less bias, while falling levels yield more.
+
+Figure \ref{fig:chging_primary} displays this setting. Hospitalizations are defined as $X = \sigmoid(s)*9000+1000$, where $s$ takes 300 evenly spaced steps from -9 to 7. The true HFRs fall from 0.5 to 0 over the same number of even steps. Indeed, the convolutional ratio's bias dips as hospitalizations rise, and rises as they fall. 
+
+When daily hospitalizations approach a constant level, the two estimators become the same ratio, so their biases converge. During periods of change, however, the lagged estimator has different bias. It oscillates up and down, reaching higher bias than the convolutional ratio. 
+
+TO DO: ANALYZE WHY THIS HAPPENS.
+
 \section{Alternative Ground Truth}\label{apx:alt_gt}
 
 \begin{figure}
