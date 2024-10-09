@@ -137,7 +137,7 @@ The bias is in the opposite direction of the trend we want to detect. For exampl
      \begin{subfigure}[b]{0.45\linewidth}
          \centering
          \includegraphics[width=\linewidth]{Figs/sim_onehot.png}
-         \caption{Constant primary incidence. All deaths after $\ell$ days. HFR ratios equivalent; plotting delays of $\ell=14$ and 28 days.}
+         \caption{All deaths after $\ell$ days. HFR ratios equivalent; plotting delays of $\ell=14$ and 28 days.}
          \label{fig:onehot}
      \end{subfigure}
      \hfill
@@ -201,18 +201,25 @@ If we assume that the lagged model is well-specified, the (5) becomes easy to in
 
 \subsection{Experimental Setup}
 \subsubsection{HFR Estimation}
-Our experiments focus on the Hospitalization-Fatality Rate (HFR) during COVID-19. While this is a less commonly used metric than the Case-Fatality Rate (CFR), the two should exhibit the same statistical biases. Moreover, CFR may slightly misrepresent our analyses because the model relating cases to deaths may be slightly different. Case reporting during Covid suffered significant time delays, with some cases being reported \textit{after} the death. Therefore, the delay distribution for CFR may not have non-negative support. Unlike case data, the Department of Health and Human Services (HHS) reported hospitalizations in real time based on the date they occurred. This makes hospitalizations a more suitable choice of primary event for study. 
+% Our experiments focus on the Hospitalization-Fatality Rate (HFR) during COVID-19. While this is a less commonly used metric than the Case-Fatality Rate (CFR), the two should exhibit the same statistical biases. Moreover, CFR may slightly misrepresent our analyses because the model relating cases to deaths may be slightly different. Case reporting during Covid suffered significant time delays, with some cases being reported \textit{after} the death. Therefore, the delay distribution for CFR may not have non-negative support. Unlike case data, the Department of Health and Human Services (HHS) reported hospitalizations in real time based on the date they occurred. This makes hospitalizations a more suitable choice of primary event for study. 
 
-During the pandemic, data sources counted deaths in different ways. John Hopkins University (JHU) provided the definitive resource for real-time death counts, releasing figures daily. However, these counts reflected the times at which deaths were reported to health authorities, not necessarily when they actually happened. In contrast, the National Center for Health Statistics (NCHS) provide weekly totals for deaths aligned by occurrence. Unlike JHU, the NCHS deaths were not available in real time.
+Our experiments focus on the Hospitalization-Fatality Rate (HFR) during COVID-19. Hospitalization reporting was much more complete than case reporting throughout the pandemic. Hospitals were mandated to report new daily admissions to the Department of Health and Human Services (HHS) or face penalties \cite{HHS2023}. The time-to-death delay distribution is indeed supported on integers starting at $k=0$, since hospitalizations are aligned by admission date.
 
-To estimate real-time HFRs, we use hospitalizations from HHS and deaths from JHU. Data was pulled from the \texttt{epidatr} API, developed by the Delphi Group. HHS reported hospitalizations weekly, so we smoothed them with a spline to produce daily counts. Raw JHU death counts exhibit high volatility due to reporting idiosyncrasies like day-of-week effects and data dumps. For that reason, we used a 7-day trailing average of counts. For each dataset, we used the finalized counts, not the versions that would have been available in real time. Doing so would have likely resulted in even more volatile HFR estimates. We also obtained finalized weekly deaths from NCHS, again smoothing with a spline.
+% During the pandemic, data sources counted deaths in different ways. John Hopkins University (JHU) provided the definitive resource for real-time death counts, releasing figures daily. However, these counts reflected the times at which deaths were reported to health authorities, not necessarily when they actually happened. In contrast, the National Center for Health Statistics (NCHS) provide weekly totals for deaths aligned by occurrence. Unlike JHU, the NCHS deaths were not available in real time.
 
-The two ratio estimators (Eq. \ref{eq:lagged} and \ref{eq:conv}) require choices of lag and delay distribution. We tested the robustness of findings against different hyperparameter values. A common choice for delay distribution is a discrete gamma distribution, which we use for the convolutional ratio.
+To estimate real-time HFRs, we pulled daily hospitalizations and deaths from the \texttt{epidatr} API, developed by the Delphi Group. Like HHS for hospitalizations \cite{HHS2023}, John Hopkins University (JHU) provided the definitive resource for real-time death counts \cite{JHUepidatr}. These counts reflect the times at which deaths were reported to health authorities, not necessarily when they actually happened. Therefore raw JHU death counts exhibit high volatility due to reporting idiosyncrasies like day-of-week effects and data dumps. As a result, we used a 7-day trailing average of counts. 
+
+The daily aggregates from each resource were updated over the course of the pandemic. \textbf{TO DO: explain our versioning schema once it's implemented.}
+
+% To estimate real-time HFRs, we use hospitalizations from HHS and deaths from JHU \cite{JHUepidatr}. Data was pulled from the \texttt{epidatr} API, developed by the Delphi Group. Raw JHU death counts exhibit high volatility due to reporting idiosyncrasies like day-of-week effects and data dumps. For that reason, we used a 7-day trailing average of counts. For each dataset, we used the finalized counts, not the versions that would have been available in real time. Doing so would have likely resulted in even more volatile HFR estimates. %We also obtained finalized weekly deaths from NCHS, again smoothing with a spline.
+
+The two ratio estimators (Eq. \ref{eq:lagged} and \ref{eq:conv}) require choices of lag and delay distribution. Appendix \ref{apx:robustness} evaluates the robustness of findings against different hyperparameter values. Nevertheless, the experiments in Section \ref{sec:results_real} a lag of 20 days, which maximizes the cross-correlation between hospitalizations and deaths over all time. We let the delay distribution be a discrete gamma, a common choice. We set its mean to this oracle lag, as lags are often chosen to be the mean of the delay distribution. This mean of 20 matches nicely with a UK study (CITE) that finds a median hospitalization-to-death time of 11 days, and a CDC report that 63\% of COVID deaths are reported within 10 days. We set the standard deviation to 18; the UK study fit gamma delay distributions whose standard deviations were roughly 90\% of their means. 
+
 
 % However, we set the default choice of lag as 19 days. This is motivated by a UK study finding a median hospitalization-to-death time of 11 days, and a CDC report that 63\% of deaths are reported within 10 days. The convolutional ratio uses an estimate of the hospitalization-to-death delay distribution. A common choice is a discrete gamma distribution, whose standard deviation is comparable to its mean. Empirically, we found a mean of 28 days and standard deviation of 21 days minimized the bias.
 
 \subsubsection{Validation Data}
-While the true HFRs are unknown, there are sound ways to approximate them. One such approach is to use line-list HFRs from the National Hospital Care Survey. The NHCS, a representative subset of hospitals across the US, recorded weekly HFRs from in-patient deaths. We smoothed these HFRs with a spline to account for inter-week variability. 
+While the true HFRs are unknown, there are sound ways to approximate them. One such approach is to use line-list HFRs from the National Hospital Care Survey \cite{NHCS2023}. The NHCS recorded weekly HFRs from inpatient deaths in a representative subset of 601 hospitals across the US. %We smoothed these HFRs with a spline to account for inter-week variability. 
 % \ahcomment{
 %     % Do you mean ``intra-week variability'' here?  inter-week variability
 %     % is what we want to have remain right?
@@ -222,7 +229,7 @@ While the true HFRs are unknown, there are sound ways to approximate them. One s
 %     \textcolor{blue}{The NHCS HFRs were reported weekly, and had a fairly high degree of noise.}
 % }
 
-HFRs obtained from aggregate hospitalization and death counts are significantly higher than those from NHCS because not all deaths occur in hospitals. A CDC analysis reported the percentage of inpatient deaths every month from 2020 through 2022; roughly 60\% of Covid deaths occurred in hospitals in 2022, down from nearly 70\% in 2021 and 2022. To account for non-inpatient deaths, we divided the NHCS curve by these percentages after again smoothing with a spline. 
+HFRs from aggregate hospitalization and death counts are significantly higher than those from NHCS because not all deaths occur in hospitals. A CDC analysis reported the percentage of inpatient deaths every month from 2020 through 2022; roughly 60\% of Covid deaths occurred in hospitals in 2022, down from nearly 70\% in 2021 and 2022. To account for non-inpatient deaths, we divided the NHCS curve by these percentages. Finally, we smoothed the resulting HFRs with a spline. To do so, we used the \texttt{smooth.spline} function in \texttt{R}, which chooses the smoothness hyperparameter with generalized cross validation. % after again smoothing with a spline. 
 % NOTE: The more principled thing to do is to divide by proportion of in-patient deaths L days from each timestep, because hospitalizations at t effect deaths after t. But this is more work to explain.
 
 % Let $\eta_t$ be the unscaled, smoothed NHCS HFRs. I'm not sure whether this is forward- or backward-looking; it just says it's the percentage of confirmed COVID-19 hospital encounters with a discharge status of in-hospital death, presented each week. I think this is forward looking? So they look at all hospitalizations for a given week with known discharge status, and calculate the rate that are deaths?
@@ -271,7 +278,7 @@ We further evaluated these methods on simulated deaths whose true HFRs is known.
 
 $$Y_t := \sum_{k=0}^d X_{t-k} \mathbb{P}(\text{die at $t$ }\vert\text{ hosp at }t-k) = \sum_{k=0}^d X_{t-k} \pi_k p_{t-k}.$$
 
-To mimic the real data, we first used the same HFRs from NHCS used for validation in \ref{sec:results_real}. We also inverted them and rescaled in order to simulate the opposite trend. Lastly, we explored a stationary HFR of 10\% over all time. In addition, we used the delay distributions that produced the most reasonable convolutional HFRs on the observed death counts. For NCHS, this was a gamma distribution with mean 11 and standard deviation 10; for JHU, these quantities were 28 and 21, respectively. 
+To mimic the real data, we first used the same HFRs from NHCS used for validation in \ref{sec:results_real}. We also inverted them and rescaled in order to simulate the opposite trend. Lastly, we explored a stationary HFR of 10\% over all time. In addition, we used the delay distributions that produced the most reasonable convolutional HFRs on the observed death counts. For NCHS, this was a gamma distribution with mean 11 and standard deviation 10; for JHU, these quantities were 28 and 21, respectively.  (TO DO: replace all this.)
 
 The ratio estimators used the oracle hyparameters: The true delay distribution for the convolutional ratio, and its mean for the lagged method. Estimates were not smoothed over a trailing window.
 
@@ -332,11 +339,27 @@ Section \ref{sec:analysis} claims that changes in primary incidence levels affec
 
 The absolute bias is monotonically decreasing in $\frac{X_{t}}{X_{t-\ell}}$, the proportion change in primary incidence. Rising primary incidence ($\frac{X_{t}}{X_{t-\ell}}>1)$ yields less bias, while falling levels yield more.
 
-Figure \ref{fig:chging_primary} displays this setting. Hospitalizations are defined as $X = \sigmoid(s)*9000+1000$, where $s$ takes 300 evenly spaced steps from -9 to 7. The true HFRs fall from 0.5 to 0 over the same number of even steps. Indeed, the convolutional ratio's bias dips as hospitalizations rise, and rises as they fall. 
+Figure \ref{fig:chging_primary} displays this setting. Hospitalizations are defined as $X = \sigma(s)*9000+1000$, where $\sigma$ is the sigmoid function and $s$ takes 300 evenly spaced steps from -9 to 7. The true HFRs fall from 0.5 to 0 over the same number of even steps. Indeed, the convolutional ratio's bias dips as hospitalizations rise, and rises as they fall. 
 
 When daily hospitalizations approach a constant level, the two estimators become the same ratio, so their biases converge. During periods of change, however, the lagged estimator has different bias. It oscillates up and down, reaching higher bias than the convolutional ratio. 
 
 TO DO: ANALYZE WHY THIS HAPPENS.
+
+\section{Retrospective Deaths}
+
+JHU presented daily deaths in real time, aligned by the date they were reported. In contrast, the National Center for Health Statistics (NCHS) provided weekly totals for deaths aligned by occurrence, and were not available in real time. Thus, delay distributions with NCHS deaths have a lighter tail. 
+
+Figure \ref{fig:jhu_vs_nchs} shows this minor change has a significant effect on the bias. It compares the real-time lagged ratios (Eq. \ref{eq:lagged}) with deaths sourced from JHU and NCHS. JHU is much more biased during the Alpha, Delta, and Omicron periods discussed. For example, NCHS only rises from 12\% to 14\% as Omicron falls, far below JHU's surge above 25\%. As analyzed in \ref{sec:analysis}, JHU's heavier-tailed delay distribution inflates the influence of dates with higher HFRs than the present.
+
+% The shape of the delay distribution plays a significant role in the bias. 
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.7\linewidth]{Figs/jhu_vs_nchs.png}
+    \caption{Real-time Lagged Ratios, JHU vs NCHS deaths. Seven-day smoothing with 19- and 11-day lags, respectively.}
+    \label{fig:jhu_vs_nchs}
+\end{figure}
+
 
 \section{Alternative Ground Truth}\label{apx:alt_gt}
 
@@ -397,15 +420,5 @@ TO DO: Different delay distribution
 
 TO DO: Different state
 
-\section{Retrospective Deaths}
-
-The shape of the delay distribution plays a significant role in the bias. Figure \ref{fig:jhu_vs_nchs} compares the real-time lagged ratios with deaths sourced from JHU and NCHS. JHU is much more biased during the Alpha, Delta, and Omicron periods discussed. For example, NCHS only rises from 12\% to 14\% as Omicron falls, far below JHU's surge above 25\%. The difference can be primarily attributed to JHU having a much heavier-tailed delay distribution. As analyzed in \ref{sec:analysis}, this inflates the influence of dates with higher HFRs than the present.
-
-\begin{figure}
-    \centering
-    \includegraphics[width=0.7\linewidth]{Figs/jhu_vs_nchs.png}
-    \caption{Real-time Lagged Ratios, JHU vs NCHS deaths. Seven-day smoothing with 19- and 11-day lags, respectively.}
-    \label{fig:jhu_vs_nchs}
-\end{figure}
 
 \end{document}
