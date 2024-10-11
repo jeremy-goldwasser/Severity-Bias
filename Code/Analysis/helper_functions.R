@@ -4,19 +4,19 @@ library(extraDistr)
 
 ################ LAGGED HFR ################
 compute_lagged_hfr <- function(hosps, deaths, t, l=19, w=1,
-                               real_time=TRUE, weekly=FALSE) {
-  # Real-time estimator: forward=FALSE, centered=FALSE
+                               real_time=TRUE, centered=NA) {
+  # real_time is same as forward-looking (previously)
+  # also removed weekly, which made sure rounding to nearest multiple of 7
   w <- ifelse(w==0, 1, w)
   if (is.Date(date) == FALSE) {
     t <- as.Date(t)
   }
-  n_into_past <- ifelse(real_time, w-1, floor((w-1)/2))
-  n_into_future <- ifelse(real_time, 0, max(0, floor(w/2)))
-  if (weekly) { # data is weekly, so make sure rounding to nearest multiple of 7
-    n_into_past <- round(n_into_past/7)*7
-    n_into_future <- round(n_into_future/7)*7
-    l <- round(l/7)*7
+  
+  if (is.na(centered)) {
+    centered <- ifelse(real_time, FALSE, TRUE)
   }
+  n_into_past <- ifelse(centered, floor((w-1)/2), w-1)
+  n_into_future <- ifelse(centered, max(0, floor(w/2)), 0)
   if (real_time==FALSE) { # Y_{t+l}/X_{t}
     hosps_t <- sum(hosps[names(hosps)>=t-n_into_past & names(hosps)<=t+n_into_future])
     deaths_in_l <- sum(deaths[names(deaths)>=t+l-n_into_past & names(deaths)<=t+l+n_into_future])
@@ -31,12 +31,12 @@ compute_lagged_hfr <- function(hosps, deaths, t, l=19, w=1,
 }
 
 compute_lagged_hfrs <- function(hosps, deaths, l, w=1, 
-                                real_time=TRUE, dates=NULL, weekly=FALSE) {
+                                real_time=TRUE, dates=NULL, centered=NA) {
   if (is.null(dates)) {
     dates <- names(deaths)
   }
   lagged_hfrs <- sapply(dates, compute_lagged_hfr, l=l, w=w, real_time=real_time, 
-                        hosps=hosps,deaths=deaths, weekly=weekly)
+                        hosps=hosps,deaths=deaths, centered=centered)
   names(lagged_hfrs) <- dates
   return(lagged_hfrs)
 }
@@ -162,3 +162,10 @@ get_gamma_params <- function(Mean, Sd) {
   shape <- (Mean**2)/Var; rate <- Mean/Var
   return(c(shape, rate))
 }  
+
+make_delay_distr <- function(Mean, Sd, d) {
+  params <- get_gamma_params(Mean=Mean, Sd=Sd)
+  shape <- params[1]; rate <- params[2]
+  DelayShape <- ddgamma(0:d, shape, rate)
+  return(DelayShape)
+}

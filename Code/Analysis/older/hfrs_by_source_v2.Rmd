@@ -203,16 +203,13 @@ hfrsHJn <- compute_ahfrs_dynamic(hhs_hosps_daily, jhu_deaths_daily, est_weeks, d
 hfrsHNlretro <- compute_lagged_hfrs(hhs_hosps, nchs_deaths,
                               l=lag, w=7, dates=est_weeks, weekly=TRUE)
 
-
-
-
 ```
 
 ### Load NHCS HFRs
 ```{r}
 # nhcs_hfrs_all <- readRDS(file.path(data_folder, "smoothed_hfrs.RData"))
 # nhcs_hfr_dates <- as.Date(names(nhcs_hfrs_all))
-nhcs_hfrs_all <- readRDS(file.path(data_folder, "hfrs_rescaled.RData"))
+nhcs_hfrs_all <- readRDS(file.path(data_folder, "hfrs_rescaled_v2.RData"))
 nhcs_hfr_dates <- as.Date(names(nhcs_hfrs_all))
 
 # Make weekly

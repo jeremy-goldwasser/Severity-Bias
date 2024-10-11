@@ -17,7 +17,7 @@ library(patchwork)
 ```{r}
 # nhcs_hfrs_all <- readRDS(file.path(data_folder, "smoothed_hfrs.RData"))
 # nhcs_hfr_dates <- as.Date(names(nhcs_hfrs_all))
-nhcs_hfrs_all <- readRDS(file.path(data_folder, "hfrs_rescaled.RData"))
+nhcs_hfrs_all <- readRDS(file.path(data_folder, "hfrs_rescaled_v2.RData"))
 nhcs_hfr_dates <- as.Date(names(nhcs_hfrs_all))
 ```
 
@@ -50,35 +50,44 @@ axis(1, at = date_ticks, labels = format(date_ticks, "%Y-%m"))
 
 ## Get delay distribution
 
-Get delay distribution for Nishiura method
+Get delay distributions for Nishiura method
+
 ```{r}
-Ns <- c(28611, 1700, 16641, 16903)
-means <- c(10.20, 14.06, 14.84, 9.24)
-sds <- c(9.51, 14.31, 12.35, 7.64)
-gamma_mean <- sum(means*Ns/sum(Ns)) # Weighted average hosp-to-death time
-gamma_sd <- sum(sds*Ns/sum(Ns)) # Weighted average of SDs
-
-# delay_distr_short <- readRDS(file.path(data_folder, "delay_distr_short.RData"))
 d <- 75
-params <- get_gamma_params(Mean=gamma_mean, Sd=gamma_sd)
-shape <- params[1]; rate <- params[2]
+short_mean <- 12
+long_mean <- 24
+delay_distr_short <- make_delay_distr(Mean=short_mean, Sd=round(short_mean*.9), d)
+delay_distr_long <- make_delay_distr(Mean=long_mean, Sd=round(long_mean*.9), d)
+```
 
-delay_distr_short <- ddgamma(0:d, shape, rate)
-delay_mean <- sum(0:d*delay_distr_short)
-print(c(gamma_mean, delay_mean))
-print(c(gamma_sd, sqrt(sum(delay_distr_short*(0:d-delay_mean)**2))))
-plot(0:d, delay_distr_short)
-
-# Delay distribution for report date
-# gamma_mean_report <- round(gamma_mean) + 9
-# gamma_sd_report <- round(gamma_sd) + 6
-gamma_mean_report <- 28
-gamma_sd_report <- 21
-params <- get_gamma_params(Mean=gamma_mean_report, Sd=gamma_sd_report) 
-shape <- params[1]; rate <- params[2]
-delay_distr_long <- ddgamma(0:d, shape, rate)
-plot(0:d, delay_distr_long)
-
+```{r}
+# Ns <- c(28611, 1700, 16641, 16903)
+# means <- c(10.20, 14.06, 14.84, 9.24)
+# sds <- c(9.51, 14.31, 12.35, 7.64)
+# gamma_mean <- sum(means*Ns/sum(Ns)) # Weighted average hosp-to-death time
+# gamma_sd <- sum(sds*Ns/sum(Ns)) # Weighted average of SDs
+# 
+# # delay_distr_short <- readRDS(file.path(data_folder, "delay_distr_short.RData"))
+# d <- 75
+# params <- get_gamma_params(Mean=gamma_mean, Sd=gamma_sd)
+# shape <- params[1]; rate <- params[2]
+# 
+# delay_distr_short <- ddgamma(0:d, shape, rate)
+# delay_mean <- sum(0:d*delay_distr_short)
+# print(c(gamma_mean, delay_mean))
+# print(c(gamma_sd, sqrt(sum(delay_distr_short*(0:d-delay_mean)**2))))
+# plot(0:d, delay_distr_short)
+# 
+# # Delay distribution for report date
+# # gamma_mean_report <- round(gamma_mean) + 9
+# # gamma_sd_report <- round(gamma_sd) + 6
+# gamma_mean_report <- 28
+# gamma_sd_report <- 21
+# params <- get_gamma_params(Mean=gamma_mean_report, Sd=gamma_sd_report) 
+# shape <- params[1]; rate <- params[2]
+# delay_distr_long <- ddgamma(0:d, shape, rate)
+# plot(0:d, delay_distr_long)
+# 
 death_dates <- hosp_dates[(d+1):length(hosp_dates)]
 
 ```
@@ -189,6 +198,7 @@ ggplot(data=dfHFRflat, aes(x = Date, y = HFR, color = Method, linetype=Method)) 
         legend.title=element_blank())
 
 ```
+
 ```{r}
 flat_hfrs <- rep(0.1, length(nhcs_hfrs)); names(flat_hfrs) <- hosp_dates
 sim_deaths_long_flat <- sapply(death_dates, function(t) {

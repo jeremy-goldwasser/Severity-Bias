@@ -1,0 +1,146 @@
+---
+title: "Rescale NHCS HFRs"
+output: html_document
+date: "2024-09-27"
+---
+
+```{r}
+library(tidyverse)
+git_directory <- system("git rev-parse --show-toplevel", intern = TRUE)
+
+code_folder <- file.path(git_directory, "Code", "Analysis")
+source(file.path(code_folder, "helper_functions.R"))
+library(epidatr)
+library(extraDistr)
+library(stats)
+library(splines)
+
+data_folder <- file.path(git_directory, "Data", "National_Data")
+```
+
+
+```{r}
+# Define the months and corresponding percentages
+# months <- c(1, 4, 12, 19, 24, 31, 36)
+# percentages <- c(60, 80, 65, 40, 60, 40, 45)
+percentages <- c(65, 53, 76, 65, 58, 60, 66, 66, 64, 61, 58, 61,
+                 64, 67, 68, 69, 71, 66, 67, 71, 74, 73, 70, 71, 
+                 65, 63, 55, 41, 43, 45, 46, 46, 45, 44, 45, 48)
+months <- seq(as.Date("2020-01-01"), as.Date("2022-12-01"), by="month")
+in_hosp_days <- seq(as.Date("2020-01-01"), as.Date("2022-12-31"), by="day")
+
+```
+
+
+
+## Get HFRs as smoothed (raw NHCS HFRs)/(raw monthly counts)
+
+```{r}
+# Convert raw HFRs to daily
+nhcs_hfrs_raw <- readRDS(file.path(data_folder, "raw_hfrs.RData"))
+raw_dates <- as.Date(names(nhcs_hfrs_raw))
+daily_hfr_dates <- seq(min(raw_dates), max(raw_dates)+6, by="day")
+hfrs_raw_daily <- approx(x = raw_dates, y = nhcs_hfrs_raw, xout = daily_hfr_dates, rule = 2)$y
+names(hfrs_raw_daily) <- daily_hfr_dates
+
+rescaled_hfr_dates <- as.Date(intersect(daily_hfr_dates, in_hosp_days))
+
+# Perform piecewise constant interpolation
+pct_deaths_in_hospital <- approx(x = as.numeric(months), y = percentages, 
+                                 xout = as.numeric(in_hosp_days), 
+                                 method = "constant", rule = 2)$y
+
+# Take ratio of raw HFRs / raw monthly percentages
+frac_deaths_in_hospital_sub <- pct_deaths_in_hospital[in_hosp_days %in% rescaled_hfr_dates]/100
+nhcs_hfrs_sub <- hfrs_raw_daily[daily_hfr_dates %in% rescaled_hfr_dates]
+
+nhcs_hfrs_rescaled_raw <- nhcs_hfrs_sub/frac_deaths_in_hospital_sub
+
+
+# Smooth with spline 
+spline_model <- smooth.spline(as.numeric(rescaled_hfr_dates), nhcs_hfrs_rescaled_raw, spar=0.6)
+smoothed_hfrs <- predict(spline_model, x = as.numeric(rescaled_hfr_dates))$y; names(smoothed_hfrs) <- rescaled_hfr_dates
+
+saveRDS(smoothed_hfrs, file.path(data_folder, "hfrs_rescaled_v2.RData"))
+
+```
+
+
+## Load real hospitalizations and deaths
+
+
+```{r}
+
+jhu_df <- data.frame(pub_covidcast(source="jhu-csse", signals="deaths_7dav_incidence_num",
+                                    geo_type = "nation", geo_values="*", 
+                                    time_type="day")) 
+max_jhu_date <- as.Date("2023-03-01")
+idx <- (jhu_df$time_value <= max_jhu_date)
+jhu_deaths_daily <- jhu_df$value[idx]
+death_dates <- jhu_df$time_value[idx]
+names(jhu_deaths_daily) <- death_dates
+
+```
+
+## Experimental validation
+
+```{r}
+hhs_df <- data.frame(pub_covidcast(source="hhs",signals= "confirmed_admissions_covid_1d_7dav", 
+                                   geo_type = "nation", geo_values="*", 
+                                   time_type="day"))
+first_hosp_date <- as.Date("2020-07-28")
+hosp_idx <- (hhs_df$time_value >= first_hosp_date) & (hhs_df$time_value <= max_jhu_date)
+hosp_dates <- hhs_df$time_value[hosp_idx]
+hhs_hosps_daily <- hhs_df$value[hosp_idx]; names(hhs_hosps_daily) <- hosp_dates
+
+```
+
+
+
+
+```{r}
+d <- 75
+params <- get_gamma_params(Mean=25, Sd=20) 
+shape <- params[1]; rate <- params[2]
+delay_shape <- ddgamma(0:d, shape, rate)
+delay_mean <- sum(0:d*delay_shape)
+lag <- round(delay_mean)
+
+# Will use for common rescaling
+est_weeks <- hosp_dates[seq(100, length(hosp_dates)-100, by=7)]
+jhu_deaths_est <- jhu_deaths_daily[names(jhu_deaths_daily) %in% est_weeks] # Weekly total
+hhs_hosps_est <- hhs_hosps_daily[names(hhs_hosps_daily) %in% est_weeks]
+
+# Rescaled NHCS HFR divides by percentage of deaths in hospital L days later
+est_days <- seq(min(est_weeks)-d, max(est_weeks), by="day")
+nhcs_hfrs_all <- readRDS(file.path(data_folder, "smoothed_hfrs.RData"))
+nhcs_hfrs_sub <- nhcs_hfrs_all[as.Date(names(nhcs_hfrs_all)) %in% est_days]
+
+trans2 <- mean(jhu_deaths_est)/mean(hhs_hosps_est)/mean(smoothed_hfrs)
+nhcs_hfrs_rescaled2 <- smoothed_hfrs[names(smoothed_hfrs) %in% est_days]
+
+trans3 <- mean(jhu_deaths_est)/mean(hhs_hosps_est)/mean(nhcs_hfrs_sub)
+nhcs_hfrs_rescaled3 <- nhcs_hfrs_sub*trans2
+
+exp_deaths_est2 <- sapply(est_weeks, function(t) {
+  trailing_dates <- seq(t-d, t, by="day")
+  trailing_hfrs <- nhcs_hfrs_rescaled2[est_days %in% trailing_dates]*trans2
+  hosps_in_trailing_window <- hhs_hosps_daily[names(hhs_hosps_daily) %in% trailing_dates]
+  exp_deaths <- sum(hosps_in_trailing_window * trailing_hfrs * rev(delay_shape))
+})
+exp_deaths_est3 <- sapply(est_weeks, function(t) {
+  trailing_dates <- seq(t-d, t, by="day")
+  trailing_hfrs <- nhcs_hfrs_sub[est_days %in% trailing_dates]*trans3
+  hosps_in_trailing_window <- hhs_hosps_daily[names(hhs_hosps_daily) %in% trailing_dates]
+  exp_deaths <- sum(hosps_in_trailing_window * trailing_hfrs * rev(delay_shape))
+})
+versions <- c("JHU", "Expected (smooth raw ratio)", "Expected (naive rescaling)")
+deathsDF <- data.frame(Date=rep(est_weeks,3),
+                       Deaths=c(jhu_deaths_est, exp_deaths_est2, exp_deaths_est3),
+                       Source=factor(rep(versions, each=length(est_weeks)), levels=versions))
+ggplot(deathsDF, aes(x=Date, y=Deaths, color=Source, linetype=Source)) + geom_line() +
+  ggtitle("True vs Expected Deaths, Rescaled HFRs") + 
+  theme(legend.position = "bottom", legend.title=element_blank())
+
+```
+

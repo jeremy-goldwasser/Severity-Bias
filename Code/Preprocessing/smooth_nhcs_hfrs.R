@@ -1,3 +1,4 @@
+setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 git_directory <- system("git rev-parse --show-toplevel", intern = TRUE)
 data_folder <- file.path(git_directory, "Data", "National_Data")
 
@@ -28,30 +29,18 @@ df2 <- filter(df, Setting=="IP") %>%
 df2$HFR <- df2$HFR/100
 weeks <- df2$Week
 
-head(df2)
+raw_weekly_hfrs <- df2$HFR; names(raw_weekly_hfrs) <- weeks
+saveRDS(raw_weekly_hfrs, file.path(data_folder, "raw_hfrs.RData"))
 
-####### Smooth with trend filtering #######
-# library(genlasso)
-
-# obj <- trendfilter(df2$HFR, ord=2)
-# cv.obj <- cv.trendfilter(obj)
-# plot(cv.obj)
-# lambda <- cv.obj$lambda.min
-# idx <- which(obj$lambda==lambda)
-# idx
-# smoothed_weekly_hfrs <- obj$beta[,idx]
-
+####### Smooth with spline #######
 spline_model <- smooth.spline(as.numeric(weeks), df2$HFR)
 smoothed_weekly_hfrs <- predict(spline_model, as.numeric(weeks))$y
 names(smoothed_weekly_hfrs) <- weeks
-plot(weeks, df2$HFR, type="l")
+plot(weeks, df2$HFR, type="l", xlab="Date", ylab="HFR", main="Raw and smoothed NHCS HFRs")
 lines(weeks, smoothed_weekly_hfrs, col="red")
-# lines(weeks, smoothed_weekly_hfrs2, col="blue")
 
-
-####### Convert weekly to daily with spline interpolation #######
+# Convert weekly to daily
 days <- seq(min(weeks), max(weeks)+6, by="day")
-
 smoothed_daily_hfrs <- spline(weeks, smoothed_weekly_hfrs, n=length(days))$y
 names(smoothed_daily_hfrs) <- days
 
