@@ -26,7 +26,7 @@
 
 A number of public health metrics express the probability that a second, more serious outcome will follow a primary event. For example, the Case-Fatality Rate (CFR) is commonly used as a proxy for the underlying Infection-Fatality Rate (IFR) to assess the intensity of an epidemic. Other examples of such “severity rates” include the Hospitalization-Fatality Rate and Case-Hospitalization Rate. 
 
-In an ideal setting, severity rates can be obtained directly from line-list data of individual patient outcomes \cite{HFR_line_list1,HFR_linelist2,HFR_linelist3,cfr_line_list}. In fast-moving epidemics like Covid-19, however, large-scale tracking is infeasible, especially in real-time \cite{UKpaper}. Instead, these rates are estimated from aggregate count data. While many works assume they are constant over time \cite{reich2012estimating,ghani,jewell2007nonparametric,lancet_controversial}, in reality they are constantly changing in response to factors such as new therapeutics, vaccines, and variants \cite{nyt}. Time-varying severity rates are typically estimated with a ratio of the two aggregate data streams such as cases and deaths. These ratios have been widely used to report Covid CFRs, both in academic literature \cite{germany,horita2022global,timevar_ifr,yuan2020monitoring,LIU2023100350} and major news publications like the Atlantic \cite{atlantic} and Wall Street Journal \cite{wsj}. While other methods exist, ratio estimators are so common that IFR, for example, is often referred to as the Infection-Fatality \textit{Ratio} \cite{timevar_ifr, lancet_ifr}.
+In an ideal setting, severity rates can be obtained directly from line-list data of individual patient outcomes \cite{HFR_line_list1,HFR_linelist2,HFR_linelist3,cfr_line_list}. In fast-moving epidemics like COVID-19, however, large-scale tracking is infeasible, especially in real-time \cite{UKpaper}. Instead, these rates are estimated from aggregate count data. While many works assume they are constant over time \cite{reich2012estimating,ghani,jewell2007nonparametric,lancet_controversial}, in reality they are constantly changing in response to factors such as new therapeutics, vaccines, and variants \cite{nyt}. Time-varying severity rates are typically estimated with a ratio of the two aggregate data streams such as cases and deaths. These ratios have been widely used to report COVID CFRs, both in academic literature \cite{germany,horita2022global,timevar_ifr,yuan2020monitoring,LIU2023100350} and major news publications like the Atlantic \cite{atlantic} and Wall Street Journal \cite{wsj}. While other methods exist, ratio estimators are so common that IFR, for example, is often referred to as the Infection-Fatality \textit{Ratio} \cite{timevar_ifr, lancet_ifr}.
 
 In this work, we demonstrate these ratio estimators exhibit fundamental statistical bias, and identify three factors that drive it. Bias arises as a consequence of changing severity rates, precisely when time-varying estimates should be most useful. This bias may be influenced by changes in primary incidence levels, as well as long time delays between events. During COVID-19, the ratio estimators would have failed to quickly identify the rise in hospitalization-fatality rate (HFR) during the onset of the Delta wave. After the initial Omicron surge, the ratios spiked as the true HFRs fell. We study the sources of this bias, and suggest alternative methodology which overcomes it.
 % For example, 
@@ -44,7 +44,7 @@ The time-varying severity rate is defined as
 
 Let $\{X_t\}$, $\{Y_t\}$ denote the time series of interest. In the case of CFR, for example, $X_t$ and $Y_t$ are the total number of new cases and deaths, respectively, at day $t$. 
 
-The canonical estimator for time-varying severity rates is a ratio between $X_t$ and $Y_t$ events, offset by a lag $L$. This lagged approach is formally introduced in \citeauthor{thomas2021estimating}, but had been used in prior works. The real-time estimator only uses data until the present timestep $t$: 
+The canonical estimator for time-varying severity rates is a ratio between $X_t$ and $Y_t$ events, offset by a lag $\ell$. This lagged approach is formally introduced in \citeauthor{thomas2021estimating}, but had been used in numerous prior works, e.g. \cite{germany,horita2022global,timevar_ifr,yuan2020monitoring,LIU2023100350,atlantic,wsj}. The real-time estimator only uses data until the present timestep $t$: 
 %_{t=1}^T
 \begin{equation}\label{eq:lagged}
     \hat{p}_t^{\text{Lagged}} = \frac{Y_t}{X_{t-L}}
@@ -79,129 +79,196 @@ This estimator is widely used in practice \cite{nishiuraEx1, nishiuraEx2, Russel
     \hat{p}_t^{\text{Conv}} = \frac{Y_t}{\sum_{k=0}^d X_{t-k}\hat\pi_k}.%^{(t-k)}
 \end{equation}
 
-\noindent This convolutional ratio can be understood as a generalization of Equation \ref{eq:lagged}. It reduces to the same ratio if all secondary events occur after $L$ days, or if primary events are constant. Otherwise, it expresses a more accurate relation the two time series. In practice, however, we have not come across work that applies it for time-varying estimation. Rather, the lagged ratio is standard \cite{germany,horita2022global,timevar_ifr,yuan2020monitoring,LIU2023100350}.
+\noindent This convolutional ratio can be understood as a generalization of Equation \ref{eq:lagged}. It reduces to the same ratio if $\hat{\pi}$ is a point mass distribution where all secondary events occur after $\ell$ days. They also are equivalent if primary events are constant. Otherwise, it expresses a more accurate relation the two time series. In practice, however, we have not come across work that applies it for time-varying estimation. Rather, the lagged ratio is standard.
 
 % The ratios in Equations \ref{eq:lagged} and \ref{eq:conv} track a time-varying severity rate. To estimate the average rate over all time, they are often used with cumulative counts. That is, each time series is the sum of all counts from the first timestep. This version of Eq. \ref{eq:conv} is unbiased if the severity rate is stationary, and is widely used in practice \cite{nishiura}. For the time-varying setting, however, the lagged ratio is much more common.
 
 To stabilize estimates, smoothed counts are often used in practice \cite{germany,timevar_ifr,LIU2023100350}. For the sake of simplicity of presentation, we generally focus on the versions described above. However, we formalize the smoothed versions in Equations \ref{eq:laggedSmooth} and \ref{eq:convSmooth}, and analyze them experimentally.
 
 
-\subsection{Mathematical Analysis}\label{sec:analysis}
+\subsection{Well-Specified Analysis}\label{sec:analysis}
 
-In this section, we demonstrate that these time-varying severity ratios are biased when the true rates are changing. Assume the true delay distribution is a constant $\pi$ over all time with maximum length $d$. We first analyze the convolutional ratio (Eq. \ref{eq:conv}), assuming the oracle delay distribution $\pi$ is known.
+In this section, we demonstrate that these time-varying severity ratios are biased when the true rates are changing. Assume the true delay distribution is a constant $\pi$ over all time with maximum length $d$. We first analyze the convolutional ratio (Eq. \ref{eq:conv}), assuming oracle knowledge of the true delay distribution $\pi$.
 
 % The analysis for the lagged ratio is similar, as we will show at the end.
 
 \begin{align}\label{eq:ConvBias}
-    \text{Bias}(\hat{p}_t^\text{Conv}) &= E[\hat{p}_t^\text{Conv}] - p_t = \frac{E[Y_t]}{\sum_{k=0}^d X_{t-k}\pi_k} - p_t \nonumber\\ 
+    \text{Bias}(\hat{p}_t^\text{OracleConv}) &= E[\hat{p}_t^\text{OracleConv}] - p_t = \frac{E[Y_t]}{\sum_{k=0}^d X_{t-k}\pi_k} - p_t \nonumber\\ 
     &= \frac{\sum_{k=0}^d X_{t-k}\pi_k p_{t-k}}{\sum_{k=0}^d X_{t-k}\pi_k} - \frac{p_t \sum_{k=0}^d X_{t-k}\pi_k}{\sum_{k=0}^d X_{t-k}\pi_k}\nonumber\\
     &= \sum_{k=0}^d \frac{X_{t-k}\pi_k}{\sum_{j=0}^d X_{t-j}\pi_j} (p_{t-k}-p_t).
 \end{align}
 
 The degree of bias in Eq. \ref{eq:ConvBias} depends on three factors.
 \begin{enumerate}
-    \item \textbf{Changes in severity rate}. The central component of this bias expression is the $p_{t-k}-p_t$ term. When severity rates are constant in the $d$ preceding days, this estimator is unbiased. This is in line with the unbiasedness of estimator using cumulative counts assuming a globally stationary rate \cite{nishiura}. But when severity rates change before $t$, the numerator will likely not equal 0, in which case the estimator will be biased. Figure \ref{fig:onehot} illustrates this: The estimated severity rates are most inaccurate at periods where the true rate is changing sharply. 
+    \item \textbf{Changes in severity rate}. The central component of this bias expression is the $p_{t-k}-p_t$ term. When severity rates are constant in the $d$ preceding days, this estimator is unbiased. This is in line with the unbiasedness of estimator using cumulative counts assuming a globally stationary rate \cite{nishiura}. But when severity rates change before $t$, the numerator will likely not equal 0, in which case the estimator will be biased. Figures \ref{fig:toy_hfr} and \ref{fig:onehot} illustrate this: The estimated severity rates are most inaccurate at periods where the true rate is changing sharply. 
 
 The bias is in the opposite direction of the trend we want to detect. For example, if the severity rate is falling, then $p_{t-k} > p_t$ for many $k\in \{1, \ldots, d\}$. As a result, the bias is positive, meaning the ratio estimates do not decline at the true rate. In fact, the estimated severity may even rise, not fall. Conversely, when true severity rates are rising, the ratio estimates will be too low. %This is especially troubling, as increases in risk may not be quickly detected by these real-time estimators.
 
-    \item \textbf{The delay distribution}. How much the changing severity rates impact the bias depends on the shape of the delay distribution. In general, the bias is greatest when the delay distribution is long-tailed enough to upweight significant differences in severity rate. While this distinction may appear subtle, the Results section highlights its surprisingly large effects. The simple example in Fig. \ref{fig:onehot} shows significant differences in bias between shorter and longer delay distributions. 
+    \item \textbf{The delay distribution}. How much the changing severity rates impact the bias depends on the shape of the delay distribution. In general, the bias is greatest when the delay distribution is long-tailed enough to upweight significant differences in severity rate. While this distinction may appear subtle, the Results section highlights its surprisingly large effects. The simple example in Figures \ref{fig:toy_delay} and \ref{fig:onehot} shows significant differences in bias between shorter and longer delay distributions. 
 
-\ahcomment{
-    In this and maybe the other examples, a figure would help the reader...
-    \begin{enumerate}
-        \item (For example) in black: the true $p_t$ as outlined
-        above
-        \item in blue (matplotlib C0): $\hat p_t^{\text conv}$ 
-        for a delay distribution that has all mass within first 
-        $m$ days
-        \item in orange (C1) : $\hat p_t^{\text conv}$ with delay 
-        distribution that has mass outside first $m$ days
-    \end{enumerate}
-    If we can also plot the convolutional kernels and show how 
-    they spread mass differently, in ways that produce more / less
-    bias, that would be useful too..
+% \ahcomment{
+%     In this and maybe the other examples, a figure would help the reader...
+%     \begin{enumerate}
+%         \item (For example) in black: the true $p_t$ as outlined
+%         above
+%         \item in blue (matplotlib C0): $\hat p_t^{\text conv}$ 
+%         for a delay distribution that has all mass within first 
+%         $m$ days
+%         \item in orange (C1) : $\hat p_t^{\text conv}$ with delay 
+%         distribution that has mass outside first $m$ days
+%     \end{enumerate}
+%     If we can also plot the convolutional kernels and show how 
+%     they spread mass differently, in ways that produce more / less
+%     bias, that would be useful too..
 
-    Especially given that there are plots in the results section that show
-    evolving bias over a two-year period, showing how the
-    bias can be constructed in these toy examples visually can
-    prepare the reader to break down what they see in the
-    subsequent sections more easily
-}
+%     Especially given that there are plots in the results section that show
+%     evolving bias over a two-year period, showing how the
+%     bias can be constructed in these toy examples visually can
+%     prepare the reader to break down what they see in the
+%     subsequent sections more easily
+% }
 
-\item \textbf{The primary incidence curve.} Changing primary incidences will also affect the bias, presuming the severity rate changes roughly monotonically in the recent past. Intuitively, this up- or down-weights the terms $X_{t-k}\pi_k(p_{t-k} - p_t)$ for dates further from the present, which are likely to contribute the most bias. Falling primary incidences will amplify the bias, whereas rising events will minimize it. Fig. \ref{fig:chging_primary} illustrates this trend on the convolutional ratio. This relation is not quite as straightforward for the lagged ratio, analyzed in Appendix \ref{apx:analysis}. 
+\item \textbf{The primary incidence curve.} Changing primary incidences will also affect the bias, presuming the severity rate changes roughly monotonically in the recent past. Intuitively, this up- or down-weights the terms $X_{t-k}\pi_k(p_{t-k} - p_t)$ for dates further from the present, which are likely to contribute the most bias. Falling primary incidences will amplify the bias, whereas rising events will minimize it. Figures \ref{fig:toy_primary} and \ref{fig:chging_primary} visualize this trend on the convolutional ratio. %This relation is not quite as straightforward for the lagged ratio, analyzed in Appendix \ref{apx:analysis}. 
 
 \end{enumerate}
 
+% zzz
+
 \begin{figure}
      \centering
-     \begin{subfigure}[b]{0.45\linewidth}
+     \begin{subfigure}[b]{0.32\linewidth}
          \centering
-         \includegraphics[width=\linewidth]{Figs/sim_onehot.png}
-         \caption{All deaths after $\ell$ days. HFR ratios equivalent; plotting delays of $\ell=14$ and 28 days.}
-         \label{fig:onehot}
+         \includegraphics[width=\linewidth]{Figs/toy_chging_hfr.png}
+         \caption{}
+         \label{fig:toy_hfr}
      \end{subfigure}
-     \hfill
-     \begin{subfigure}[b]{0.45\linewidth}
+     % \hfill
+     \begin{subfigure}[b]{0.32\linewidth}
          \centering
-         \includegraphics[width=\linewidth]{Figs/sim_chging_primary.png}
-         \caption{Changing primary incidence. Plotting bias of lagged and convolutional ratios.}
-         \label{fig:chging_primary}
+         \includegraphics[width=\linewidth]{Figs/toy_delay_distr.png}
+         \caption{}
+         \label{fig:toy_delay}
      \end{subfigure}
-        \caption{Simple examples of severity rate bias. Analysis in Appendix \ref{apx:analysis}.}
-        \label{fig:bias_ex}
+     % \hfill
+     \begin{subfigure}[b]{0.32\linewidth}
+         \centering
+         \includegraphics[width=\linewidth]{Figs/toy_chging_primary.png}
+         \caption{}
+         \label{fig:toy_primary}
+     \end{subfigure}
+        \caption{Simple examples of severity rate bias. NCHS HFRs and HHS hospitalizations from early 2022. Using fitted delay distribution (\ref{sec:setup}).}
+        \label{fig:bias_ex_main}
 \end{figure}
 
 
-% Empirically, we observe roughly the same biases in the lagged ratio. Its bias expression is highly similar:
-This bias expression for the lagged ratio obeys roughly the same structure:
+As noted previously, the convolutional ratio is equivalent to the lagged ratio if $\hat\pi$ is a point mass distribution at $\ell$. In this oracle setting, this indicates all secondary events occur after exactly $\ell$ days, a highly unrealistic situation. Nevertheless, if this is the case, then 
+
+$$\text{Bias}(\hat{p}_t^\text{Lagged}) = \text{Bias}(\hat{p}_t^\text{Conv}) = p_{t-\ell}-p_t.$$
+\noindent This toy setting and others are discussed in Appendix \ref{apx:analysis}.
+
+\subsection{Misspecified Analysis}
+
+The above section considered the bias of the convolutional ratio where the true delay distribution is known. We now consider the more general case, in which it is instead replaced with a plug-in estimate. Nevertheless, we still assume this distribution is constant over time, and its length $d$ exceeds that of the plug-in distribution. Note the bias of the lagged estimator is a special case, where the plug-in distribution has all its mass at the lag time $\ell$. 
+% Our analysis only assumes the length of the plug-in distribution is less than $d$, the length of the true distribution.
+\begin{align}\label{eq:MispBias}
+    \text{Bias}(\hat{p}_t) &= \frac{E[Y_t]}{\sum_{k=0}^d X_{t-k}\hat\pi_k} - p_t \nonumber\\
+    &= \frac{\sum_{k=0}^d X_{t-k}\pi_k p_{t-k}}{\sum_{k=0}^d X_{t-k}\hat\pi_k} - \frac{\sum_{k=0}^d X_{t-k}\hat\pi_k p_t}{\sum_{k=0}^d X_{t-k}\hat\pi_k}\nonumber \\
+    &= \sum_{k=0}^d \frac{X_{t-k}}{\sum_{j=0}^d X_{t-j}\hat\pi_j}(\pi_k p_{t-k}-\hat\pi_k p_t)\nonumber \\
+    &= \sum_{k=0}^d \frac{X_{t-k}}{\sum_{j=0}^d X_{t-j}\hat\pi_k}(\pi_k p_{t-k}-(\pi_k +\hat\pi_k-\pi_k) p_t)\nonumber \\
+     &= \sum_{k=0}^d \frac{X_{t-k}\pi_k}{\sum_{j=0}^d X_{t-j}\hat\pi_j}(p_{t-k}-p_t) +\nonumber\\
+     &\qquad\qquad p_t\sum_{k=0}^d \frac{X_{t-k}}{\sum_{j=0}^d X_{t-j}\hat\pi_j}(\hat\pi_k -\pi_k) 
+\end{align}
+% This can be further decomposed into the oracle error \ref{eq:ConvBias}. Letting $\hat\Delta_k = \hat\pi_k - \pi_k$,
+
+For the lagged estimator,
 
 \begin{align}\label{eq:LagBias}
-    \text{Bias}(\hat{p}_t^\text{Lagged}) &= \frac{E[Y_t]}{X_{t-L}} - p_t \nonumber\\ 
-    &= \frac{\sum_{k=0}^d X_{t-k}\pi_k p_{t-k}}{X_{t-L}} - \frac{X_{t-L} p_t}{X_{t-L}} \nonumber\\
-    &= \frac{\sum_{k=0}^d \pi_k\Big( X_{t-k} p_{t-k}-X_{t-L} p_t\Big)}{X_{t-L}}.
+    \text{Bias}(\hat{p}_t^\text{Lagged}) &=  \sum_{k=0}^d \frac{X_{t-k}}{X_{t-\ell}}(\pi_k p_{t-k}-\mathds\{k=\ell\} p_t) \nonumber \\
+    &= \sum_{k=0}^d \pi_k \Big(\frac{X_{t-k}}{X_{t-\ell}} p_{t-k} - p_{t} \Big).
 \end{align}
 
-\noindent Again, the bias will be positive when the HFR is falling, and vice versa. Indeed, empirically the two ratio estimators are shown to have similar bias (Section \ref{sec:results}). However, Eq. \ref{eq:LagBias} is more difficult to analyze due to its reliance on the lag $L$, hence this section's focus on the convolutional ratio.
+The only difference between the first term in the final equality of Eq. \ref{eq:MispBias} and Eq \ref{eq:ConvBias} is the true versus plug-in delay distribution in the denominator of the weighting term. 
 
-\ahcomment{
-Can we frame discussion of the bias for the lagged
-estimator through Bias Factor 2, 
-``shape of the delay distribution'', and use
-the fact that the lagged estimator is a
-convolution estimator with
-$\pi=1\{k=L\}$?  How does that interact with the
-Example given for Bias Factor 2?
+\textcolor{red}{It would be ideal if we could say something about the misspecified bias in terms of the \textit{actual} oracle bias plus a misspecification term. This is clearly not possible from the previous equation, since the $\hat\pi_j$ in the denominator cannot be factored out by any means.}
 
-In fact, in the spirit of Ryan's question, 
-``if I were a referee, I would ask how the bias
-is affected by different choices of convolutional
-kernel in the estimator (if not the oracle),
-and by different choices of lag --- would it 
-make sense to do \eqref{eq:ConvBias} without 
-assuming the oracle delay distribution is known;
-obtaining a bias expression that has
-separate $\hat\pi$ from oracle $\pi$, and then
-specializing it to the cases where we know
-the oracle, so $\hat\pi=\pi$, and where
-$\hat\pi$ puts all mass on $L$?
+\textcolor{red}{It is possible to express this as a bound, after making a strange assumption about the delay distribution. However, what the bounds tell us is not interesting. Depending on the direction of the bias \& the assumption, it either provides 
+\begin{enumerate}
+    \item An unsatisfying lower bound - unsatisfying in that the lower bound may be considerably \textit{better} than the oracle estimator's bias.
+    \item A worst-case bound. This isn't particularly interesting, since we're more interested in showing that the bias with misspecified delay distribution is demonstrably bad.
+\end{enumerate}
+I'm happy to write up these bounds, but I don't think they're interesting enough to make their way into the main paper.}
 
-I'm not specifically saying this should be done;
-just that we should consider doing it if it
-streamlines the exposition/clarifies the differences.
+\textcolor{red}{Lastly, I looked into the mean squared error of this misspecified estimator. Can we break the MSE into oracle and plug-in error terms? Unfortunately, the answer again appears to be no. The expression also has the plug-in distribution in a denominator that cannot be nicely analyzed.}
+
+\textcolor{blue}{In light of all of this, I think it is most sensible to just write a paragraph or two on the bias expressions as presented. There still are relatively interesting things to say:
+\begin{enumerate}
+    \item It decomposes into *roughly* an oracle and misspecification term, though the oracle term is deeply reliant on the plug-in delay distribution;
+    \item The lagged bias has a ratio of primary incidence, comparing $k$ days ago to the lag time $\ell$. This reliance yields interesting results. e.g. In Figure \ref{fig:chging_primary}, as hospitalizations start to decline, lagged bias falls while oracle convolutional bias rises.
+\end{enumerate}
 }
+% If we assume $\sum_{j=0}^d X_{t-j}\pi_j = \sum_{j=0}^d X_{t-j}\hat\pi_j$, then 
 
-\rjtcomment{I realized the following: in (5), we're assuming that the convolutional model is well-specified (and that the estimator uses the oracle delay distribution) but in (6), we have not assumed that the lagged model is well-specified. In other words, we've looked at the well-specified bias of the convolutional estimator in (5), but the mis-specified bias of the lagged estimator in (6). I think this is why it's hard to interpret the latter, and creates some confusion.
+% \begin{align}\label{eq:ConvBiasMisp}
+%     \text{Bias}(\hat{p}_t^\text{Conv}) = \text{Bias}(\hat{p}_t^\text{OracleConv}) + p_t\sum_{k=0}^d \frac{X_{t-k}}{\sum_{j=0}^d X_{t-j}\hat\pi_j}(\hat\pi_k -\pi_k).
+% \end{align}
+% The misspecification error can be bounded by noting : $p_t$. 
+% The misspecification error is a weighted average of the differences in delay distributon 
 
-If we assume that the lagged model is well-specified, the (5) becomes easy to interpret (just like AH says in his comment above ... because in this case can just interpret this in the context of the point \#2 in the discussion of the convolutional estimator). This is a particular (point mass) delay distribution. If this aligns with a big change in the severity rate, then the bias will be high. Right?}
 
-% How do estimates of $\hat\pi$ affect the bias
-% and how do different choices of L affect the bias?
-% Can it be made arbitrarily large based on certain
-% design settings?
 
-\subsection{Experimental Setup}
+\textcolor{brown}{For the sake of legibility, I've hidden Addison and Ryan's commentary encouraging this investigation into misspecification error. It's entirely possible there's stuff I've missed; feel free to uncomment parts out if need be.}
+
+% \subsection{Misspecified Analysis (older commentary)}
+
+% % This bias expression for the lagged ratio obeys roughly the same structure:
+
+% % \begin{align}\label{eq:LagBias}
+% %     \text{Bias}(\hat{p}_t^\text{Lagged}) &= \frac{E[Y_t]}{X_{t-L}} - p_t \nonumber\\ 
+% %     &= \frac{\sum_{k=0}^d X_{t-k}\pi_k p_{t-k}}{X_{t-L}} - \frac{X_{t-L} p_t}{X_{t-L}} \nonumber\\
+% %     &= \frac{\sum_{k=0}^d \pi_k\Big( X_{t-k} p_{t-k}-X_{t-L} p_t\Big)}{X_{t-L}}.
+% % \end{align}
+
+% \noindent Again, the bias will be positive when the HFR is falling, and vice versa. Indeed, empirically the two ratio estimators are shown to have similar bias (Section \ref{sec:results}). However, Eq. \ref{eq:LagBias} is more difficult to analyze due to its reliance on the lag $\ell$, hence this section's focus on the convolutional ratio.
+
+% \ahcomment{
+% Can we frame discussion of the bias for the lagged
+% estimator through Bias Factor 2, 
+% ``shape of the delay distribution'', and use
+% the fact that the lagged estimator is a
+% convolution estimator with
+% $\pi=1\{k=L\}$?  How does that interact with the
+% Example given for Bias Factor 2?
+
+% In fact, in the spirit of Ryan's question, 
+% ``if I were a referee, I would ask how the bias
+% is affected by different choices of convolutional
+% kernel in the estimator (if not the oracle),
+% and by different choices of lag --- would it 
+% make sense to do \eqref{eq:ConvBias} without 
+% assuming the oracle delay distribution is known;
+% obtaining a bias expression that has
+% separate $\hat\pi$ from oracle $\pi$, and then
+% specializing it to the cases where we know
+% the oracle, so $\hat\pi=\pi$, and where
+% $\hat\pi$ puts all mass on $\ell$?
+
+% I'm not specifically saying this should be done;
+% just that we should consider doing it if it
+% streamlines the exposition/clarifies the differences.
+% }
+
+% \rjtcomment{I realized the following: in (5), we're assuming that the convolutional model is well-specified (and that the estimator uses the oracle delay distribution) but in (6), we have not assumed that the lagged model is well-specified. In other words, we've looked at the well-specified bias of the convolutional estimator in (5), but the mis-specified bias of the lagged estimator in (6). I think this is why it's hard to interpret the latter, and creates some confusion.
+
+% If we assume that the lagged model is well-specified, the (5) becomes easy to interpret (just like AH says in his comment above ... because in this case can just interpret this in the context of the point \#2 in the discussion of the convolutional estimator). This is a particular (point mass) delay distribution. If this aligns with a big change in the severity rate, then the bias will be high. Right?}
+
+% % How do estimates of $\hat\pi$ affect the bias
+% % and how do different choices of L affect the bias?
+% % Can it be made arbitrarily large based on certain
+% % design settings?
+
+\subsection{Experimental Setup}\label{sec:setup}
 \subsubsection{HFR Estimation}
-% Our experiments focus on the Hospitalization-Fatality Rate (HFR) during COVID-19. While this is a less commonly used metric than the Case-Fatality Rate (CFR), the two should exhibit the same statistical biases. Moreover, CFR may slightly misrepresent our analyses because the model relating cases to deaths may be slightly different. Case reporting during Covid suffered significant time delays, with some cases being reported \textit{after} the death. Therefore, the delay distribution for CFR may not have non-negative support. Unlike case data, the Department of Health and Human Services (HHS) reported hospitalizations in real time based on the date they occurred. This makes hospitalizations a more suitable choice of primary event for study. 
+% Our experiments focus on the Hospitalization-Fatality Rate (HFR) during COVID-19. While this is a less commonly used metric than the Case-Fatality Rate (CFR), the two should exhibit the same statistical biases. Moreover, CFR may slightly misrepresent our analyses because the model relating cases to deaths may be slightly different. Case reporting during COVID suffered significant time delays, with some cases being reported \textit{after} the death. Therefore, the delay distribution for CFR may not have non-negative support. Unlike case data, the Department of Health and Human Services (HHS) reported hospitalizations in real time based on the date they occurred. This makes hospitalizations a more suitable choice of primary event for study. 
 
 Our experiments focus on the Hospitalization-Fatality Rate (HFR) during COVID-19. Hospitalization reporting was much more complete than case reporting throughout the pandemic. Hospitals were mandated to report new daily admissions to the Department of Health and Human Services (HHS) or face penalties \cite{HHS2023}. The time-to-death delay distribution is indeed supported on integers starting at $k=0$, since hospitalizations are aligned by admission date.
 
@@ -209,7 +276,8 @@ Our experiments focus on the Hospitalization-Fatality Rate (HFR) during COVID-19
 
 To estimate real-time HFRs, we pulled daily hospitalizations and deaths from the \texttt{epidatr} API, developed by the Delphi Group. Like HHS for hospitalizations \cite{HHS2023}, John Hopkins University (JHU) provided the definitive resource for real-time death counts \cite{JHUepidatr}. These counts reflect the times at which deaths were reported to health authorities, not necessarily when they actually happened. Therefore raw JHU death counts are highly volatile due to reporting idiosyncrasies like day-of-week effects and data dumps. As a result, we used a 7-day trailing average of counts. 
 
-The daily aggregates from each resource were updated over the course of the pandemic. \textbf{TO DO: explain our versioning schema once it's implemented.}
+The daily aggregates from JHU and HHS were updated over the course of the pandemic. We pulled both the counts available in real time as well as their finalized versions. Often, the most recent date with available counts lagged several days behind the present. To account for this, we estimated HFRs each week, pulling real-time data 6 days after each date. In the rare chance that requested counts still were unavailable, we imputed with the most recently observed date.
+% \textbf{TO DO: explain our versioning schema once it's implemented.}
 
 % To estimate real-time HFRs, we use hospitalizations from HHS and deaths from JHU \cite{JHUepidatr}. Data was pulled from the \texttt{epidatr} API, developed by the Delphi Group. Raw JHU death counts exhibit high volatility due to reporting idiosyncrasies like day-of-week effects and data dumps. For that reason, we used a 7-day trailing average of counts. For each dataset, we used the finalized counts, not the versions that would have been available in real time. Doing so would have likely resulted in even more volatile HFR estimates. %We also obtained finalized weekly deaths from NCHS, again smoothing with a spline.
 
@@ -229,7 +297,7 @@ While the true HFRs are unknown, there are sound ways to approximate them. One s
 %     \textcolor{blue}{The NHCS HFRs were reported weekly, and had a fairly high degree of noise.}
 % }
 
-HFRs from aggregate hospitalization and death counts are significantly higher than those from NHCS because not all deaths occur in hospitals. A CDC analysis reported the percentage of inpatient deaths every month from 2020 through 2022; roughly 60\% of Covid deaths occurred in hospitals in 2022, down from nearly 70\% in 2021 and 2022. To account for non-inpatient deaths, we divided the NHCS curve by these percentages. Finally, we smoothed the resulting HFRs with a spline. To do so, we used the \texttt{smooth.spline} function in \texttt{R}, which chooses the smoothness hyperparameter with generalized cross validation. % after again smoothing with a spline. 
+HFRs from aggregate hospitalization and death counts are significantly higher than those from NHCS because not all deaths occur in hospitals. A CDC analysis reported the percentage of inpatient deaths every month from 2020 through 2022; roughly 60\% of COVID deaths occurred in hospitals in 2022, down from nearly 70\% in 2021 and 2022. To account for non-inpatient deaths, we divided the NHCS curve by these percentages. Finally, we smoothed the resulting HFRs with a spline. To do so, we used the \texttt{smooth.spline} function in \texttt{R}, which chooses the smoothness hyperparameter with generalized cross validation. % after again smoothing with a spline. 
 % NOTE: The more principled thing to do is to divide by proportion of in-patient deaths L days from each timestep, because hospitalizations at t effect deaths after t. But this is more work to explain.
 
 % Let $\eta_t$ be the unscaled, smoothed NHCS HFRs. I'm not sure whether this is forward- or backward-looking; it just says it's the percentage of confirmed COVID-19 hospital encounters with a discharge status of in-hospital death, presented each week. I think this is forward looking? So they look at all hospitalizations for a given week with known discharge status, and calculate the rate that are deaths?
@@ -256,15 +324,15 @@ We considered two other sources for ground truth HFRs, discussed in Appendix \re
      \centering
      \begin{subfigure}[b]{0.55\linewidth}
          \centering
-         \includegraphics[width=\linewidth]{Figs/US_ests_vs_GT.png}
-         \caption{Comparing convolutional and lagged ratios against approximate ground truth, Oct. 2020 - Dec 2022.}
+         \includegraphics[width=\linewidth]{Figs/US_ests_realtime.png}
+         \caption{Comparing convolutional and lagged ratios against approximate ground truth. Finalized and real-time counts, Nov. 2020 - Dec 2022.}
          \label{fig:basic_est_vs_gt}
      \end{subfigure}
      \hfill
      \begin{subfigure}[b]{0.4\linewidth}
          \centering
          \includegraphics[width=\linewidth]{Figs/hfrs_by_wave.png}
-         \caption{HFRs and hospitalizations in three periods with major bias.}
+         \caption{HFRs and hospitalizations in three periods with major bias.} Finalized counts.
          \label{fig:wave}
      \end{subfigure}
         \caption{Convolutional ratio estimates are biased regardless of which delay distribution is selected.}
@@ -275,15 +343,15 @@ Figure \ref{fig:basic_est_vs_gt_figs} highlights the bias of these ratio estimat
 
 The most significant bias comes in the middle of the Omicron wave in spring 2022. The true HFRs sharply decline in this period, from a high of roughly 17\% in March to a low of 9\% only two months later. At the same time, the HFR estimates \textit{rise}, peaking over 20\% as the true HFR reaches its nadir. This dramatic surge signals a serious false alarm. 
 
-The analysis in Section \ref{sec:analysis} explains for these three failure cases. Recall the bias moves in the opposite direction of the true severity rate. Rising HFRs engender negative bias, hence the delayed rise in the Delta wave. Falling HFRs correspond to positive bias, as observed in early 2021 and 2022. In addition, the enormity of the bias during Omicron can be attributed to the precipitous decline in hospitalizations, as falling primary incidence has been shown to exacerbate the bias. Average daily hospitalizations declined from over 20,000 in mid-January to only 1,500 by April 1. Finally, the delay distribution is relatively long with JHU deaths due to its alignment by report date. This is shown to have a substantial impact on the bias, as analyzed in Appendix \ref{apx:NCHS_deaths}
-\ahcomment{
-This is great --- I think we would really drive the point home
-if in addition to Figure 1, we had a three-panel figure that
-``zooms in'' on each of these cases, and specifically labels them
-with each of the three failure modalities, so that the reader
-can see exactly how they correspond to the conditions under
-which bias occurs outlined in Section 2. \textcolor{blue}{How's this look?}%  (Even better if there are toy examples in Section 2, so the reader can see the ``idealized version'' of the failure, and a ``real world'' manifestation of that failure mode.
-}
+The analysis in Section \ref{sec:analysis} explains for these three failure cases. Recall the bias moves in the opposite direction of the true severity rate. Rising HFRs engender negative bias, hence the delayed rise in the Delta wave. Falling HFRs correspond to positive bias, as observed in early 2021 and 2022. In addition, the enormity of the bias during Omicron can be attributed to the precipitous decline in hospitalizations, as falling primary incidence has been shown to exacerbate the bias. Average daily hospitalizations declined from over 20,000 in mid-January to only 1,500 by April 1. Finally, the delay distribution is relatively long with JHU deaths due to its alignment by report date. This is shown to have a substantial impact on the bias, as analyzed in Appendix \ref{apx:NCHS_deaths}.
+% \ahcomment{
+% This is great --- I think we would really drive the point home
+% if in addition to Figure 1, we had a three-panel figure that
+% ``zooms in'' on each of these cases, and specifically labels them
+% with each of the three failure modalities, so that the reader
+% can see exactly how they correspond to the conditions under
+% which bias occurs outlined in Section 2. \textcolor{blue}{How's this look?}%  (Even better if there are toy examples in Section 2, so the reader can see the ``idealized version'' of the failure, and a ``real world'' manifestation of that failure mode.
+% }
 
 We performed several robustness checks to assess the stability of these findings. Figure \ref{fig:basic_est_vs_gt} compares the convolutional and lagged ratio estimators, finding bias in both. The convolutional estimator is slightly better, but still very problematic. Appendix \ref{apx:robustness} explores the effect of different hyperparameters and locations. By and large, the ratio estimators are biased regardless of these considerations. 
 
@@ -320,14 +388,14 @@ More commonly, only aggregate data is available, especially in real time. In tha
 
 \citeauthor{UKpaper} also proposed a forward-looking method, this one a ratio between relevant primary and secondary events. However, this method is not applicable in real time, as it uses secondary events after $t$ to compute the severity rate. Nevertheless, it is a useful tool for retrospective estimation. 
 
-% TO DO: FIX
 Another retrospective tool is aggregate COVID deaths from NCHS, a resource that was not available in real time (Appendix \ref{apx:NCHS_deaths}). Unlike JHU, whose aggregates align deaths by report date, NCHS counts deaths on the day the actually occurred. As a result, the mean of its delay distribution is considerably lower, so it produces more accurate ratio estimates (Fig. \ref{fig:jhu_vs_nchs}, \ref{fig:sims}). Analogously, bias is a more serious issue with earlier primary events. For example, case- or infection-fatality ratios may be more biased than hospitalization-fatality ratios. 
 
 % In a similar vein, deaths from NCHS should be used for retrospective analysis, not JHU. Longer delay distributions have been shown to produce significantly more bias (Fig. \ref{fig:jhu_vs_nchs}, \ref{fig:sims}). Therefore estimates with data that counts secondary events by report date will always be worse. Analogously, bias is a more serious issue with earlier primary events. For example, case- or infection-fatality ratios may be more biased than hospitalization-fatality ratios. 
 
 While still biased, the convolutional ratio generally outperformed the lagged method (Fig. \ref{fig:basic_est_vs_gt}, \ref{fig:sims}). While this estimator is widely used for overall HFRs with cumulative counts, we have not come across any applications for the time-varying case. This further suggests the lagged ratio is overused in practice, though the convolutional ratio may not be the best existing alternative \cite{fusedlasso, UKpaper}.
 
-TO DO: Discuss other sources of bias in severity rates. e.g. Anastasios, Nick Reich papers.
+Severity rates may be biased in ways beyond the statistical bias our work focuses on. Section \ref{sec:setup} mentioned, for example, the fact that estimating HFR from aggregates fails to address the large proportion of deaths occur outside the hospital; \citeauthor{lipsitch2015potential} refer to this as ``survivorship bias." A central challenge for CFR estimation is under-reporting: Not all events are reported, reporting rates change across time, and severe cases are more likely to be reported than mild cases. \citeauthor{reich2012estimating} propose an estimator for a time-invariant \textit{relative} CFR - the ratio of CFRs between groups - that learns these latent reporting rates via the EM algorithm \cite{EM}. \citeauthor{anastasios} applied this in the context of COVID-19, analyzing how the chosen delay distribution affects its results. They also identify other sources of bias, like differences in case definition and testing eligibility.
+% TO DO: Discuss other sources of bias in severity rates. e.g. Anastasios, Nick Reich papers.
 
 An interesting connection exists between estimating severity rates and reproduction numbers. A central metric in epidemiology is \textit{case} $R_t$, the average number of secondary infections produced by a single infection at time $t$. Typically estimated in real-time is the closely-related \textit{instantaneous} $R_t$, average number of secondary infections at time $t$ produced by a single primary infection in the past. Comparable to the delay distribution $\pi$ is the renewal equation $g$, which measures the time between primary and secondary infections.
 
@@ -344,13 +412,44 @@ As defined in \ref{eq:severity}, the severity rate is analogous to case $R_t$. B
 
 \pagebreak
 \appendix
-\section{Simulation Analysis}\label{apx:analysis}
+\section{Analysis}\label{apx:analysis}
 
-To elucidate the extent to which changing severity rates bias the convolutional ratio, consider the trivial case where all secondary events occur after exactly $\ell$ days with no noise. By definition, $\pi_k = \mathds{1}\{k=\ell\}$, so the convolutional and lagged ratios are both $\hat{p}_t = \frac{X_{t-\ell}p_{t-\ell}}{X_{t-\ell}} = p_{t-\ell}$. In this case, the bias is the change in the true severity rate $p_{t-\ell} - p_t$. The estimator is unbiased only when the severity rate is stationary. Otherwise, for example, the ratio will be 20\% too low if the true severity rate was 20\% lower $\ell$ days ago. Figure \ref{fig:bias_ex} displays this with the approximate ground truth HFRs from NHCS. 
+In this section, we present two examples that further explain the bias. These are more contrived that the ones in \ref{sec:analysis}, for example using unrealistic delay distributions. Nevertheless, their bias can be simplified to simple analytic formulas, isolating the three contributing factors.
+% In contrast to the examples in \ref{sec:analysis}, the ones here use contrived delay distributions and
 
-Intuitively, severity rates are liable to be less similar to the present value $p_t$ further back in time. Therefore heavier-tailed delay distributions should have more bias. In the above example, the bias $p_{t-\ell}-p_t$ is generally larger when $\ell=28$ than $\ell=14$ (Fig \ref{fig:onehot}). Constructing another simple case, consider a severity rate that changes monotonically before $t-m$, then is constant until $t$. If the delay distribution assigns all probability mass within the first $m$ days, the convolutional ratio will be unbiased at $t$. Otherwise, it will be biased, with longer delay distributions producing greater bias. 
+\begin{figure}
+     \centering
+     \begin{subfigure}[b]{0.45\linewidth}
+         \centering
+         \includegraphics[width=\linewidth]{Figs/sim_onehot.png}
+         \caption{All deaths after $\ell$ days. HFR ratios equivalent; plotting delays of $\ell=14$ and 28 days.}
+         \label{fig:onehot}
+     \end{subfigure}
+     \hfill
+     \begin{subfigure}[b]{0.45\linewidth}
+         \centering
+         \includegraphics[width=\linewidth]{Figs/sim_chging_primary.png}
+         \caption{Changing primary incidence. Plotting bias of lagged and convolutional ratios.}
+         \label{fig:chging_primary}
+     \end{subfigure}
+        \caption{Simple examples of severity rate bias.}
+        \label{fig:bias_ex}
+\end{figure}
 
-Section \ref{sec:analysis} claims that changes in primary incidence levels affect the magnitude of bias for the convolutional ratio. Here, we present a simple example that formalizes this claim. Suppose half of the secondary events occur immediately after the primary event ($t=0$), and the other half after $\ell$ days. Further assume $p_{t-\ell}\neq p_t$, so there is some degree of bias. Then
+
+To elucidate the relationship between changing severity rates and the ratio estimators' bias, consider the trivial case where all secondary events occur after exactly $\ell$ days with no noise. By definition, $\pi_k = \mathds{1}\{k=\ell\}$, so the convolutional and lagged ratios are both $\hat{p}_t = \frac{X_{t-\ell}p_{t-\ell}}{X_{t-\ell}} = p_{t-\ell}$ presuming both have access to the oracle delay distribution. Figure \ref{fig:onehot} displays this with the approximate ground truth HFRs from NHCS. 
+
+In this case, the bias is the change in the true severity rate $p_{t-\ell} - p_t$. The estimator is unbiased only when the severity rate is stationary. Otherwise, for example, the ratio will be 20\% too low if the true severity rate was 20\% lower $\ell$ days ago. 
+
+Intuitively, severity rates may be less similar to the present value $p_t$ further back in time. In this simple example, the bias $p_{t-\ell}-p_t$ is generally larger when $\ell=28$ than $\ell=14$ (Fig \ref{fig:onehot}). This expresses the observation that estimates with heavier-tailed delay distributions tend to have more bias. 
+
+% Constructing another simple case, consider a severity rate that changes monotonically before $t-m$, then is constant until $t$. If the delay distribution assigns all probability mass within the first $m$ days, the convolutional ratio at $t$ will be unbiased. Otherwise, it will be biased, with longer delay distributions producing greater bias. 
+
+Section \ref{sec:analysis} claims that changes in primary incidence levels affect the magnitude of bias for the convolutional ratio. Here, we present simple examples that formalize this claim. First assume primary incidence is constant, in which case the convolutional and lagged ratios are equal. The time series factors neatly out of the bias expression  \ref{eq:ConvBias}:
+$$\text{Bias}(\hat{p}_t^{\text{Conv}}) = \text{Bias}(\hat{p}_t^{\text{Lagged}}) = \Big(\sum_{k=0}^d \pi_k p_{t-k}\Big)-p_t.$$
+\noindent This is the difference between a weighted average of previous severity rates and the present. Weights for the historical rates are given by the delay distribution, providing further justification for its central role in the bias. 
+
+Next, suppose half of the secondary events occur immediately after the primary event ($t=0$), and the other half after $\ell$ days. Further assume $p_{t-\ell}\neq p_t$, so there is some degree of bias. Then
 \begin{align*}
     \lvert\text{Bias}(\hat{p}_t^{\text{Conv}})\rvert &= \frac{\frac{1}{2}\big\lvert X_{t}(p_t-p_t) + X_{t-\ell}(p_{t-\ell}-p_t)\big\rvert}{\frac{1}{2}(X_{t}+X_{t-\ell})} \\
     &=\frac{X_{t-\ell}\lvert p_{t-\ell}-p_t\rvert}{X_{t-\ell}(1+\frac{X_{t}}{X_{t-\ell}})} = \frac{\lvert p_{t-\ell}-p_t \rvert}{1+\frac{X_{t}}{X_{t-\ell}}}
@@ -364,7 +463,8 @@ When daily hospitalizations approach a constant level, the two estimators become
 
 TO DO: ANALYZE WHY THIS HAPPENS.
 
-\section{Retrospective Deaths}\label{apx:NCHS_deaths}
+\section{Alternative Data Sources}
+\subsection{Retrospective Deaths}\label{apx:NCHS_deaths}
 
 JHU presented daily deaths in real time, aligned by the date they were reported. In contrast, the National Center for Health Statistics (NCHS) provided weekly totals for deaths aligned by occurrence, and were not available in real time. Thus, delay distributions with NCHS deaths have a lighter tail. 
 
@@ -380,7 +480,7 @@ Figure \ref{fig:jhu_vs_nchs} shows this minor change has a significant effect on
 \end{figure}
 
 
-\section{Alternative Ground Truth}\label{apx:alt_gt}
+\subsection{Alternative Ground Truth}\label{apx:alt_gt}
 
 \begin{figure}
     \centering
@@ -426,7 +526,7 @@ In this section we demonstrate the robustness of our findings against choices of
     \label{fig:window}
 \end{figure}
 
-We next examine the time-to-death hyperparameters: The lag $L$ for the lagged ratio and delay distribution $\pi$ for the convolutional ratio. Figure \ref{fig:lag} displays HFR estimates with lags ranging from 2 to 5 weeks. Unlike the window size, changing this parameter leads to different behavior across lags. Some choices are better than others; a 28-day lag, for example, falls appropriately during Alpha and rises less slowly during Alpha. However, all are biased to varying degrees, most notably the huge spurious surge in spring 2022.
+We next examine the time-to-death hyperparameters: The lag $\ell$ for the lagged ratio and delay distribution $\pi$ for the convolutional ratio. Figure \ref{fig:lag} displays HFR estimates with lags ranging from 2 to 5 weeks. Unlike the window size, changing this parameter leads to different behavior across lags. Some choices are better than others; a 28-day lag, for example, falls appropriately during Alpha and rises less slowly during Alpha. However, all are biased to varying degrees, most notably the huge spurious surge in spring 2022.
 
 \begin{figure}
     \centering
