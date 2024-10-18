@@ -1,0 +1,243 @@
+---
+title: "Bias examples"
+output: html_document
+date: "2024-10-04"
+---
+
+```{r}
+git_directory <- system("git rev-parse --show-toplevel", intern = TRUE)
+data_folder <- file.path(git_directory, "Data", "National_Data")
+code_folder <- file.path(git_directory, "Code", "Analysis")
+nhcs_hfrs_all <- readRDS(file.path(data_folder, "hfrs_rescaled_v2.RData"))
+nhcs_hfr_dates <- as.Date(names(nhcs_hfrs_all))
+source(file.path(code_folder, "helper_functions.R"))
+
+library(ggplot2)
+library(patchwork)
+```
+
+
+Example A: Changing HFR
+- deaths come from noiseless model with real hosps, different HFRs, and reasonable delay distribution
+- compare real change to version with only 1/4th the change in magnitude during that window. shifting to emphasize the bias is due to the change in HFRs, not merely their magnitude.
+
+```{r}
+d <- 75
+delay_distr_med <- make_delay_distr(Mean=20, Sd=round(20*.9), d)
+n_pts <- 200
+n_ests <- n_pts - d
+hosps <- readRDS(file.path(data_folder, "HHS.RData"))#_real_time
+# t0 <- as.Date("2021-05-15")
+t0 <- as.Date("2022-02-01")
+hosp_start_idx <- which(names(hosps)==t0) # d+1
+
+nhcs_hfrs_all <- readRDS(file.path(data_folder, "hfrs_rescaled_v2.RData"))
+nhcs_hfr_dates <- as.Date(names(nhcs_hfrs_all))
+chging_hfrs <- nhcs_hfrs_all[nhcs_hfr_dates %in% as.Date((t0-d):(t0-d+n_pts-1))]
+# Only 1/4th the rise in magnitude
+flatter_hfrs <- (chging_hfrs-min(chging_hfrs))*0.25+median(chging_hfrs)
+# flatter_hfrs <- (chging_hfrs-min(chging_hfrs))*0.25
+# flatter_hfrs <- flatter_hfrs + chging_hfrs[d+1] - flatter_hfrs[d+1]
+
+# mag <- (max(chging_hfrs[(d+1):n_pts])-min(chging_hfrs))*1
+# a <- chging_hfrs-min(chging_hfrs)
+# a01 <- a/max(a)
+# a_recon <- a01*mag + median(chging_hfrs)
+# plot(chging_hfrs, col="blue"); lines(a_recon, col="red")
+# flatter_hfrs <- a_recon
+
+calc_nish_hfrs <- function(hosps, hfrs, delay_distr) {
+  est_hfrs_flat <- sapply(1:n_ests, function(t_idx) {
+    trailing_hosps <- hosps[(t_idx):(d+t_idx)]
+    trailing_hfrs <- hfrs[(t_idx):(d+t_idx)]
+    exp_deaths <- sum(rev(delay_distr)*trailing_hosps*trailing_hfrs)
+    denom <- sum(rev(delay_distr)*trailing_hosps)
+    exp_deaths/denom
+  })
+  return(est_hfrs_flat)
+}
+
+hosps_window <- hosps[(hosp_start_idx-d):(hosp_start_idx+n_ests-1)]
+est_flat <- calc_nish_hfrs(hosps_window, flatter_hfrs, delay_distr_med)
+est_chging <- calc_nish_hfrs(hosps_window, chging_hfrs, delay_distr_med)
+sources <- c("Ground Truth", "Estimated"); types <- c("Flatter", "Steeper")
+df <- data.frame(t=t0+rep(1:n_ests, 4)-1,
+                 HFRs=c(flatter_hfrs[(d+1):n_pts], chging_hfrs[(d+1):n_pts], est_flat, est_chging),
+                 Source=factor(rep(sources, each=n_ests*2), levels=sources),
+                 Type=rep(rep(types, each=n_ests), 2))
+ggplot(df, aes(x=t, y=HFRs, color=Type, linetype=Source)) +
+  geom_line() + ggtitle("Changing HFR") + xlab("Date")
+
+
+```
+
+
+Example B: Short and long delay distribution
+
+```{r}
+short_mean <- 12
+long_mean <- 28
+delay_distr_short <- make_delay_distr(Mean=short_mean, Sd=round(short_mean*.9), d)
+delay_distr_long <- make_delay_distr(Mean=long_mean, Sd=round(long_mean*.9), d)
+
+est_short <- calc_nish_hfrs(hosps_window, chging_hfrs, delay_distr_short)
+est_med <- calc_nish_hfrs(hosps_window, chging_hfrs, delay_distr_med)
+est_long <- calc_nish_hfrs(hosps_window, chging_hfrs, delay_distr_long)
+
+sources <- c("Ground Truth", "Estimated")
+types <- c("Short (12)", "Med (20)", "Long (28)")  # Only keep the necessary types
+df <- data.frame(
+  t = t0+rep(1:n_ests, 4)-1,
+  HFRs = c(chging_hfrs[(d+1):n_pts], est_short, est_med, est_long),
+  Source = factor(c(rep("Ground Truth", n_ests), rep("Estimated", n_ests*3)), levels = sources),
+  Type = factor(c(rep("Ground Truth", n_ests), rep(types, each=n_ests)), levels = c("Ground Truth", types))  # Keep Ground Truth in Type for plotting but handle later
+)
+
+ggplot(df, aes(x = t, y = HFRs, linetype = Source, color = Type)) +
+  geom_line(aes(group = interaction(Source, Type))) +  # Group by Source and Type
+  scale_color_manual(values = c("Ground Truth" = "black", "Short (12)" = "red2", "Med (20)" = "green3", "Long (28)" = "blue"),
+                     breaks = types) +  # Manually set color, exclude Ground Truth from legend
+  ggtitle("Delay Distribution") +
+  labs(color="Delay Length") + xlab("Date")
+```
+
+
+Example 3: Primary incidence
+
+vision: plot has hosps with their axis shown; true hfrs; estimated hfrs with both hosp cases; different colors for different hosp versions; different line types for true vs estimated
+
+
+```{r}
+# rev_hosps <- (hosps_window-min(hosps_window))*0.1+mean(hosps_window)
+rev_hosps <- rev(hosps_window); names(rev_hosps) <- names(hosps_window)
+
+# plot(hosps_window, type="l"); lines(rev_hosps)
+hfrs_true_hosps <- calc_nish_hfrs(hosps_window, chging_hfrs, delay_distr_med)
+hfrs_rev_hosps <- calc_nish_hfrs(rev_hosps, chging_hfrs, delay_distr_med)
+
+hfr_range <- max(chging_hfrs)-min(chging_hfrs)
+shifted_og_hosps <- (hosps_window-min(hosps_window))/max(hosps_window)*hfr_range
+shifted_og_hosps <- (shifted_og_hosps-min(shifted_og_hosps))+min(chging_hfrs)
+shifted_flat_hosps <- (rev_hosps-min(rev_hosps))/max(rev_hosps)*hfr_range
+shifted_flat_hosps <- (shifted_flat_hosps-min(shifted_flat_hosps))+min(chging_hfrs)
+# shift <- mean(chging_hfrs)/mean(hosps_window)
+
+sources <- c("GT HFRs", "Estimated", "Hospitalization")
+sources_df <- factor(c(rep(sources[1], n_ests), rep(sources[2], n_ests*2), rep(sources[3], n_ests*2)), levels=sources)
+# types <- c("True Hosps", "Flatter Hosps")
+types <- c("GT HFRs", "True Hosps", "Reversed Hosps")
+types_df <- factor(c(rep(types[1], n_ests), rep(rep(types[2:3], each=n_ests),2)), levels=types)
+
+df <- data.frame(t=t0+rep(1:n_ests, 5)-1,
+                 data=c(chging_hfrs[(d+1):n_pts], hfrs_true_hosps, hfrs_rev_hosps, 
+                        shifted_og_hosps[(d+1):n_pts], shifted_flat_hosps[(d+1):n_pts]),
+                 Source=sources_df,
+                 Type=types_df)
+
+ggplot(df, aes(x=t, y=data, color=Type, linetype=Source)) +
+  geom_line() + ggtitle("Changing Primary Incidence") +
+  ylab("HFR") + xlab("Date")
+  # scale_y_continuous(sec.axis = sec_axis(~ . * shift, name = "Hospitalizations"))
+
+```
+
+
+###########
+
+# Example 1: One-hot delay distribution elucidates bias due to changing severity rate
+
+```{r}
+short_lag <- 14
+long_lag <- 28
+estDates <- nhcs_hfr_dates[(long_lag+1):length(nhcs_hfr_dates)]
+est_hfrs_short <- nhcs_hfrs_all[nhcs_hfr_dates %in% (estDates-short_lag)]
+est_hfrs_long <- nhcs_hfrs_all[nhcs_hfr_dates %in% (estDates-long_lag)]
+gt_nhcs <- nhcs_hfrs_all[nhcs_hfr_dates %in% estDates]
+HFRtypes <- c("GT", "Est, Short Delay", "Est, Long Delay")
+df <- data.frame(Date=rep(estDates, 3),
+                  HFR=c(gt_nhcs,est_hfrs_short,est_hfrs_long),
+                  Method=factor(rep(HFRtypes, each=length(estDates)), levels=HFRtypes))
+
+pConst <- ggplot(df, aes(x=Date, y=HFR, color=Method, linetype=Method)) + 
+  geom_line() + 
+  ggtitle("All deaths at same delay. True & Estimated HFRs.") +#Constant Primary Incidence. 
+  theme(legend.position="bottom",
+        legend.title = element_blank())
+plot(pConst)
+
+```
+Example 2
+
+```{r}
+n_dates <- 300
+sim_hfrs <- seq(0.5, 0, length.out=n_dates)
+
+sigmoid <- function(x) {
+  return (1/(1+exp(-x)))
+}
+xs <- seq(-9, 7, length.out=n_dates/2)
+hosps <- (c(sigmoid(xs), rev(sigmoid(xs)))*9000 + 1000)
+# plot(hosps)
+
+days <- c(0, 10)
+two_day_d <- max(days)
+two_day_delay <- rep(0, two_day_d+1); two_day_delay[days+1] <- 0.5
+est_indices <- (two_day_d+1):n_dates
+
+exp_deaths <- sapply(est_indices, function(t) {
+  trailing_idx <- (t-two_day_d):t
+  trailing_hfrs <- sim_hfrs[trailing_idx]
+  hosps_in_trailing_window <- hosps[trailing_idx]
+  exp_deaths_t <- sum(hosps_in_trailing_window * trailing_hfrs * rev(two_day_delay))
+})
+
+conv_hfrs <- sapply(est_indices, function(t) {
+  trailing_idx <- (t-two_day_d):t
+  hosps_in_trailing_window <- hosps[trailing_idx]
+  deaths_t <- exp_deaths[t-two_day_d]
+  hfr_t <- deaths_t/sum(hosps_in_trailing_window * rev(two_day_delay))
+})
+lag <- mean(days)
+# lag <- min(days)
+lagged_hfrs <- sapply(est_indices, function(t) {
+  hfr_t <- exp_deaths[t-two_day_d]/hosps[t-lag]
+})
+n_est <- length(est_indices)
+gt_hfrs <- sim_hfrs[est_indices]
+
+plot(1:n_est, gt_hfrs, type="l", xlab="Date", ylab="HFR", main="True vs Est HFR", 
+     ylim=c(min(conv_hfrs, lagged_hfrs, gt_hfrs), max(conv_hfrs, lagged_hfrs, gt_hfrs)))
+lines(1:n_est, conv_hfrs, type="l", col="red")
+lines(1:n_est, lagged_hfrs, type="l", col="blue")
+lines(1:n_est, hosps[est_indices]/max(hosps)*max(sim_hfrs)*.75, type="l", col="green")
+```
+
+
+```{r}
+hosps_rescaled <- hosps[est_indices]/max(hosps)*max(sim_hfrs, lagged_hfrs, conv_hfrs)*1.5 #0.75
+conv_bias <- conv_hfrs-gt_hfrs
+conv_bias_rescaled <- conv_bias/max(conv_bias)*max(sim_hfrs)*.75
+lagged_bias <- lagged_hfrs-gt_hfrs
+trans_factor <- max(sim_hfrs) * 0.75 / max(conv_bias)
+lagged_bias_rescaled <- lagged_bias/max(conv_bias)*max(sim_hfrs)*.75
+
+data <- data.frame(
+  Date = rep(1:n_est, 4),
+  Value = c(gt_hfrs, hosps_rescaled, lagged_bias*trans_factor, conv_bias*trans_factor),
+  Line = factor(rep(c("True HFR", "Hospitalizations", "Lagged Bias", "Conv Bias"), each=n_est), 
+                    levels=c("True HFR", "Hospitalizations", "Lagged Bias", "Conv Bias"))
+)
+pChg <- ggplot(data, aes(x = Date, y = Value, colour = Line)) +
+  geom_line() +
+  labs(x = "Date", y = "HFR Level", title = "Changing Primary Incidence. True HFR and Estimation Bias.",
+       colour = "Legend") +
+  scale_colour_manual(values = c("True HFR" = "black", "Hospitalizations" = "green", 
+                                 "Lagged Bias" = "blue", "Conv Bias" = "red")) +
+  theme(legend.title=element_blank(), legend.position="bottom") +
+  ylim(range(c(min(conv_bias_rescaled, lagged_bias_rescaled, gt_hfrs), 
+               max(conv_bias_rescaled, lagged_bias_rescaled, gt_hfrs)))) +
+  scale_y_continuous(sec.axis = sec_axis(~ . / trans_factor, name = "Bias Level"))
+plot(pChg)
+```
+
+#############################
