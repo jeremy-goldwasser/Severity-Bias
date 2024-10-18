@@ -200,11 +200,13 @@ I'm happy to write up these bounds, but I don't think they're interesting enough
 
 \textcolor{red}{Lastly, I looked into the mean squared error of this misspecified estimator. Can we break the MSE into oracle and plug-in error terms? Unfortunately, the answer again appears to be no. The expression also has the plug-in distribution in a denominator that cannot be nicely analyzed.}
 
-\textcolor{blue}{In light of all of this, I think it is most sensible to just write a paragraph or two on the bias expressions as presented. There still are relatively interesting things to say:
+\textcolor{blue}{In light of all of this, I think it is most sensible to just write about the bias expressions as presented. There still are relatively interesting things to say:
 \begin{enumerate}
     \item It decomposes into *roughly* an oracle and misspecification term, though the oracle term is deeply reliant on the plug-in delay distribution;
     \item The lagged bias has a ratio of primary incidence, comparing $k$ days ago to the lag time $\ell$. This reliance yields interesting results. e.g. In Figure \ref{fig:chging_primary}, as hospitalizations start to decline, lagged bias falls while oracle convolutional bias rises.
 \end{enumerate}
+
+Per Ryan's comment on line 379, it is important to do this well. The lagged ratio generally does much worse than the convolutional estimator, indicating substantial error as a consequence of delay misspecification. Equation \ref{eq:MispBias} describes this drop in performance, but it is unfortunately challenging to analyze. 
 }
 % If we assume $\sum_{j=0}^d X_{t-j}\pi_j = \sum_{j=0}^d X_{t-j}\hat\pi_j$, then 
 
