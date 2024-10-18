@@ -240,4 +240,4 @@ pChg <- ggplot(data, aes(x = Date, y = Value, colour = Line)) +
 plot(pChg)
 ```
 
-#############################
+
