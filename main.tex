@@ -7,13 +7,14 @@
 \usepackage{hyperref}
 \usepackage{caption}
 \usepackage{subcaption}
+\usepackage{nicefrac}
 
 \title{Challenges in Real-Time Estimation of Changing Epidemic Severity Rates}
 \author{Jeremy Goldwasser}
 \date{October 2024}
 
 \usepackage{xcolor}
-\newcommand{\ahcomment}[1]{{\color{red}[AH: #1]}}
+\newcommand{\ahcomment}[1]{{\color{teal}[AH: #1]}}
 \newcommand{\rjtcomment}[1]{{\color{purple}[RJT: #1]}}
 
 \begin{document}
@@ -80,6 +81,12 @@ This estimator is widely used in practice \cite{nishiuraEx1, nishiuraEx2, Russel
 \end{equation}
 
 \noindent This convolutional ratio can be understood as a generalization of Equation \ref{eq:lagged}. It reduces to the same ratio if $\hat{\pi}$ is a point mass distribution where all secondary events occur after $\ell$ days. They also are equivalent if primary events are constant. Otherwise, it expresses a more accurate relation the two time series. In practice, however, we have not come across work that applies it for time-varying estimation. Rather, the lagged ratio is standard.
+\ahcomment{
+  I'm just a little bit confused here... Overton introduces \eqref{eq:conv} for
+  the time-varying setting but but there is no work that applies it for
+  ``time-varying estimation''?  What do Overton do with it then?  Just a little
+  bit more context here would be helpful for me...
+}
 
 % The ratios in Equations \ref{eq:lagged} and \ref{eq:conv} track a time-varying severity rate. To estimate the average rate over all time, they are often used with cumulative counts. That is, each time series is the sum of all counts from the first timestep. This version of Eq. \ref{eq:conv} is unbiased if the severity rate is stationary, and is widely used in practice \cite{nishiura}. For the time-varying setting, however, the lagged ratio is much more common.
 
@@ -88,7 +95,16 @@ To stabilize estimates, smoothed counts are often used in practice \cite{germany
 
 \subsection{Well-Specified Analysis}\label{sec:analysis}
 
-In this section, we demonstrate that these time-varying severity ratios are biased when the true rates are changing. Assume the true delay distribution is a constant $\pi$ over all time with maximum length $d$. We first analyze the convolutional ratio (Eq. \ref{eq:conv}), assuming oracle knowledge of the true delay distribution $\pi$.
+In this section, we demonstrate that these time-varying severity ratios are biased when the true rates are changing, even when the delay distribution is correctly specified. Assume the true delay distribution is a constant $\pi$ over all time with maximum length $d$. 
+\ahcomment{
+  Can we remove this assumption that $\pi$ has maximum length $d$?  Replacing
+  $d$ with $\infty$ in the subsequent analysis does not change its validity,
+  and would make the presentation cleaner (the previous exposition does not
+  assume bounded support for $\pi$, and you also don't need to assume later
+  on that $d$ has larger support than the estimator $\hat{\pi}$ for $\pi$
+  has smaller support than $\pi$ in the misspecified analysis.
+}
+We first analyze the convolutional ratio (Eq. \ref{eq:conv}), assuming oracle knowledge of the true delay distribution $\pi$.
 
 % The analysis for the lagged ratio is similar, as we will show at the end.
 
@@ -99,6 +115,14 @@ In this section, we demonstrate that these time-varying severity ratios are bias
 \end{align}
 
 The degree of bias in Eq. \ref{eq:ConvBias} depends on three factors.
+\ahcomment{
+  I think this decomposition of the sources of bias is fantastic... it really
+  makes it clear that change in severity rate is the underlying source of
+  bias and its sign (pointwise over $k$),
+  and the delay distribution / primary incidence curve work to take a weighted
+  average over those pointwise $p_{t-k}-p_t$ bias terms.
+
+}
 \begin{enumerate}
     \item \textbf{Changes in severity rate}. The central component of this bias expression is the $p_{t-k}-p_t$ term. When severity rates are constant in the $d$ preceding days, this estimator is unbiased. This is in line with the unbiasedness of estimator using cumulative counts assuming a globally stationary rate \cite{nishiura}. But when severity rates change before $t$, the numerator will likely not equal 0, in which case the estimator will be biased. Figures \ref{fig:toy_hfr} and \ref{fig:onehot} illustrate this: The estimated severity rates are most inaccurate at periods where the true rate is changing sharply. 
 
@@ -161,7 +185,12 @@ The bias is in the opposite direction of the trend we want to detect. For exampl
 \end{figure}
 
 
-As noted previously, the convolutional ratio is equivalent to the lagged ratio if $\hat\pi$ is a point mass distribution at $\ell$. In this oracle setting, this indicates all secondary events occur after exactly $\ell$ days, a highly unrealistic situation. Nevertheless, if this is the case, then 
+As noted previously, the convolutional ratio is equivalent to the lagged ratio if $\hat\pi$ is a point mass distribution at $\ell$.
+\ahcomment{
+  In the above, do you mean to use $\pi$ rather that $\hat{\pi}$?  And in the
+  below, should it say ``OracleLagged'' and ``OracleConv''?
+}
+In this oracle setting, this indicates all secondary events occur after exactly $\ell$ days, a highly unrealistic situation. Nevertheless, if this is the case, then 
 
 $$\text{Bias}(\hat{p}_t^\text{Lagged}) = \text{Bias}(\hat{p}_t^\text{Conv}) = p_{t-\ell}-p_t.$$
 \noindent This toy setting and others are discussed in Appendix \ref{apx:analysis}.
@@ -179,6 +208,54 @@ The above section considered the bias of the convolutional ratio where the true 
      &\qquad\qquad p_t\sum_{k=0}^d \frac{X_{t-k}}{\sum_{j=0}^d X_{t-j}\hat\pi_j}(\hat\pi_k -\pi_k) 
 \end{align}
 % This can be further decomposed into the oracle error \ref{eq:ConvBias}. Letting $\hat\Delta_k = \hat\pi_k - \pi_k$,
+
+\ahcomment{
+  For the above, I would proceed from the third line, and write the bias as:
+  \begin{equation*}
+    \text{Bias}(\hat{p}_t)
+    = \sum_{k=0}^d \frac{
+      X_{t-k} \hat{\pi}_k
+    }{
+      \sum_{j=0}^d X_{t-j}\hat\pi_j
+    %}((\pi_k/\hat{\pi}_k) p_{t-k}- p_t)
+    }\big((\nicefrac{\pi_k}{\hat{\pi}_k}) p_{t-k}- p_t\big)
+  \end{equation*}
+  Now you can discuss the bias of the non-oracle case in terms of
+  ``multiplicative'' terms, in line with your discussion of the oracle case
+  bias breakdown of change in severity rate, delay distribution, and
+  primary incidence curve:
+  \begin{enumerate}
+    \item \textbf{Changes in severity rate.}  The $p_{t-k}- p_t$
+      term is replaced by
+      a $(\nicefrac{\pi_k}{\hat{\pi}_k}) p_{t-k}- p_t$ term.  Interestingly,
+      this means that when if $p_{t_k} < p_t$ and $\hat{\pi}_k < \pi_k$,
+      then the $k$th pointwise term here can have \emph{smaller} bias than
+      in the oracle case (similar for $>$).  But since $\hat{\pi}_k$ has the
+      constraint that it is a distribution (sums to 1), it's not clear that
+      you can ``win'' overall.
+    \item \textbf{The delay distribution.}  Same discussion here, except
+      it depends on the delay distribution estimate rather than the
+      underlying delay distribution.  Considered by itself, this would
+      suggest that we should favor $\hat{\pi}_k$ with shorter tails,
+      to avoid upweighting significant differences in severity rate.
+      However, this needs to be balanced against the 
+      $\nicefrac{\pi_k}{\hat{\pi}_k}$ term above, and taking a delay
+      distribution estimate too different from the underlying delay
+      distribution can hurt us overall.
+    \item \textbf{The primary incidence curve.} The discussion here is
+      exactly the same as in the well-specified case.
+  \end{enumerate}
+  Taking all of this together, we can summarize the bias comparison between
+  the oracle case and non-oracle case into: (a) the ``pointwise severity
+  rate bias'' terms are affected by the delay distribution estimate ratio
+  $\nicefrac{\pi_k}{\hat{\pi}_k}$, and (b) the weight terms taking a weighted
+  average of the ``pointwise severity rate bias'' terms to the overall bias
+  of $\hat{p}_t$, where $\pi$ is entirely replaced by $\hat{\pi}$.
+
+  I know this isn't an additive discussion into the oracle bias and
+  a misspecification term... I still would love to know if it is a fact that
+  $\hat{\pi}=\pi$ minimizes the bias.
+}
 
 For the lagged estimator,
 
