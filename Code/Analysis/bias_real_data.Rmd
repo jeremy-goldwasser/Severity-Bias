@@ -555,14 +555,10 @@ hfrsNHCS2 <- sapply(est_weeks_nchs, function(date) {
 }); names(hfrsNHCS) <- est_weeks_nchs
 
 
-lag_nchs <- 11
+lag_nchs <- round(gamma_mean_uk); print(lag_nchs)
+# oracle_lag_nchs <- calc_optimal_lag(hhs_hosps, nchs_deaths, verbose=TRUE)
 hfrsHNlretro <- compute_lagged_hfrs(hhs_hosps, nchs_deaths,
-                              l=lag_nchs, w=7, dates=est_weeks_nchs, real_time=FALSE, centered=FALSE)
-
-
-# # Repeat JHU calculation on these dates
-# hfrsHJl2 <- compute_lagged_hfrs(hhs_hosps, jhu_deaths, l=oracle_lag, w=7, dates=est_weeks)
-# hfrsHJn2 <- compute_ahfrs_dynamic(hhs_hosps, jhu_deaths, est_weeks, delay_distr, w=7)
+                              l=oracle_lag_nchs, w=7, dates=est_weeks_nchs, real_time=FALSE, centered=FALSE)
 
 ```
 
@@ -638,6 +634,24 @@ altGT
 ggsave(file.path(figure_folder, "Real", "ApproxGT.pdf"), 
        plot = altGT, device = "pdf", width = 8, height = 5) 
 
+```
+
+
+Compare JHU and NCHS lagged ratios
+
+```{r}
+hfrsHNl <- compute_lagged_hfrs(hhs_hosps, nchs_deaths, l=lag_nchs, w=7, dates=est_weeks)
+HFRtypes <- c("Approx. GT", "JHU Estimate", "NCHS Estimate")
+dfHFR <- data.frame(Date=rep(est_weeks, length(HFRtypes)),
+                 HFR=c(hfrsNHCS, hfrsHJn, hfrsHNl), 
+                 Method=factor(rep(HFRtypes, each=length(hfrsNHCS)), levels=HFRtypes))
+ggplot(data=dfHFR, aes(x = Date, y = HFR, color = Method, linetype=Method)) + 
+  geom_line() + labs(color = "HFR", linetype = "HFR") + 
+  ggtitle("US HFRs, JHU vs NCHS Deaths") +
+  scale_x_date(breaks = seq(as.Date("2020-10-01"), max(dfHFR$Date), by = "3 months"), date_labels = "%b %Y") +
+  xlab("") +
+  theme(legend.position="bottom",
+        legend.title=element_blank())
 ```
 
 
@@ -730,7 +744,7 @@ for (i in 1:6) {#length(jhulist)
   nchs_deaths_daily <- rep(nchs_deaths, each=7)/7
   nchs_dates_daily <- seq(min(nchs_week_ends), max(nchs_week_ends)+6, by="day")
   names(nchs_deaths_daily) <- as.Date(nchs_dates_daily)
-  oracle_lag_nchs <- calc_optimal_lag(hhs_hosps, nchs_deaths_daily, verbose=TRUE) # TO DO
+  oracle_lag_nchs <- calc_optimal_lag(hhs_hosps, nchs_deaths_daily, verbose=TRUE)
 
   # Convert hospitalizations from daily to weekly 
   # hhs_hosps_weekly <- sapply(est_weeks_state, function(t) {
