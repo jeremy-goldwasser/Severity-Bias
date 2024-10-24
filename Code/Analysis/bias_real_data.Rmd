@@ -645,13 +645,16 @@ HFRtypes <- c("Approx. GT", "JHU Estimate", "NCHS Estimate")
 dfHFR <- data.frame(Date=rep(est_weeks, length(HFRtypes)),
                  HFR=c(hfrsNHCS, hfrsHJn, hfrsHNl), 
                  Method=factor(rep(HFRtypes, each=length(hfrsNHCS)), levels=HFRtypes))
-ggplot(data=dfHFR, aes(x = Date, y = HFR, color = Method, linetype=Method)) + 
+sourcePlot <- ggplot(data=dfHFR, aes(x = Date, y = HFR, color = Method, linetype=Method)) + 
   geom_line() + labs(color = "HFR", linetype = "HFR") + 
   ggtitle("US HFRs, JHU vs NCHS Deaths") +
   scale_x_date(breaks = seq(as.Date("2020-10-01"), max(dfHFR$Date), by = "3 months"), date_labels = "%b %Y") +
-  xlab("") +
+  xlab("") + theme_bw() +
   theme(legend.position="bottom",
         legend.title=element_blank())
+ggsave(file.path(figure_folder, "Real", "jhu_vs_nchs.pdf"), 
+       plot = sourcePlot, device = "pdf", width = 8, height = 5) 
+
 ```
 
 

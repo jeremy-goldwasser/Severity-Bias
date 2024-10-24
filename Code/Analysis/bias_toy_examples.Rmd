@@ -119,36 +119,65 @@ vision: plot has hosps with their axis shown; true hfrs; estimated hfrs with bot
 
 
 ```{r}
-# rev_hosps <- (hosps_window-min(hosps_window))*0.1+mean(hosps_window)
-rev_hosps <- rev(hosps_window); names(rev_hosps) <- names(hosps_window)
+# alt_hosps1 <- c(rep(min(hosps_window), 100), exp(seq(log(min(hosps_window)), log(max(hosps_window)), length.out=100)))
+# alt_hosps2 <- c(rep(max(hosps_window), 100), exp(seq(log(max(hosps_window)), log(min(hosps_window)), length.out=100)))
 
-# plot(hosps_window, type="l"); lines(rev_hosps)
+max_obs <- max(hosps_window[(d+1):n_pts]); min_obs <- min(hosps_window[(d+1):n_pts])
+sigmoid <- function(x) {1/(1+exp(-x))}
+alt_hosps1 <- sigmoid(seq(-10, 5, length.out=n_pts))*(max_obs-min_obs) + min_obs
+alt_hosps2 <- (1-sigmoid(seq(-10, 5, length.out=n_pts)))*(max_obs-min_obs) + min_obs
+
+
+
+# alt_hosps1 <- exp(seq(log(max(hosps_window)), log(min(hosps_window)), length.out=n_pts)); 
+# alt_hosps1 <- seq((max(hosps_window)), (min(hosps_window)), length.out=n_pts)
+# alt_hosps2 <- exp(seq(log(min(hosps_window)), log(max(hosps_window)), length.out=n_pts)); 
+# alt_hosps <- max(hosps_window) - (hosps_window)
+names(alt_hosps1) <- names(hosps_window)
+names(alt_hosps2) <- names(hosps_window)
+
+
+# plot(hosps_window, type="l"); lines(alt_hosps)
 hfrs_true_hosps <- calc_nish_hfrs(hosps_window, chging_hfrs, delay_distr_med)
-hfrs_rev_hosps <- calc_nish_hfrs(rev_hosps, chging_hfrs, delay_distr_med)
+hfrs_alt_hosps1 <- calc_nish_hfrs(alt_hosps1, chging_hfrs, delay_distr_med)
+hfrs_alt_hosps2 <- calc_nish_hfrs(alt_hosps2, chging_hfrs, delay_distr_med)
 
-hfr_range <- max(chging_hfrs)-min(chging_hfrs)
-shifted_og_hosps <- (hosps_window-min(hosps_window))/max(hosps_window)*hfr_range
-shifted_og_hosps <- (shifted_og_hosps-min(shifted_og_hosps))+min(chging_hfrs)
-shifted_flat_hosps <- (rev_hosps-min(rev_hosps))/max(rev_hosps)*hfr_range
-shifted_flat_hosps <- (shifted_flat_hosps-min(shifted_flat_hosps))+min(chging_hfrs)
+rescale <- function(hosps, hfrs) {
+  hfr_range <- max(hfrs)-min(hfrs)
+  shifted_hosps <- (hosps-min(hosps[(d+1):n_pts]))/(max(hosps)-min(hosps))*hfr_range
+  # shifted_hosps <- (shifted_hosps-min(shifted_hosps))+min(hfrs)
+  shifted_hosps <- shifted_hosps + min(hfrs)
+  shifted_hosps
+}
+shifted_og_hosps <- rescale(hosps_window, chging_hfrs)
+shifted_alt_hosps1 <- rescale(alt_hosps1, chging_hfrs)
+shifted_alt_hosps2 <- rescale(alt_hosps2, chging_hfrs)
+
 # shift <- mean(chging_hfrs)/mean(hosps_window)
 
 sources <- c("GT HFRs", "Estimated", "Hospitalization")
-sources_df <- factor(c(rep(sources[1], n_ests), rep(sources[2], n_ests*2), rep(sources[3], n_ests*2)), levels=sources)
-# types <- c("True Hosps", "Flatter Hosps")
-types <- c("GT HFRs", "True Hosps", "Reversed Hosps")
-types_df <- factor(c(rep(types[1], n_ests), rep(rep(types[2:3], each=n_ests),2)), levels=types)
+n_reps <- 3
+sources_df <- factor(c(rep(sources[1], n_ests), rep(sources[2], n_ests*n_reps), 
+                       rep(sources[3], n_ests*n_reps)), levels=sources)
 
-df <- data.frame(t=t0+rep(1:n_ests, 5)-1,
-                 data=c(chging_hfrs[(d+1):n_pts], hfrs_true_hosps, hfrs_rev_hosps, 
-                        shifted_og_hosps[(d+1):n_pts], shifted_flat_hosps[(d+1):n_pts]),
+# types <- c("GT HFRs", "True Hosps", "Alt Hosps")
+types <- c("GT HFRs", "True Hosps", "Falling Hosps", "Rising Hosps")
+types_df <- factor(c(rep(types[1], n_ests), rep(rep(types[2:length(types)], each=n_ests),2)), levels=types)
+# all_data <- c(chging_hfrs[(d+1):n_pts], hfrs_true_hosps, hfrs_alt_hosps, 
+#                         shifted_og_hosps[(d+1):n_pts], shifted_alt_hosps[(d+1):n_pts])
+all_data <- c(chging_hfrs[(d+1):n_pts], hfrs_true_hosps, hfrs_alt_hosps1, hfrs_alt_hosps2,
+                        shifted_og_hosps[(d+1):n_pts], shifted_alt_hosps1[(d+1):n_pts], shifted_alt_hosps2[(d+1):n_pts])
+df <- data.frame(t=t0+rep(1:n_ests, 7)-1, #5
+                 data=all_data,
                  Source=sources_df,
                  Type=types_df)
 
 Plot <- ggplot(df, aes(x=t, y=data, color=Type, linetype=Source)) +
   geom_line() + ggtitle("Changing Primary Incidence") +
   ylab("HFR") + xlab("Date") +
-  theme_bw() + theme(legend.position = "bottom")
+  theme_bw() + theme(legend.position = "bottom",
+                     legend.box="vertical", legend.margin=margin()) 
+
   # scale_y_continuous(sec.axis = sec_axis(~ . * shift, name = "Hospitalizations"))
 Plot
 ggsave(file.path(figure_folder, "Simulated", "toy_chging_primary.pdf"), 
