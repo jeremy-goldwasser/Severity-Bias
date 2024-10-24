@@ -140,21 +140,21 @@ The bias is in the opposite direction of the trend we want to detect. For exampl
      \centering
      \begin{subfigure}[b]{0.32\linewidth}
          \centering
-         \includegraphics[width=\linewidth]{Figs/toy_chging_hfr.png}
+         \includegraphics[width=\linewidth]{Figs/Simulated/toy_chging_hfr.pdf}
          \caption{}
          \label{fig:toy_hfr}
      \end{subfigure}
      % \hfill
      \begin{subfigure}[b]{0.32\linewidth}
          \centering
-         \includegraphics[width=\linewidth]{Figs/toy_delay_distr.png}
+         \includegraphics[width=\linewidth]{Figs/Simulated/toy_delay_distr.pdf}
          \caption{}
          \label{fig:toy_delay}
      \end{subfigure}
      % \hfill
      \begin{subfigure}[b]{0.32\linewidth}
          \centering
-         \includegraphics[width=\linewidth]{Figs/toy_chging_primary.png}
+         \includegraphics[width=\linewidth]{Figs/Simulated/toy_chging_primary.pdf}
          \caption{}
          \label{fig:toy_primary}
      \end{subfigure}
@@ -319,7 +319,7 @@ We considered two other sources for ground truth HFRs, discussed in Appendix \re
 
 % \begin{figure}
 %     \centering
-%     \includegraphics[width=0.8\linewidth]{Figs/US_ests_vs_GT.png}
+%     \includegraphics[width=0.8\linewidth]{Figs/Simulated/US_ests_vs_GT.pdf}
 %     \caption{Time-varying HFR estimates are highly biased. Terms in both ratio estimates are smoothed over a 7-day window.}
 %     \label{fig:basic_est_vs_gt}
 % \end{figure}
@@ -328,14 +328,14 @@ We considered two other sources for ground truth HFRs, discussed in Appendix \re
      \centering
      \begin{subfigure}[b]{0.55\linewidth}
          \centering
-         \includegraphics[width=\linewidth]{Figs/US_ests_realtime.png}
+         \includegraphics[width=\linewidth]{Figs/Real/US_ests_realtime.pdf}
          \caption{Comparing convolutional and lagged ratios against approximate ground truth. Finalized and real-time counts, Nov. 2020 - Dec 2022.}
          \label{fig:basic_est_vs_gt}
      \end{subfigure}
      \hfill
      \begin{subfigure}[b]{0.4\linewidth}
          \centering
-         \includegraphics[width=\linewidth]{Figs/hfrs_by_wave.png}
+         \includegraphics[width=\linewidth]{Figs/Real/hfrs_by_wave.pdf}
          \caption{HFRs and hospitalizations in three periods with major bias.} Finalized counts.
          \label{fig:wave}
      \end{subfigure}
@@ -371,8 +371,8 @@ To mimic the real data, we first used the same HFRs from NHCS used for validatio
 
 \begin{figure}
     \centering
-    % \includegraphics[width=0.9\linewidth]{Figs/simulated_results2.png}
-    \includegraphics[width=\linewidth]{Newfigs/simulated_results.pdf}
+    % \includegraphics[width=0.9\linewidth]{Figs/Simulated/simulated_results2.pdf}
+    \includegraphics[width=\linewidth]{Figs/Simulated/simulated_results.pdf}
     \caption{True and Estimated HFRs from Simulated Deaths. First column has short delay distribution, second has long.}
     \label{fig:sims}
 \end{figure}
@@ -426,14 +426,14 @@ In this section, we present two examples that further explain the bias. These ar
      \centering
      \begin{subfigure}[b]{0.45\linewidth}
          \centering
-         \includegraphics[width=\linewidth]{Figs/sim_onehot.png}
+         \includegraphics[width=\linewidth]{Figs/Simulated/sim_onehot.pdf}
          \caption{All deaths after $\ell$ days. HFR ratios equivalent; plotting delays of $\ell=14$ and 28 days.}
          \label{fig:onehot}
      \end{subfigure}
      \hfill
      \begin{subfigure}[b]{0.45\linewidth}
          \centering
-         \includegraphics[width=\linewidth]{Figs/sim_chging_primary.png}
+         \includegraphics[width=\linewidth]{Figs/Simulated/sim_chging_primary.pdf}
          \caption{Changing primary incidence. Plotting bias of lagged and convolutional ratios.}
          \label{fig:chging_primary}
      \end{subfigure}
@@ -479,7 +479,7 @@ Figure \ref{fig:jhu_vs_nchs} shows this minor change has a significant effect on
 
 \begin{figure}
     \centering
-    \includegraphics[width=0.7\linewidth]{Figs/jhu_vs_nchs.png}
+    \includegraphics[width=0.7\linewidth]{Figs/Real/jhu_vs_nchs.pdf}
     \caption{Real-time Lagged Ratios, JHU vs NCHS deaths. Seven-day smoothing with 19- and 11-day lags, respectively.}
     \label{fig:jhu_vs_nchs}
 \end{figure}
@@ -489,7 +489,7 @@ Figure \ref{fig:jhu_vs_nchs} shows this minor change has a significant effect on
 
 \begin{figure}
     \centering
-    \includegraphics[width=0.8\linewidth]{Figs/ApproxGT.png}
+    \includegraphics[width=0.8\linewidth]{Figs/Real/ApproxGT.pdf}
     \caption{Methods for Retrospective Ground Truth HFRs.}
     \label{fig:approxGT}
 \end{figure}
@@ -526,7 +526,7 @@ In this section we demonstrate the robustness of our findings against choices of
 
 \begin{figure}
     \centering
-    \includegraphics[width=0.75\linewidth]{Figs/window_size.png}
+    \includegraphics[width=0.75\linewidth]{Figs/Real/window_size.pdf}
     \caption{The length of the trailing window bears little impact on the findings.}
     \label{fig:window}
 \end{figure}
@@ -535,7 +535,7 @@ We next examine the time-to-death hyperparameters: The lag $\ell$ for the lagged
 
 \begin{figure}
     \centering
-    \includegraphics[width=0.7\linewidth]{Figs/hfrs_by_lag.png}
+    \includegraphics[width=0.7\linewidth]{Figs/Real/hfrs_by_lag.pdf}
     \caption{HFRs are biased regardless of what lag parameter is selected.}
     \label{fig:lag}
 \end{figure}
@@ -545,7 +545,7 @@ Figure \ref{fig:delays} compares the performance of the convolutional ratio acro
 
 % \begin{figure}
 %     \centering
-%     \includegraphics[width=0.7\linewidth]{Figs/hfrs_by_delay.png}
+%     \includegraphics[width=0.7\linewidth]{Figs/Real/hfrs_by_delay.pdf}
 %     \caption{HFRs are biased regardless of what delay distribution is selected.}
 %     \label{fig:delay}
 % \end{figure}
@@ -554,14 +554,14 @@ Figure \ref{fig:delays} compares the performance of the convolutional ratio acro
      \centering
      \begin{subfigure}[b]{0.45\linewidth}
          \centering
-         \includegraphics[width=\linewidth]{Figs/hfrs_by_delay1.png}
+         \includegraphics[width=\linewidth]{Figs/Real/hfrs_by_delay1.pdf}
          \caption{SD is $0.9\times$mean.}
          \label{fig:delay1}
      \end{subfigure}
      \hfill
      \begin{subfigure}[b]{0.45\linewidth}
          \centering
-         \includegraphics[width=\linewidth]{Figs/hfrs_by_delay2.png}
+         \includegraphics[width=\linewidth]{Figs/Real/hfrs_by_delay2.pdf}
          \caption{SD is $0.7\times$mean.}
          \label{fig:delay2}
      \end{subfigure}
@@ -578,7 +578,7 @@ Next, we repeat our analysis on different geographies, finding similar trends. W
 
  \begin{figure}
      \centering
-     \includegraphics[width=0.8\linewidth]{Figs/state_level_hfrs.png}
+     \includegraphics[width=0.8\linewidth]{Figs/Real/state_level_hfrs.pdf}
      \caption{HFRs by individual states. Comparing retrospective estimates with NCHS against real-time estimates with JHU.}
      \label{fig:state-level}
  \end{figure}
