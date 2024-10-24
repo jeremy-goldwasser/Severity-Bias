@@ -207,11 +207,20 @@ for (i in 1:length(waves)) {
 ```
 
 ```{r, fig.width=7, fig.height=7}
-(plot_list[[1]] / plot_list[[2]] / plot_list[[3]]) +
+Plot <- (plot_list[[1]] / plot_list[[2]] / plot_list[[3]]) +
   plot_annotation(title="HFRs and Hospitalizations by Wave") +
   plot_layout(guides = "collect") &
-  theme(legend.position = 'bottom')
+  theme_bw() &
+  theme(legend.position = 'bottom',
+        legend.title=element_blank())
 
+ggsave(file.path(figure_folder, "Real", "hfrs_by_wave.pdf"), 
+       plot = Plot, device = "pdf", width = 7, height = 7) 
+
+```
+
+```{r, fig.width=7, fig.height=7}
+Plot
 ```
 
 ### Make figure including properly-versioned data
@@ -332,9 +341,12 @@ ggplot(data=dfHFR, aes(x = Date, y = HFR, color = Method, linetype=Method)) +
   geom_line() + labs(color = "HFR", linetype = "HFR") + 
   ggtitle("US HFRs, Ratio Estimates vs Approximate Ground Truth", subtitle="Real-time counts") +
   scale_x_date(breaks = seq(as.Date("2020-10-01"), max(dfHFR$Date), by = "3 months"), date_labels = "%b %Y") +
-  xlab("") +
+  xlab("") + theme_bw() +
   theme(legend.position="bottom",
         legend.title=element_blank())
+# Plot
+# ggsave(file.path(figure_folder, "Real", "US_ests_realtime.pdf"), 
+#        plot = Plot, device = "pdf", width = 8, height = 5) 
 
 ```
 
@@ -355,13 +367,16 @@ df <- data.frame(Date=rep(est_weeks_realtime, 5),
                  source=source_factor
                  )
 
-ggplot(data=df, aes(x = Date, y = HFR, color = type, linetype=source)) +
+Plot <- ggplot(data=df, aes(x = Date, y = HFR, color = type, linetype=source)) +
   geom_line() + labs(color = "HFR", linetype = "HFR") +
   ggtitle("US HFRs, Ratio Estimates vs Approximate Ground Truth") +#, subtitle="Real-time counts"
   scale_x_date(breaks = seq(as.Date("2020-10-01"), max(dfHFR$Date), by = "3 months"), date_labels = "%b %Y") +
-  xlab("") +
+  xlab("") + theme_bw() +
   theme(legend.position="bottom",
         legend.title=element_blank())
+Plot
+ggsave(file.path(figure_folder, "Real", "US_ests_realtime.pdf"), 
+       plot = Plot, device = "pdf", width = 8, height = 5) 
 
 # plot(hfrsHJl[week_st_idx:n_ests], type="l"); lines(hfrsHJl_rt, col="red")
 # plot(hfrsHJn[week_st_idx:n_ests], type="l"); lines(hfrsHJn_rt, col="red")
@@ -384,11 +399,11 @@ hfrs_by_w <- lapply(ws, function(w) {
   compute_ahfrs_dynamic(hhs_hosps, jhu_deaths, est_weeks2, delay_distr, w=w)
 })
 
-lag_labels <- factor(c(rep("Approx. GT", length(est_weeks2)), rep(ws, each=length(est_weeks2))),
+window_labels <- factor(c(rep("Approx. GT", length(est_weeks2)), rep(ws, each=length(est_weeks2))),
                      levels=c("Approx. GT", ws))
 dfHFR <- data.frame(Date=rep(est_weeks2, length(ws)+1),
                  HFR=c(hfrsNHCS[4:n_ests], unlist(hfrs_by_w)),
-                 Window=lag_labels)
+                 Window=window_labels)
 
 ggplot(dfHFR, aes(x = Date, y = HFR, color = Window, linetype = Window)) +
   geom_line() + 
@@ -404,11 +419,11 @@ ggplot(dfHFR, aes(x = Date, y = HFR, color = Window, linetype = Window)) +
 hfrs_by_w_lag <- lapply(ws, function(w) {
   compute_lagged_hfrs(hhs_hosps, jhu_deaths, l=oracle_lag, w=w, dates=est_weeks2)
 })
-lag_labels <- factor(c(rep("Approx. GT", n_ests-3), rep(ws, each=n_ests-3)),
+window_labels <- factor(c(rep("Approx. GT", n_ests-3), rep(ws, each=n_ests-3)),
                      levels=c("Approx. GT", ws))
 dfHFR2 <- data.frame(Date=rep(est_weeks2, length(ws)+1),
                  HFR=c(hfrsNHCS[4:n_ests], unlist(hfrs_by_w_lag)),
-                 Window=lag_labels)
+                 Window=window_labels)
 ggplot(dfHFR2, aes(x = Date, y = HFR, color = Window, linetype = Window)) +
   geom_line() + 
   ggtitle("HFRs by window size", subtitle="JHU deaths, lagged HFR")
@@ -419,18 +434,21 @@ ggplot(dfHFR2, aes(x = Date, y = HFR, color = Window, linetype = Window)) +
 ```{r, fig.width=8, fig.height=4}
 
 p1 <- ggplot(dfHFR, aes(x = Date, y = HFR, color = Window, linetype = Window)) +
-  geom_line() + theme(legend.position="none") +
-  ggtitle("Lagged Ratio")
+  geom_line() + theme_bw() + theme(legend.position="none") +
+  xlab("") + ylab("") + ggtitle("Lagged Ratio") 
 p2 <- ggplot(dfHFR2, aes(x = Date, y = HFR, color = Window, linetype = Window)) +
   geom_line() + 
   ggtitle("Convolutional Ratio") +
-  xlab("") + ylab("")
+  xlab("") + ylab("") + theme_bw()
 
 windowPlot <- p1+p2 + plot_annotation(
   title = 'HFRs by Trailing Window Length',
   # subtitle = 'JHU Deaths',
 )
 windowPlot
+ggsave(file.path(figure_folder, "Real", "window_size.pdf"), 
+       plot = windowPlot, device = "pdf", width = 10, height = 5) 
+
 ```
 
 ### Robustness to choice of lag
@@ -447,9 +465,12 @@ dfHFR <- data.frame(Date=rep(est_weeks, length(lags)+1),
                  HFR=c(hfrsNHCS, unlist(hfrs_by_lag)),
                  Lag=lag_labels)
 
-ggplot(dfHFR, aes(x = Date, y = HFR, color = Lag, linetype = Lag)) +
-  geom_line() + 
+lagPlot <- ggplot(dfHFR, aes(x = Date, y = HFR, color = Lag, linetype = Lag)) +
+  geom_line() + theme_bw() +
   ggtitle("HFRs by Lag Parameter")#, subtitle="JHU deaths, lagged HFR"
+lagPlot
+ggsave(file.path(figure_folder, "Real", "hfrs_by_lag.pdf"), 
+       plot = lagPlot, device = "pdf", width = 8, height = 5) 
 
 ```
 
@@ -459,9 +480,14 @@ ggplot(dfHFR, aes(x = Date, y = HFR, color = Lag, linetype = Lag)) +
 
 
 ```{r}
-# frac <- 0.7
-frac <- 0.9
-# param_list <- list(c(15, 12), c(20, 16), c(25, 15), c(28, 21), c(30, 25))
+
+# frac <- 0.9
+# name <- "hfrs_by_delay1.pdf"
+# message <- "spread out"
+frac <- 0.7
+name <- "hfrs_by_delay2.pdf"
+message <- "more compact"
+
 gamma_means <- seq(16, 32, by=4)
 mat <- matrix(c(gamma_means, round(gamma_means*frac)), nrow=2, byrow = TRUE)
 param_list <- as.list(as.data.frame(mat))
@@ -492,14 +518,14 @@ HFRtypes <- c("GT", cleaned_numbers)#as.character(param_list))
 dfHFR <- data.frame(Date=rep(est_weeks, length(HFRtypes)),
                  HFR=c(hfrsNHCS, unlist(hfrs_by_delay)), 
                  Method=factor(rep(HFRtypes, each=n_ests), levels=HFRtypes))
-ggplot(data=dfHFR, aes(x = Date, y = HFR, color = Method, linetype = Method)) + 
+DelayPlot <- ggplot(data=dfHFR, aes(x = Date, y = HFR, color = Method, linetype = Method)) + 
   geom_line() + labs(color = "HFR; mean/SD", linetype = "HFR; mean/SD") + 
-  labs(color="HFR; mean/SD") +
-  ggtitle("HFRs by delay distribution, spread out")
-  # ggtitle("HFRs by delay distribution, more compact")
-  # ggtitle("HFRs by delay distribution", 
-  #         subtitle=paste0("JHU deaths, convolutional HFR, SD=", frac, "*mean"))
+  labs(color="HFR; mean/SD") + theme_bw() +
+  ggtitle(paste0("HFRs by delay distribution, ", message))
 
+DelayPlot
+
+ggsave(file.path(figure_folder, "Real", name), plot = DelayPlot, device = "pdf", width = 8, height = 5) 
 ```
 
 
@@ -603,11 +629,14 @@ dfHFR <- data.frame(Date=rep(est_weeks_nchs, length(HFRtypes)),
 # labels <- c("Alpha", "Delta", "Omicron")
 # labels <- c("Alpha", "Delta", "Omicron", "Late Omicron")
 # date_vec <- variant_dates[labels]
-ggplot(data=dfHFR, aes(x = Date, y = HFR, color = Method, linetype = Method)) + 
+altGT <- ggplot(data=dfHFR, aes(x = Date, y = HFR, color = Method, linetype = Method)) + 
   geom_line() + labs(color = "HFR", linetype = "HFR") + 
   # geom_vline(xintercept = as.numeric(date_vec), color = "black") +
-  ggtitle("Methods for approximate ground truth") +
+  ggtitle("Methods for approximate ground truth") + theme_bw() +
   theme(legend.position="bottom")
+altGT
+ggsave(file.path(figure_folder, "Real", "ApproxGT.pdf"), 
+       plot = altGT, device = "pdf", width = 8, height = 5) 
 
 ```
 
@@ -730,7 +759,7 @@ for (i in 1:6) {
   lags <- oracle_lags[[i]]
   p <- ggplot(dfHFR, aes(x = Date, y = HFR, color = Method, linetype = Method)) + 
   geom_line() + 
-  labs(color = "Source", linetype = "Source") + 
+  labs(color = "Source", linetype = "Source") + theme_bw() +
   # ggtitle(State)#paste("HFRs,", State))
   ggtitle(State, subtitle=paste0("Mean delays of ", lags[[1]]," (NCHS) and ", lags[[2]], " (JHU)"))
   plot(p)
@@ -744,13 +773,15 @@ for (i in 1:6) {
 
 # (plotlist[[1]] + plotlist[[2]] +  plotlist[[3]]) /
 #   (plotlist[[4]] + plotlist[[5]] +  plotlist[[6]]) + # 11 and 5
-(plotlist[[1]] + plotlist[[2]]) /
+StatePlot <- (plotlist[[1]] + plotlist[[2]]) /
   (plotlist[[3]] + plotlist[[4]]) /
   (plotlist[[5]] +  plotlist[[6]]) +
   plot_annotation(title="State-Level True & Estimated HFRs") +
   plot_layout(guides = "collect") &
   theme(legend.position = 'bottom')
-
+StatePlot
+ggsave(file.path(figure_folder, "Real", "state_level_hfrs.pdf"), 
+       plot = StatePlot, device = "pdf", width = 7, height = 8) 
 
 
 ```

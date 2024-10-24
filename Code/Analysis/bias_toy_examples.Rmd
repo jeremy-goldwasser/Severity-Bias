@@ -8,6 +8,7 @@ date: "2024-10-04"
 git_directory <- system("git rev-parse --show-toplevel", intern = TRUE)
 data_folder <- file.path(git_directory, "Data", "National_Data")
 code_folder <- file.path(git_directory, "Code", "Analysis")
+figure_folder <- file.path(git_directory, "Figs")
 nhcs_hfrs_all <- readRDS(file.path(data_folder, "hfrs_rescaled_v2.RData"))
 nhcs_hfr_dates <- as.Date(names(nhcs_hfrs_all))
 source(file.path(code_folder, "helper_functions.R"))
@@ -65,9 +66,12 @@ df <- data.frame(t=t0+rep(1:n_ests, 4)-1,
                  HFRs=c(flatter_hfrs[(d+1):n_pts], chging_hfrs[(d+1):n_pts], est_flat, est_chging),
                  Source=factor(rep(sources, each=n_ests*2), levels=sources),
                  Type=rep(rep(types, each=n_ests), 2))
-ggplot(df, aes(x=t, y=HFRs, color=Type, linetype=Source)) +
-  geom_line() + ggtitle("Changing HFR") + xlab("Date")
-
+Plot <- ggplot(df, aes(x=t, y=HFRs, color=Type, linetype=Source)) +
+  geom_line() + ggtitle("Changing HFR") + xlab("Date") +
+  theme_bw() + theme(legend.position = "bottom")
+Plot
+ggsave(file.path(figure_folder, "Simulated", "toy_chging_hfr.pdf"), 
+       plot = Plot, device = "pdf", width = 7, height = 7)
 
 ```
 
@@ -85,7 +89,8 @@ est_med <- calc_nish_hfrs(hosps_window, chging_hfrs, delay_distr_med)
 est_long <- calc_nish_hfrs(hosps_window, chging_hfrs, delay_distr_long)
 
 sources <- c("Ground Truth", "Estimated")
-types <- c("Short (12)", "Med (20)", "Long (28)")  # Only keep the necessary types
+# types <- c("Short (12)", "Med (20)", "Long (28)")  # Only keep the necessary types
+types <- c("12", "20", "28")
 df <- data.frame(
   t = t0+rep(1:n_ests, 4)-1,
   HFRs = c(chging_hfrs[(d+1):n_pts], est_short, est_med, est_long),
@@ -93,12 +98,18 @@ df <- data.frame(
   Type = factor(c(rep("Ground Truth", n_ests), rep(types, each=n_ests)), levels = c("Ground Truth", types))  # Keep Ground Truth in Type for plotting but handle later
 )
 
-ggplot(df, aes(x = t, y = HFRs, linetype = Source, color = Type)) +
+Plot <- ggplot(df, aes(x = t, y = HFRs, linetype = Source, color = Type)) +
   geom_line(aes(group = interaction(Source, Type))) +  # Group by Source and Type
-  scale_color_manual(values = c("Ground Truth" = "black", "Short (12)" = "red2", "Med (20)" = "green3", "Long (28)" = "blue"),
-                     breaks = types) +  # Manually set color, exclude Ground Truth from legend
+  # Manually set color, exclude Ground Truth from legend
+  scale_color_manual(breaks = types,
+    # values = c("Ground Truth" = "black", "Short (12)" = "red2", "Med (20)" = "green3", "Long (28)" = "blue")) +  
+    values = c("Ground Truth" = "black", "12" = "red2", "20" = "green3", "28" = "blue")) +  
   ggtitle("Delay Distribution") +
-  labs(color="Delay Length") + xlab("Date")
+  labs(color="Delay Mean") + xlab("Date") +
+  theme_bw() + theme(legend.position = "bottom")
+Plot
+ggsave(file.path(figure_folder, "Simulated", "toy_delay_distr.pdf"), 
+       plot = Plot, device = "pdf", width = 7, height = 7)
 ```
 
 
@@ -134,10 +145,14 @@ df <- data.frame(t=t0+rep(1:n_ests, 5)-1,
                  Source=sources_df,
                  Type=types_df)
 
-ggplot(df, aes(x=t, y=data, color=Type, linetype=Source)) +
+Plot <- ggplot(df, aes(x=t, y=data, color=Type, linetype=Source)) +
   geom_line() + ggtitle("Changing Primary Incidence") +
-  ylab("HFR") + xlab("Date")
+  ylab("HFR") + xlab("Date") +
+  theme_bw() + theme(legend.position = "bottom")
   # scale_y_continuous(sec.axis = sec_axis(~ . * shift, name = "Hospitalizations"))
+Plot
+ggsave(file.path(figure_folder, "Simulated", "toy_chging_primary.pdf"), 
+       plot = Plot, device = "pdf", width = 7, height = 7) 
 
 ```
 
@@ -161,9 +176,12 @@ df <- data.frame(Date=rep(estDates, 3),
 pConst <- ggplot(df, aes(x=Date, y=HFR, color=Method, linetype=Method)) + 
   geom_line() + 
   ggtitle("All deaths at same delay. True & Estimated HFRs.") +#Constant Primary Incidence. 
+  theme_bw() +
   theme(legend.position="bottom",
         legend.title = element_blank())
 plot(pConst)
+ggsave(file.path(figure_folder, "Simulated", "sim_onehot.pdf"), 
+       plot = pConst, device = "pdf", width = 7, height = 7) 
 
 ```
 Example 2
@@ -233,11 +251,14 @@ pChg <- ggplot(data, aes(x = Date, y = Value, colour = Line)) +
        colour = "Legend") +
   scale_colour_manual(values = c("True HFR" = "black", "Hospitalizations" = "green", 
                                  "Lagged Bias" = "blue", "Conv Bias" = "red")) +
-  theme(legend.title=element_blank(), legend.position="bottom") +
+  theme_bw() + theme(legend.title=element_blank(), legend.position="bottom") +
   ylim(range(c(min(conv_bias_rescaled, lagged_bias_rescaled, gt_hfrs), 
                max(conv_bias_rescaled, lagged_bias_rescaled, gt_hfrs)))) +
   scale_y_continuous(sec.axis = sec_axis(~ . / trans_factor, name = "Bias Level"))
 plot(pChg)
+ggsave(file.path(figure_folder, "Simulated", "sim_chging_primary.pdf"), 
+       plot = pChg, device = "pdf", width = 7, height = 7) 
+
 ```
 
 

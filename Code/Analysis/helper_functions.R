@@ -83,6 +83,7 @@ tune_lagged_hfrs_retro <- function(hosps, deaths, lags, ws, dates) {
 compute_ahfr_dynamic <- function(hosps, deaths, t, delay_shape, w=1) {
   # W is length of trailing window ending at t
   d <- length(delay_shape) - 1
+  w <- ifelse(w==0, 1, w)
   contributing_hosps <- sum(sapply(0:(w-1), function(i) {
     hosps_in_trailing_window <- hosps[names(hosps) %in% seq(t-d-i, t-i, by="day")]
     sum(rev(hosps_in_trailing_window) * delay_shape)
