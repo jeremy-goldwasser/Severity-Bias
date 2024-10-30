@@ -162,7 +162,7 @@ As a result, the bias is positive, meaning the ratio estimates do not decline wi
          \caption{}
          \label{fig:toy_primary}
      \end{subfigure}
-        \caption{Simple examples of severity rate bias. Deaths computed noiselessly from \ref{eq:model}, with NCHS HFRs and HHS hospitalizations from early 2022. \ref{fig:toy_hfr} and \ref{fig:toy_primary} use delay distribution fit on JHU deaths (\ref{sec:setup}).}
+        \caption{Simple examples of severity rate bias. NCHS HFRs and HHS hospitalizations from early 2022. Using fitted delay distribution (\ref{sec:setup}).}
         \label{fig:bias_ex_main}
 \end{figure}
 
@@ -172,53 +172,107 @@ As noted previously, the convolutional ratio is equivalent to the lagged ratio i
 $$\text{Bias}(\hat{p}_t^\ell) = \text{Bias}(\hat{p}_t^\gamma) = p_{t-\ell}-p_t.$$
 \noindent This toy setting and others are discussed in Appendix \ref{apx:analysis}.
 
-\subsection{Misspecified analysis}\label{sec:misp}
+\subsection{Misspecified analysis}
 
-The above section considered the bias of the convolutional ratio where the true delay distribution $\pi$ is known. We now consider the more general case, in which it is instead replaced with a plug-in estimate $\gamma$. Note the bias of the lagged estimator is a special case, where the plug-in distribution is a point mass at lag time $\ell$. 
+The above section considered the bias of the convolutional ratio where the true delay distribution $\pi$ is known. We now consider the more general case, in which it is instead replaced with a plug-in estimate $\gamma$. Nevertheless, we still assume $\pi$ is constant over time, and its maximal length $d$ exceeds that of the plug-in distribution. Note the bias of the lagged estimator is a special case, where the plug-in distribution is a point mass at lag time $\ell$. 
+% Our analysis only assumes the length of the plug-in distribution is less than $d$, the length of the true distribution.
+\begin{align}\label{eq:MispBias}
+    \text{Bias}(\hat{p}_t) &= \frac{E[Y_t]}{\sum_{k=0}^d X_{t-k}\gamma_k} - p_t \nonumber\\
+    &= \frac{\sum_{k=0}^d X_{t-k}\pi_k p_{t-k}}{\sum_{k=0}^d X_{t-k}\gamma_k} - \frac{\sum_{k=0}^d X_{t-k}\gamma_k p_t}{\sum_{k=0}^d X_{t-k}\gamma_k}\nonumber \\
+    &= \sum_{k=0}^d \frac{X_{t-k}}{\sum_{j=0}^d X_{t-j}\gamma_j}(\pi_k p_{t-k}-\gamma_k p_t)\nonumber \\
+    &= \sum_{k=0}^d \frac{X_{t-k}}{\sum_{j=0}^d X_{t-j}\gamma_k}(\pi_k p_{t-k}-(\pi_k +\gamma_k-\pi_k) p_t)\nonumber \\
+     &= \sum_{k=0}^d \frac{X_{t-k}\pi_k}{\sum_{j=0}^d X_{t-j}\gamma_j}(p_{t-k}-p_t) +\nonumber\\
+     &\qquad\qquad p_t\sum_{k=0}^d \frac{X_{t-k}}{\sum_{j=0}^d X_{t-j}\gamma_j}(\gamma_k -\pi_k) 
+\end{align}
+% This can be further decomposed into the oracle error \ref{eq:ConvBias}. Letting $\hat\Delta_k = \gamma_k - \pi_k$,
 
-\begin{theorem}\label{thm:misp}
-Assume the true delay distribution $\pi $ is constant over time, and its maximal length $d$ exceeds that of the plug-in distribution $\gamma$. 
-Define $R^\gamma := \frac{\sum_{j=0}^d X_{t-j}\pi_j}{\sum_{j=0}^d X_{t-j}\gamma_j}$, which compares how the delay distributions convolve against the most recent primary incidence levels. The misspecified bias is
-% The bias of this misspecified estimator can be expressed additively in terms of the rescaled oracle bias plus a misspecification error term.
+For the lagged estimator,
 
-\begin{equation*}%\label{eq:MispBias}
-         % \text{Bias}(\hat{p}_t^\gamma = \frac{\sum_{j=0}^d X_{t-j}\pi_j}{\sum_{j=0}^d X_{t-j}\gamma_j}\text{Bias}(\hat{p}_t^\pi) + p_t\big[ \frac{\sum_{k=0}^d X_{t-k}\pi_k}{\sum_{j=0}^d X_{t-j}\gamma_j}-1\big].
-          \text{Bias}(\hat{p}_t^\gamma) = R^\gamma\text{Bias}(\hat{p}_t^\pi) + p_t\big[ R^\gamma-1\big].
-\end{equation*}
-\end{theorem}
+\begin{align}\label{eq:LagBias}
+    \text{Bias}(\hat{p}_t^\ell) &=  \sum_{k=0}^d \frac{X_{t-k}}{X_{t-\ell}}(\pi_k p_{t-k}-\mathds\{k=\ell\} p_t) \nonumber \\
+    &= \sum_{k=0}^d \pi_k \Big(\frac{X_{t-k}}{X_{t-\ell}} p_{t-k} - p_{t} \Big).
+\end{align}
 
-Theorem \ref{thm:misp}, proven in Appendix \ref{apx:misp_pf}, provides an additive decomposition of the misspecified ratio's bias. One term scales the oracle bias, and the other solely expresses misspecification. Which of these two terms will dominate depends on the true severity rate $p_t$, the oracle bias, and the ratio $R^\gamma$. If oracle bias is small, for example, then its multiplicative scaling should have relatively little effect, in which case the misspecification term may drive bias. In both terms, $R^\gamma$ dictates the extent to which the misspecified distribution alters the bias.
-% The extent of the change from the oracle bias depends on the ratio $R^\gamma$. 
-% $\text{Bias}(\hat{p}_t^\pi)$. 
+The only difference between the first term in the final equality of Eq. \ref{eq:MispBias} and Eq \ref{eq:ConvBias} is the true versus plug-in delay distribution in the denominator of the weighting term. 
 
-Suppose primary events have evened out somewhat after falling for a long time (see April 2022 in Fig. \ref{fig:misspecified}). If the plug-in delay distribution is too light-tailed, then $R^\gamma>1$, since it does not upweight distant dates with high primary counts. Therefore, this distribution inflates the oracle bias multiplicatively and adds positive misspecification bias. If primary events have consistently risen instead, then $R^\gamma < 1$, so the oracle bias term would shrink and the misspecified bias would be negative. These relations may be more complicated if primary incidence has changed direction throughout the delay distribution.
+\textcolor{red}{It would be ideal if we could say something about the misspecified bias in terms of the \textit{actual} oracle bias plus a misspecification term. This is clearly not possible from the previous equation, since the $\gamma_j$ in the denominator cannot be factored out by any means.}
 
-% When the plug-in delay distribution hits less mass of the incidence curve - for example, if $\gamma$ is lighter-tailed than $\pi$ and primary events are falling - then $R^\gamma > 1$. 
+\textcolor{red}{It is possible to express this as a bound, after making a strange assumption about the delay distribution. However, what the bounds tell us is not interesting. Depending on the direction of the bias \& the assumption, it either provides 
+\begin{enumerate}
+    \item An unsatisfying lower bound - unsatisfying in that the lower bound may be considerably \textit{better} than the oracle estimator's bias.
+    \item A worst-case bound. This isn't particularly interesting, since we're more interested in showing that the bias with misspecified delay distribution is demonstrably bad.
+\end{enumerate}
+I'm happy to write up these bounds, but I don't think they're interesting enough to make their way into the main paper.}
 
-For the lagged estimator, \ref{thm:misp} simplifies to
-\begin{equation}\label{eq:LagBias}
-         \text{Bias}(\hat{p}_t^\ell) = \frac{\sum_{j=0}^d X_{t-j}\pi_j}{X_{t-\ell}}\text{Bias}(\hat{p}_t^\pi) + p_t\big[ \frac{\sum_{k=0}^d X_{t-k}\pi_k}{X_{t-\ell}}-1\big].
-\end{equation}
-In some cases,  $\gamma_k=\mathds{1}\{k=\ell\}$ can be thought as a light-tailed distribution. It assigns all its mass at $\ell$ - chosen to be around the mean of $\pi$ - and none in the long tail of $\pi$. In the flattened-out period around April 2022, the lagged estimator has similar positive bias as the short-tailed convolutional ratio. 
+\textcolor{red}{Lastly, I looked into the mean squared error of this misspecified estimator. Can we break the MSE into oracle and plug-in error terms? Unfortunately, the answer again appears to be no. The expression also has the plug-in distribution in a denominator that cannot be nicely analyzed.}
 
-Overall, however, the lagged estimator's bias is more subtle because it relies exclusively on primary incidence $\ell$ days ago. When counts rise sharply between $t-\ell$ and $t$, the ratio $R^\ell>1$ due to its small denominator. In contrast, a smooth, light-tailed choice of $\gamma$ will emphasize recent high counts more than the true distribution $\pi$, so $R^\gamma < 1$. Figure \ref{fig:misspecified} highlights this divergence in behavior as hospitalizations peak in mid-January. 
+\textcolor{blue}{In light of all of this, I think it is most sensible to just write about the bias expressions as presented. There still are relatively interesting things to say:
+\begin{enumerate}
+    \item It decomposes into *roughly* an oracle and misspecification term, though the oracle term is deeply reliant on the plug-in delay distribution;
+    \item The lagged bias has a ratio of primary incidence, comparing $k$ days ago to the lag time $\ell$. This reliance yields interesting results. e.g. In Figure \ref{fig:chging_primary}, as hospitalizations start to decline, lagged bias falls while oracle convolutional bias rises.
+\end{enumerate}}
 
-The lagged estimator also has interesting behavior as primary incidence falls from its peak. The denominator of $R^\ell$ is large, since counts neared the peak $\ell$ days ago. Meanwhile, the numerator is smaller due to its inclusion of lower counts before and after the peak. As a result, $R^\ell<1$, contributing negative bias. Misspecified smooth delay distributions will be less biased under these conditions, since they incorporate the lower counts into the denominator of $R^\gamma$. This explains the lagged ratio's spurious dip in February 2022. 
+\textcolor{blue}{Per Ryan's comment on line 379, it is important to do this well. The lagged ratio generally does much worse than the convolutional estimator, indicating substantial error as a consequence of delay misspecification. Equation \ref{eq:MispBias} describes this drop in performance, but it is unfortunately challenging to analyze. 
+}
+% If we assume $\sum_{j=0}^d X_{t-j}\pi_j = \sum_{j=0}^d X_{t-j}\gamma_j$, then 
 
-% Its behavior diverges from the short-tailed ratio as hospitalizations peak in mid-January. Hospitalizations rose sharply to this peak, such that counts were substantially lower just $\ell=20$ days ago. Consequently, the ratio $R^\ell$ surges to 1.5, and the bias spikes upwards. Figure \ref{fig:sims}
+% \begin{align}\label{eq:ConvBiasMisp}
+%     \text{Bias}(\hat{p}_t^\gamma) = \text{Bias}(\hat{p}_t^\pi) + p_t\sum_{k=0}^d \frac{X_{t-k}}{\sum_{j=0}^d X_{t-j}\gamma_j}(\gamma_k -\pi_k).
+% \end{align}
+% The misspecification error can be bounded by noting : $p_t$. 
+% The misspecification error is a weighted average of the differences in delay distributon 
 
-% \textcolor{red}{(THIS IS WRONG): \noindent By nature, $\gamma_k=\mathds{1}\{k=\ell\}$ is a light-tailed distribution. It assigns all its mass at $\ell$, and none in the long tail of $\pi$. Consequently, we can generally expect the lagged estimator to have $R^\ell > 1$ when primary events are falling, and $R^\ell<1$ when they are rising. 
+
+
+\textcolor{brown}{For the sake of legibility, I've hidden Addison and Ryan's Overleaf commentary encouraging this investigation into misspecification error. It's entirely possible there's stuff I've missed; feel free to uncomment parts out if need be.}
+
+% \subsection{Misspecified Analysis (older commentary)}
+
+% % This bias expression for the lagged ratio obeys roughly the same structure:
+
+% % \begin{align}\label{eq:LagBias}
+% %     \text{Bias}(\hat{p}_t^\ell) &= \frac{E[Y_t]}{X_{t-L}} - p_t \nonumber\\ 
+% %     &= \frac{\sum_{k=0}^d X_{t-k}\pi_k p_{t-k}}{X_{t-L}} - \frac{X_{t-L} p_t}{X_{t-L}} \nonumber\\
+% %     &= \frac{\sum_{k=0}^d \pi_k\Big( X_{t-k} p_{t-k}-X_{t-L} p_t\Big)}{X_{t-L}}.
+% % \end{align}
+
+% \noindent Again, the bias will be positive when the HFR is falling, and vice versa. Indeed, empirically the two ratio estimators are shown to have similar bias (Section \ref{sec:results}). However, Eq. \ref{eq:LagBias} is more difficult to analyze due to its reliance on the lag $\ell$, hence this section's focus on the convolutional ratio.
+
+% \ahcomment{
+% Can we frame discussion of the bias for the lagged
+% estimator through Bias Factor 2, 
+% ``shape of the delay distribution'', and use
+% the fact that the lagged estimator is a
+% convolution estimator with
+% $\pi=1\{k=L\}$?  How does that interact with the
+% Example given for Bias Factor 2?
+
+% In fact, in the spirit of Ryan's question, 
+% ``if I were a referee, I would ask how the bias
+% is affected by different choices of convolutional
+% kernel in the estimator (if not the oracle),
+% and by different choices of lag --- would it 
+% make sense to do \eqref{eq:ConvBias} without 
+% assuming the oracle delay distribution is known;
+% obtaining a bias expression that has
+% separate $\gamma$ from oracle $\pi$, and then
+% specializing it to the cases where we know
+% the oracle, so $\gamma=\pi$, and where
+% $\gamma$ puts all mass on $\ell$?
+
+% I'm not specifically saying this should be done;
+% just that we should consider doing it if it
+% streamlines the exposition/clarifies the differences.
 % }
 
-\begin{figure}
-    \centering
-    \includegraphics[width=.8\linewidth]{Figs/Simulated/toy_misp.pdf}
-    \caption{HFR estimates under misspecification. Convolutional ratio estimates with true delay distribution (mean 20), misshapen gammas (mean 16 and 20), and point mass (i.e. lag) at oracle mean. HHS hospitalizations, NCHS HFRs, and deaths from \ref{eq:model}.}
-    \label{fig:misspecified}
-\end{figure}
+% \rjtcomment{I realized the following: in (5), we're assuming that the convolutional model is well-specified (and that the estimator uses the oracle delay distribution) but in (6), we have not assumed that the lagged model is well-specified. In other words, we've looked at the well-specified bias of the convolutional estimator in (5), but the mis-specified bias of the lagged estimator in (6). I think this is why it's hard to interpret the latter, and creates some confusion.
 
-% \textcolor{brown}{For...}
+% If we assume that the lagged model is well-specified, the (5) becomes easy to interpret (just like AH says in his comment above ... because in this case can just interpret this in the context of the point \#2 in the discussion of the convolutional estimator). This is a particular (point mass) delay distribution. If this aligns with a big change in the severity rate, then the bias will be high. Right?}
 
+% % How do estimates of $\gamma$ affect the bias
+% % and how do different choices of L affect the bias?
+% % Can it be made arbitrarily large based on certain
+% % design settings?
 
 \subsection{Experimental setup}\label{sec:setup}
 \subsubsection{HFR estimation}
@@ -331,8 +385,6 @@ Figure \ref{fig:sims} displays the results on the 2 delay distributions and 3 HF
 
 Interestingly, the lagged estimator performed considerably worse than the convolutional ratio. When the true HFR changed, the lagged estimates oscillated while the convolutional ratio followed the general trend. In the stationary HFR case, its bias reached as high as 50\%; in contrast, the convolutional estimator was unbiased as anticipated (Eq. \ref{eq:ConvBias}). This discrepancy is striking, as the lagged ratio is the most commonly-used time-varying estimator. 
 
-Theorem \ref{thm:misp} accounts for this discrepancy. As analyzed in \ref{sec:misp}, the lagged ratio is prone to positive bias as primary incidence has risen sharply. We observe this during the peaks of the Delta and Omicron waves, where the lagged bias spikes even when the underlying HFR is constant. Positive bias is also expected when hospitalizations have leveled out from a decline, which occurs in spring 2022. Lastly, we showed the lagged estimator should have negative bias as primary events fall. This is observed in Delta (September 2021) and Omicron (Februrary 2022). 
-
 \section{Discussion}
 
 Our analyses illustrate that practitioners should take caution when using these time-varying severity ratios. They exhibit considerable bias when severity rates change, particularly the popular lagged ratio. A major purpose of these estimators is to inform stakeholders of changing risks in real time; this bias indicates they may fail to do so in a reliable manner.
@@ -370,7 +422,7 @@ As defined in \ref{eq:severity}, the severity rate is analogous to case $R_t$. B
 \pagebreak
 \appendix
 \section{Analysis}\label{apx:analysis}
-\subsection{Figures}
+
 In this section, we present two examples that further explain the bias. These are more contrived that the ones in \ref{sec:analysis}, for example using unrealistic delay distributions. Nevertheless, their bias can be simplified to simple analytic formulas, isolating the three contributing factors.
 % In contrast to the examples in \ref{sec:analysis}, the ones here use contrived delay distributions and
 
@@ -419,35 +471,6 @@ Figure \ref{fig:chging_primary} displays this setting. Hospitalizations are defi
 When daily hospitalizations approach a constant level, the two estimators become the same ratio, so their biases converge. During periods of change, however, the lagged estimator has different bias. It oscillates up and down, reaching higher bias than the convolutional ratio. 
 
 TO DO: ANALYZE WHY THIS HAPPENS.
-
-\subsection{Misspecification Proof}\label{apx:misp_pf}
-
-The additive bias term is
-\begin{align*}%\label{eq:MispBias}
-    \text{Bias}(\hat{p}_t) &= \frac{E[Y_t]}{\sum_{k=0}^d X_{t-k}\gamma_k} - p_t \\
-    &= \frac{\sum_{k=0}^d X_{t-k}\pi_k p_{t-k}}{\sum_{k=0}^d X_{t-k}\gamma_k} - \frac{\sum_{k=0}^d X_{t-k}\gamma_k p_t}{\sum_{k=0}^d X_{t-k}\gamma_k} \\
-    &= \sum_{k=0}^d \frac{X_{t-k}}{\sum_{j=0}^d X_{t-j}\gamma_j}(\pi_k p_{t-k}-\gamma_k p_t) \\
-    &= \sum_{k=0}^d \frac{X_{t-k}}{\sum_{j=0}^d X_{t-j}\gamma_k}(\pi_k p_{t-k}-(\pi_k +(\gamma_k-\pi_k)) p_t) \\
-     &= \frac{\sum_{j=0}^d X_{t-j}\pi_j}{\sum_{j=0}^d X_{t-j}\gamma_j}\sum_{k=0}^d \frac{X_{t-k}\pi_k}{\sum_{j=0}^d X_{t-j}\pi_j}(p_{t-k}-p_t) -\\
-     &\qquad\qquad p_t\sum_{k=0}^d \frac{X_{t-k}}{\sum_{j=0}^d X_{t-j}\gamma_j}(\gamma_k -\pi_k)  \\
-     &= \frac{\sum_{j=0}^d X_{t-j}\pi_j}{\sum_{j=0}^d X_{t-j}\gamma_j}\text{Bias}(\hat{p}_t^\pi) + p_t\Big[ \frac{\sum_{k=0}^d X_{t-k}\pi_k}{\sum_{j=0}^d X_{t-j}\gamma_j}-1\Big]
-\end{align*}
-          % &= \frac{\sum_{j=0}^d X_{t-j}\pi_j}{\sum_{j=0}^d X_{t-j}\gamma_j}\Big[\text{Bias}(\hat{p}_t^\pi) + p_t\sum_{k=0}^d \frac{X_{t-k}\pi_k}{\sum_{j=0}^d X_{t-j}\pi_j}(\frac{\gamma_k}{\pi_k} -1)\Big] \\
-          %   &= \frac{\sum_{j=0}^d X_{t-j}\pi_j}{\sum_{j=0}^d X_{t-j}\gamma_j}\Big[\text{Bias}(\hat{p}_t^\pi) + p_t\big[\sum_{k=0}^d \frac{X_{t-k}\gamma_k}{\sum_{j=0}^d X_{t-j}\pi_j}-1\big]\Big]
-
-Alternatively, the bias can be written in a multiplicative form. Modifying the third line yields
-\begin{align}
-        \text{Bias}(\hat{p}_t^\gamma) &= \sum_{k=0}^d \frac{X_{t-k}}{\sum_{j=0}^d X_{t-j}\gamma_j}(\pi_k p_{t-k}-\gamma_k p_t)\nonumber \\
-        &= \sum_{k=0}^d \frac{X_{t-k}\gamma_k}{\sum_{j=0}^d X_{t-j}\gamma_j}(\frac{\pi_k}{\gamma_k} p_{t-k}- p_t).
-\end{align}
-Interestingly, this means that when if $p_{t-k} < p_t$ and $\gamma_k < \pi_k$, then the $k$\textsuperscript{th} pointwise term here may have smaller bias than in the oracle case. The same holds conversely, with $p_{t-k} > p_t$ and $\gamma_k > \pi_k$. But since $\gamma_k$ is constrained to sum to 1, it’s not clear that it can be systematically chosen to achieve lower bias than $\pi$.
-
-For the lagged estimator, the additive bias is
-
-\begin{align*}
-         \text{Bias}(\hat{p}_t^\gamma) &=  \frac{\sum_{j=0}^d X_{t-j}\pi_j}{X_{t-\ell}}\Big[\text{Bias}(\hat{p}_t^\pi) + p_t\sum_{k=0}^d \frac{X_{t-k}}{\sum_{j=0}^d X_{t-j}\pi_j}(\gamma_k -\pi_k)\Big]
-\end{align*}
-
 
 \section{Alternative data sources}
 \subsection{Retrospective deaths}\label{apx:NCHS_deaths}
