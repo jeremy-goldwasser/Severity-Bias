@@ -82,7 +82,9 @@ This estimator is widely used in practice \citep{nishiuraEx1, nishiuraEx2, Russe
     \hat{p}_t^{\gamma} = \frac{Y_t}{\sum_{k=0}^d X_{t-k}\gamma_k}.%^{(t-k)}
 \end{equation}
 
-\noindent This convolutional ratio can be understood as a generalization of Equation \ref{eq:lagged}. It reduces to the same ratio that ${\gamma}$ is a point mass distribution where all secondary events occur after $\ell$ days. They also are equivalent if primary events are constant. Otherwise, it may relate the two time series more accurately by means of a smooth delay distribution, since the true distribution is unlikely to be a point mass. In practice, however, we have not come across work that applies it for time-varying estimation. Rather, the lagged ratio is standard.
+\noindent This convolutional ratio can be understood as a generalization of Equation \ref{eq:lagged}. It reduces to the same ratio that ${\gamma}$ is a point mass distribution where all secondary events occur after $\ell$ days. They also are equivalent if primary events are constant. Otherwise, it may relate the two time series more accurately by means of a smooth delay distribution, since the true distribution is unlikely to be a point mass. 
+
+The convolutional ratios \ref{eq:nish} and \ref{eq:conv} are implemented in the R package \texttt{cfr} \citep{cfr_package}. However, we have not come across work applying the time-varying estimator. Rather, the lagged ratio is standard in practice.
 % Otherwise, it expresses a more accurate relation the two time series. 
 
 % The ratios in Equations \ref{eq:lagged} and \ref{eq:conv} track a time-varying severity rate. To estimate the average rate over all time, they are often used with cumulative counts. That is, each time series is the sum of all counts from the first timestep. This version of Eq. \ref{eq:conv} is unbiased if the severity rate is stationary, and is widely used in practice \citep{nishiura}. For the time-varying setting, however, the lagged ratio is much more common.
@@ -297,7 +299,11 @@ Figure \ref{fig:basic_est_vs_gt_figs} highlights the bias of these ratio estimat
 
 The most significant bias comes in the middle of the Omicron wave in spring 2022. The true HFRs sharply decline in this period, from a high of roughly 17\% in March to a low of 9\% only two months later. At the same time, the HFR estimates \textit{rise}, peaking over 20\% as the true HFR reaches its nadir. This dramatic surge signals a serious false alarm. 
 
-The analysis in Section \ref{sec:analysis} explains each of these three failure cases. Recall the bias moves in the opposite direction of the true severity rate. Rising HFRs result in negative bias, hence the delayed rise in the Delta wave. Falling HFRs correspond to positive bias, as observed in early 2021 and 2022. In addition, the enormity of the bias during Omicron can be attributed to the precipitous decline in hospitalizations, as falling primary incidence has been shown to exacerbate the bias. Average daily hospitalizations declined from over 20,000 in mid-January to only 1,500 by April 1. Finally, the delay distribution is relatively long with JHU deaths due to its alignment by report date. This is shown to have a substantial impact on the bias, as analyzed in Appendix \ref{apx:NCHS_deaths}.
+The well-specified analysis in Section \ref{sec:analysis} explains each of these three failure cases. While this analysis assumes the true delay distribution is known, different choices of delay distribution generally yield the same bias (\ref{apx:robustness}). The convolutional estimator in green may not be far from the oracle ratio, though the lagged ratio has misspecification bias introduced in \ref{sec:misp}. 
+
+Firstly, equation \ref{eq:ConvBias} indicates the bias moves in the opposite direction of the true severity rate. We observe this in the Delta wave, when the HFRs rise well before the ratio estimates do.  
+% Rising HFRs result in negative bias, hence the delayed rise in the Delta wave. 
+Falling HFRs correspond to positive bias, as observed in early 2021 and 2022. Secondly, the enormity of the bias during Omicron can partially be attributed to the precipitous decline in hospitalizations, as falling primary incidence has been shown to exacerbate the bias. Average daily hospitalizations declined from over 20,000 in mid-January to only 1,500 by April 1. Finally, the delay distribution is relatively long with JHU deaths due to its alignment by report date. This is shown to have a substantial impact on the bias, as analyzed in Appendix \ref{apx:NCHS_deaths}.
 % \ahcomment{
 % This is great --- I think we would really drive the point home
 % if in addition to Figure 1, we had a three-panel figure that
@@ -306,6 +312,8 @@ The analysis in Section \ref{sec:analysis} explains each of these three failure 
 % can see exactly how they correspond to the conditions under
 % which bias occurs outlined in Section 2. \textcolor{blue}{How's this look?}%  (Even better if there are toy examples in Section 2, so the reader can see the ``idealized version'' of the failure, and a ``real world'' manifestation of that failure mode.
 % }
+
+The misspecified analysis explains central discrepancies between the convolutional and lagged ratios. The lagged estimates dip below the ground truth and convolutional HFRs as hospitalizations fall around February 2022. Shortly thereafter, they spike even higher than the convolutional ratio. These biases both occured in Figure \ref{fig:misspecified}, where deaths were simulated from the same hospitalizations and HFRs. Our analysis attributed the bias to $R^\ell$ in Theorem \ref{thm:misp}, affected by changes in hospitalization counts.
 
 We performed several robustness checks to assess the stability of these findings. Figure \ref{fig:basic_est_vs_gt} compares the convolutional and lagged ratio estimators, finding bias in both. The convolutional estimator is slightly better, but still very problematic. Appendix \ref{apx:robustness} explores the effect of different hyperparameters and locations. By and large, the ratio estimators are biased regardless of these considerations. 
 
