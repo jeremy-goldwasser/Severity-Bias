@@ -37,6 +37,7 @@ In this work, we demonstrate that these ratio estimators exhibit fundamental sta
 %, or at least leverage information on time-to-recovery (e.g. Ghani, Reich, and Jewell)
 
 \section{Methods}
+\label{sec:methods}
 \subsection{Severity rate estimators}
 
 The time-varying severity rate is defined as
@@ -290,7 +291,11 @@ These relations may be more complicated if primary incidence has changed directi
       so the worst-case ``negative'' bias is $-p_t$.  Maybe more interestingly,
       it points out an asymmetry in $\hat p_t$ errors: underestimation of the
       severity rate is bounded below by $-p_t$, but overestimation of the
-      severity rate can be unbounded, under misspecification.
+      severity rate can be unbounded, under misspecification.  (In principle
+      one would never estimate $p_t > 1$, so the upper bound would $1-p_t$.)
+    \item On the other hand, while the oracle bias also cannot be smaller
+      than $-p_t$, it has a sharper upper bound, which is $p_{t-k}-p_t$,
+      maximizing over $k=0,\dotsc,d$.
   \end{itemize}
 }
 
@@ -331,6 +336,12 @@ The lagged estimator also has interesting behavior as primary incidence falls fr
 
 
 \subsection{Experimental setup}\label{sec:setup}
+\ahcomment{
+  Minor nit: would you consider moving Section~\ref{sec:setup} to
+  Section~\ref{sec:analysis}?  Then Section~\ref{sec:methods} would be all
+  mathematical description of the estimators, and Section~\ref{sec:results}
+  would be all empirical evalution (on real and synthetic data).
+}
 \subsubsection{HFR estimation}
 % Our experiments focus on the Hospitalization-Fatality Rate (HFR) during COVID-19. While this is a less commonly used metric than the Case-Fatality Rate (CFR), the two should exhibit the same statistical biases. Moreover, CFR may slightly misrepresent our analyses because the model relating cases to deaths may be slightly different. Case reporting during COVID suffered significant time delays, with some cases being reported \textit{after} the death. Therefore, the delay distribution for CFR may not have non-negative support. Unlike case data, the Department of Health and Human Services (HHS) reported hospitalizations in real time based on the date they occurred. This makes hospitalizations a more suitable choice of primary event for study. 
 
@@ -408,6 +419,44 @@ Figure \ref{fig:basic_est_vs_gt_figs} highlights the bias of these ratio estimat
 The most significant bias comes in the middle of the Omicron wave in spring 2022. The true HFRs sharply decline in this period, from a high of roughly 17\% in March to a low of 9\% only two months later. At the same time, the HFR estimates \textit{rise}, peaking over 20\% as the true HFR reaches its nadir. This dramatic surge signals a serious false alarm. 
 
 The well-specified analysis in Section \ref{sec:analysis} explains each of these three failure cases. While this analysis assumes the true delay distribution is known, different choices of delay distribution generally yield the same bias (\ref{apx:robustness}). The convolutional estimator in green may not be far from the oracle ratio, though the lagged ratio has misspecification bias introduced in \ref{sec:misp}. 
+\ahcomment{
+  Some collected comments:
+  \begin{itemize}
+    \item Sections should be referred to as, e.g.,
+      Appendix~\ref{apx:robustness} and Section~\ref{sec:misp}, to avoid
+      ambiguity (reference to figures, etc.).  Refererences that are just a
+      number in parentheses should be reserved for numbered equations (and
+      referred to using eqref).
+    \item For Figure~\ref{fig:basic_est_vs_gt} --- is it necessary to include
+      both the results from both the real-time and finalized analyses?
+      (I don't know if you and Ryan already discussed this.)  If it's not
+      necessary to present both in the main paper (in the same figure), I would
+      defer one of them to the Appendix and change the lines from dotted/dashed
+      to solid.  That would improve the legibility of the figures
+      substantially, and also simplify the legends, etc.  Studying the results
+      in Figure~\ref{fig:basic_est_vs_gt}, I don't think that omitting either
+      the real-time or finalized results changes the story substantially.
+      If only the finalzed counts are being presented in Figure~\ref{fig:wave},
+      then maybe just present that in Figure~\ref{fig:basic_est_vs_gt}?
+    \item (Especially if Figure~\ref{fig:basic_est_vs_gt} is simplified by
+      removing either the finalized or real-time curves), it would be really
+      nice to ``shade behind'' in light gray the Alpha, Delta, and Omicron
+      waves, so that they can be studied ``in context.''
+    \item Would it be possible to explain for each of the panels Alpha,
+      Delta, Omicron in Figure~\ref{fig:wave} why the bias is smaller or
+      larger for the convolution ratio versus the lagged ratio.  (I think
+      a reader/reviewer may ask why, given our toy example showing that
+      the lagged estimator generally exhibits larger bias than the convolution
+      estimator, by virtue of being more likely to be misspecified, the
+      lagged bias is consistently smaller than the convolutional bias for
+      Delta.)  We should be able to explain all three based on your analysis
+      of the effect of severity rates / primary incidence / delay distribution
+      / misspecification on the bias.  If we can explain all three
+      convincingly, it would be a very strong empirical illustration (Alpha:
+      bias is roughly the same; Delta: convolutional has greater bias;
+      Omicron: lagged has greater bias.
+  \end{itemize}
+}
 
 Firstly, equation \eqref{eq:ConvBias} indicates the bias moves in the opposite direction of the true severity rate. We observe this in the Delta wave, when the HFRs rise well before the ratio estimates do.  
 % Rising HFRs result in negative bias, hence the delayed rise in the Delta wave. 
@@ -428,11 +477,29 @@ We performed several robustness checks to assess the stability of these findings
 \subsection{Simulated data}
 
 
+\ahcomment{
+  Just to make sure I understand the simulated results properly:
+  \begin{itemize}
+    \item For both the Short Delay Distribution and the Long Delay
+      Distribution, the oracle delay distribution is known to the convolutional
+      estimator, and the lagged estimator uses the mean as its lag.
+    \item Therefore, these results can be thought of not just as
+      ``convolutional versus lagged'' but ``correctly specified versus
+      poorly specified'' (poorly specified because it's a point mass kernel,
+      even though it has access to the oracle mean).
+    \item I don't think it's necessary to include it, but if you wanted to,
+      you could add a fourth row to Figure~\ref{fig:sims} with $R^\gamma$
+      for the lagged estimator;  I think it is so informative re:
+      the additional bias incurred by misspecification, which is the root
+      cause of the lagged estimator's exacerbated bias.
+  \end{itemize}
+}
+
 We further evaluated these methods on simulated deaths whose true HFRs is known. Throughout these experiments, we used observed, finalized HHS hospitalization reports $X_t$, and various models for the HFR and delay distribution. Given a series of time-varying HFRs $p_t$ and delay distribution $\pi$, deaths are defined without noise as according to \eqref{eq:model}
 
 $$Y_t := \sum_{k=0}^d X_{t-k} \mathbb{P}(\text{die at $t$ }\vert\text{ hosp at }t-k) = \sum_{k=0}^d X_{t-k} \pi_k p_{t-k}.$$
 
-To mimic the real data, we first used the same HFRs from NHCS used for validation in \ref{sec:results_real}. We also inverted them and rescaled in order to simulate the opposite trend. Lastly, we explored a stationary HFR of 10\% over all time. The delay distributions were again gamma with standard devation 0.9 of their mean. We experimented with means of 12 and 24 to illustrate a short and long delay distribution. The ratio estimators used the oracle hyparameters: The true delay distribution for the convolutional ratio, and its mean for the lagged method. Estimates were not smoothed over a trailing window.
+To mimic the real data, we first used the same HFRs from NHCS used for validation in \ref{sec:results_real}. We also inverted them and rescaled in order to simulate the opposite trend. Lastly, we explored a stationary HFR of 10\% over all time. The delay distributions were again gamma with standard deviation 0.9 of their mean. We experimented with means of 12 and 24 to illustrate a short and long delay distribution. The ratio estimators used the oracle hyparameters: The true delay distribution for the convolutional ratio, and its mean for the lagged method. Estimates were not smoothed over a trailing window.
 % In addition, we used the delay distributions that produced the most reasonable convolutional HFRs on the observed death counts. For NCHS, this was a gamma distribution with mean 11 and standard deviation 10; for JHU, these quantities were 28 and 21, respectively.  (TO DO: replace all this.)
 
 \begin{figure}
