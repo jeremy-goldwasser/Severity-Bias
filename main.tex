@@ -49,7 +49,7 @@ Let $\{X_t\}$, $\{Y_t\}$ denote the time series of interest. In the case of CFR,
 The canonical estimator for time-varying severity rates is a ratio between $X_t$ and $Y_t$ events, offset by a lag $\ell$. This lagged approach is formally introduced in \citet{thomas2021estimating}, but has also been used in numerous prior works (e.g., \citealp{germany,horita2022global,timevar_ifr,yuan2020monitoring,LIU2023100350,atlantic,wsj}). The real-time estimator only uses data until the present timestep $t$: 
 %_{t=1}^T
 \begin{equation}\label{eq:lagged}
-    \hat{p}_t^\ell = \frac{Y_t}{X_{t-L}}
+    \hat{p}_t^\ell = \frac{Y_t}{X_{t-L}}.
 \end{equation}
 
 
@@ -57,7 +57,7 @@ The canonical estimator for time-varying severity rates is a ratio between $X_t$
 Alternative methods use the delay distribution that relates the two time series. Let $\pi_k^{(t)}$ denote the probability that the secondary event occurs $k$ days after a primary event at time $t$, given it occurs at all.  \ahcomment{Make the definition of $\pi_k^{(t)}$ its own display equation?} A number of tools exist to estimate delay distributions from aggregate or line-list data \citep{delay_distrs}. For ease of analysis, we consider discrete delay distributions, though continuous-time approaches are possible. Similarly, we truncate the delay distribution at $d$ days, in essence assuming all secondary events occur within this period. 
 % It is necessary to 
 
-The expected number of secondary events at any given day can be expressed in terms of historical primary incidence, severity rates, and the delay distribution \citep{fusedlasso,nishiura}.\footnote{Throughout this work, we assume primary incidence is known, and condition on $X_{s\leq t}$ implicitly. We also assume the delay distribution $\pi$ is the same over all time.}
+The expected number of secondary events at any given day can be expressed in terms of historical primary incidence, severity rates, and the delay distribution \citep{fusedlasso,nishiura},\footnote{Throughout this work, we assume primary incidence is known, and condition on $X_{s\leq t}$ implicitly. We also assume the delay distribution $\pi$ is the same over all time.}
 
 \begin{align}\label{eq:model}
     E[Y_t] &= \sum_{k=0}^d X_{t-k} \mathbb{P}(\text{secondary at $t$ }\vert\text{ primary at }t-k) \nonumber \\ %\infty
@@ -67,12 +67,15 @@ The expected number of secondary events at any given day can be expressed in ter
 \end{align}
 % $$Y_t := \sum_{k=0}^d X_{t-k} \mathbb{P}(\text{die at $t$ }\vert\text{ hosp at }t-k) = \sum_{k=0}^d X_{t-k} \pi_k p_{t-k}.$$
 
-\noindent In essence, this is a convolution of the delay distribution against the product of primary incidence and severity rates. If the severity rates are a constant $p$, Eq. \eqref{eq:model} simplifies to $E[Y_t] = p\sum_{k=0}^d X_{t-k}\pi_k$. \citet{nishiura} rearranged this expression to estimate the stationary rate, using a plug-in estimate of the delay distribution and smoothing with cumulative counts.
+\noindent In essence, this is a convolution of the delay distribution against the product of primary incidence and severity rates. If the severity rates are a constant $p$, Eq. \eqref{eq:model} simplifies to $E[Y_t] = p\sum_{k=0}^d X_{t-k}\pi_k$. \citet{nishiura} rearranged this expression to estimate the stationary rate, using a plug-in estimate of the delay distribution and smoothing with cumulative counts,
 % Using observed counts $Y_t$ and a plug-in estimate of the delay distribution, \citet{nishiura} proposed the following estimator to track a stationary severity rate:
-
 \begin{equation}\label{eq:nish}
     \hat{p}_t = \frac{\sum_{s=t_0}^t Y_s}{\sum_{s=t_0}^t \sum_{k=0}^d X_{s-k}\gamma_k}.
 \end{equation}
+\ahcomment{
+  In general, display equations are expected to flow as part of sentences,
+  so when you have a display equation, make sure it belongs to a sentence.
+}
 This estimator is widely used in practice \citep{nishiuraEx1, nishiuraEx2, Russell2020}. Assuming the true rate is indeed stationary and the delay distribution is correctly specified, it is unbiased. \citet{UKpaper} adapted Eq. \eqref{eq:nish} for the time-varying setting, using daily rather than cumulative counts:
 %Similarly, a common approach for a presumed stationary rate takes a ratio of cumulative counts $\sum_s X_s$ and 
 \ahcomment{
@@ -131,10 +134,10 @@ The degree of bias in Eq. \eqref{eq:ConvBias} depends on three factors.
     % \item  in the bias, the  numerator will likely not equal 0, in which case the estimator will be biased. 
 Figures \ref{fig:toy_hfr} and \ref{fig:onehot} illustrate this: The estimated severity rates are most inaccurate at periods where the true rate is changing sharply. 
 
-The bias is in the opposite direction of the trend we want to detect. For example, suppose the severity rate is monotonically falling, with $p_{t} < p_{t-1} < \ldots < p_{t-d}$.% for many $k\in \{1, \ldots, d\}$. 
+The bias is in the opposite direction of the trend we want to detect. For example, suppose the severity rate is monotonically falling, with $p_{t} < p_{t-1} < \ldots < p_{t-d}$. % for many $k\in \{1, \ldots, d\}$. 
 As a result, the bias is positive, meaning the ratio estimates do not decline with the true rate. In fact, the estimated severity may even rise, not fall. Conversely, when true severity rates are rising, the ratio estimates will be too low. %This is especially troubling, as increases in risk may not be quickly detected by these real-time estimators.
 
-    \item \textbf{The delay distribution}. How much the changing severity rates impact the bias depends on the shape of the delay distribution. In general, the bias is greatest when the delay distribution is long-tailed enough to upweight significant differences in severity rate. While this distinction may appear subtle, the Results section highlights its surprisingly large effects. The simple example in Figures \ref{fig:toy_delay} and \ref{fig:onehot} shows significant differences in bias between shorter and longer delay distributions. 
+    \item \textbf{The delay distribution}. How much the changing severity rates impact the bias depends on the shape of the delay distribution $\pi$. In general, the bias is greatest when the delay distribution is long-tailed enough to upweight significant differences in severity rate. While this distinction may appear subtle, Section~\ref{sec:results} highlights its surprisingly large effects. The simple example in Figures \ref{fig:toy_delay} and \ref{fig:onehot} shows significant differences in bias between shorter and longer delay distributions. 
 
 % \ahcomment{
 %     In this and maybe the other examples, a figure would help the reader...
@@ -159,6 +162,28 @@ As a result, the bias is positive, meaning the ratio estimates do not decline wi
 % }
 
 \item \textbf{The primary incidence curve.} Changing primary incidences will also affect the bias, presuming the severity rate changes roughly monotonically in the recent past. Intuitively, this up- or down-weights the terms $X_{t-k}\pi_k(p_{t-k} - p_t)$ for dates further from the present, which are likely to contribute the most bias. Falling primary incidences will amplify the bias, whereas rising events will minimize it. Figures \ref{fig:toy_primary} and \ref{fig:chging_primary} visualize this trend on the convolutional ratio. %This relation is not quite as straightforward for the lagged ratio, analyzed in Appendix \ref{apx:analysis}. 
+\ahcomment{
+  Figure~\ref{fig:toy_primary} illustrates the effect of primary incidence
+  on the bias beautifully.  
+
+  ``Falling primary incidences will amplify the bias, whereas rising events
+  will minimize it.''  This is an interesting statement to think about.
+  Since the oracle bias \eqref{eq:ConvBias} can be interpreted as a weighted
+  average / convex combination of
+  $\{p_{t-k}-p_t\}_{k=0}^d = \{p_{t-d} - p_t, \dotsc, p_t - p_t\}$, the
+  (absolute) bias ranges between
+  $\max_{k=0, \dotsc, d} |p_{t-k}-p_t|$ and
+  $\min_{k=0, \dotsc, d} |p_{t-k}-p_t| = 0$ (achieved by $k=0$).  These
+  endpoints are achieved by setting one of the weights
+  $X_{t-k}\pi_k/(\sum_{j=0}^d X_{t-j}\pi_j)$ to 1 and the rest to zero,
+  either through the delay distribution or through the primary incidence curve.
+  So this actually aligns exactly with your commentary for the delay
+  distribution - if the severity rates are monotonically changing, then
+  a delay distribution that puts all the mass on $k=d$, i.e., the endpoint
+  farthest from $k=0$, would maximize the bias.  Just pointing out that
+  ``rising events will minimize [the bias]'' is a little vague, and we might
+  want to reword it.
+}
 
 \end{enumerate}
 
@@ -204,17 +229,70 @@ Assume the true delay distribution $\pi $ is constant over time, and its maximal
 Define $R^\gamma := \frac{\sum_{j=0}^d X_{t-j}\pi_j}{\sum_{j=0}^d X_{t-j}\gamma_j}$, which compares how the delay distributions convolve against the most recent primary incidence levels. The misspecified bias is
 % The bias of this misspecified estimator can be expressed additively in terms of the rescaled oracle bias plus a misspecification error term.
 
-\begin{equation*}%\label{eq:MispBias}
+\begin{equation}\label{eq:MispBias}
          % \text{Bias}(\hat{p}_t^\gamma = \frac{\sum_{j=0}^d X_{t-j}\pi_j}{\sum_{j=0}^d X_{t-j}\gamma_j}\text{Bias}(\hat{p}_t^\pi) + p_t\big[ \frac{\sum_{k=0}^d X_{t-k}\pi_k}{\sum_{j=0}^d X_{t-j}\gamma_j}-1\big].
           \text{Bias}(\hat{p}_t^\gamma) = R^\gamma\text{Bias}(\hat{p}_t^\pi) + p_t\big[ R^\gamma-1\big].
-\end{equation*}
+\end{equation}
 \end{theorem}
+\ahcomment{
+  Comment on notation: should $R^\gamma$ get a subscript-$t$ as well?
+}
 
 Theorem \ref{thm:misp}, proven in Appendix \ref{apx:misp_pf}, provides an additive decomposition of the misspecified ratio's bias. One term scales the oracle bias, and the other solely expresses misspecification. Which of these two terms will dominate depends on the true severity rate $p_t$, the oracle bias, and the ratio $R^\gamma$. If oracle bias is small, for example, then its multiplicative scaling should have relatively little effect, in which case the misspecification term may drive bias. In both terms, $R^\gamma$ dictates the extent to which the misspecified distribution alters the bias.
 % The extent of the change from the oracle bias depends on the ratio $R^\gamma$. 
 % $\text{Bias}(\hat{p}_t^\pi)$. 
 
-Suppose primary events have evened out somewhat after falling for a long time (see April 2022 in Fig. \ref{fig:misspecified}). If the plug-in delay distribution is too light-tailed, then $R^\gamma>1$, since it does not upweight distant dates with high primary counts. Therefore, this distribution inflates the oracle bias multiplicatively and adds positive misspecification bias. If primary events have consistently risen instead, then $R^\gamma < 1$, so the oracle bias term would shrink and the misspecified bias would be negative. These relations may be more complicated if primary incidence has changed direction throughout the delay distribution.
+Suppose primary events have evened out somewhat after falling for a long time (see April 2022 in Fig. \ref{fig:misspecified}). If the plug-in delay distribution is too light-tailed, then $R^\gamma>1$, since it does not upweight distant dates with high primary counts. Therefore, this distribution inflates the oracle bias multiplicatively and adds positive misspecification bias. If primary events have consistently risen instead, then $R^\gamma < 1$, so the oracle bias term would shrink and the misspecified bias would be negative.
+\ahcomment{
+  To confirm: if the primary events have consistently risen, then the oracle
+  bias term would be negative, right?  And so the misspecification term would
+  also be negative, meaning the absolute bias would increase?
+}
+These relations may be more complicated if primary incidence has changed direction throughout the delay distribution.
+
+\ahcomment{
+  I think the bias expression~\eqref{eq:MispBias} is really clear and
+  elegant.  Just again thinking through ``worst case'' / ``boundary'' values
+  of the bias, assuming that $\pi$ is fixed and we can vary over $\gamma$.
+  Just my thoughts... you have thought through all of this yourself already.
+
+  \begin{itemize}
+    \item Since $\pi$ is fixed, so is $\sum_{j=0}^{d} X_{t-j}\pi_j$; assume
+      it is nonzero.  (If it is zero, then the oracle bias is ill-defined
+      anyways.
+    \item The denominator ranges between $\min_{j=0,\dotsc,d} X_{t-j}$ and 
+      $\max_{j=0,\dotsc,d} X_{t-j}$.  That means that the ability of the
+      estimator under misspecification to exhibit ``pathologies'', like having
+      $R^\gamma$ close to 0 or infinity, is controlled by the relative scale
+      of the primary incidence during the time range $t-d, \dotsc, t$, namely
+      how far the minimum and maximum are from the weighted mean of primary
+      incidence, as dictated by the oracle distribution $\pi$.  These
+      worst case scenarios only happen if we are unlucky enough to have
+      a point-mass $\gamma$ that exactly targets the minimum/maximum... which
+      does in fact happen for the lagged estimator: the point mass is
+      placed at a fixed lag, and as the convolution sweeps across the
+      primary incidence curve, there are bound to be times when it picks
+      up the minimum/maximum of the primary incidence over its window. 
+      Figure~\ref{fig:misspecified} illustrates this perfectly... the ratio
+      $R^\gamma$ for the lagged estimator fluctuates away from 1 way more
+      than either of the convolutional estimators.
+    \item Here's something interesting to note: the bias under misspecification
+      can never be smaller than $-p_t$, which is achieved when $R^\gamma=0$.
+      Why is this the case?  The oracle bias will never be smaller than
+      $-p_t$, because it is a convex combination of $\{p_{t-k}-p_t\}_{k=0}^d$,
+      and each of those terms is no less than $-p_t$ because the severity
+      rates are positive.  Knowing that, \eqref{eq:MispBias} can be rewritten
+      \begin{equation*}
+        R^\gamma (\text{Bias}(\hat{p}_t^\pi) - p_t) - p_t,
+      \end{equation*}
+      where the term $(\text{Bias}(\hat{p}_t^\pi) - p_t)$ is positive.  This
+      sanity checks the fact that we never estimate a negative severity rate,
+      so the worst-case ``negative'' bias is $-p_t$.  Maybe more interestingly,
+      it points out an asymmetry in $\hat p_t$ errors: underestimation of the
+      severity rate is bounded below by $-p_t$, but overestimation of the
+      severity rate can be unbounded, under misspecification.
+  \end{itemize}
+}
 
 % When the plug-in delay distribution hits less mass of the incidence curve - for example, if $\gamma$ is lighter-tailed than $\pi$ and primary events are falling - then $R^\gamma > 1$. 
 
@@ -239,6 +317,15 @@ The lagged estimator also has interesting behavior as primary incidence falls fr
     \caption{HFR estimates under misspecification. Convolutional ratio estimates with true delay distribution (mean 20), misshapen gammas (mean 16 and 20), and point mass (i.e. lag) at oracle mean. HHS hospitalizations, NCHS HFRs, and deaths from \eqref{eq:model}.}
     \label{fig:misspecified}
 \end{figure}
+
+\ahcomment{
+  I really like Figure~\ref{fig:misspecified}... would it be possible to inset
+  the distributions onto the top panel?  And label the kernels with their
+  means (like in Figure~\ref{fig:toy_hfr}), and you could put a point-mass
+  kernel for the lagged estimator (vertical line with a dot on top).  This
+  would allow the reader to immediately know what you mean by the different
+  delay distributions.
+}
 
 % \textcolor{brown}{For...}
 
