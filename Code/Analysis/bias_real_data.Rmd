@@ -344,16 +344,16 @@ dfHFR <- data.frame(Date=rep(est_weeks_realtime, length(HFRtypes)),
                  HFR=c(hfrsNHCS_rt, hfrsHJn_rt, hfrsHJl_rt), 
                  Method=factor(rep(HFRtypes, each=length(hfrsNHCS_rt)), levels=HFRtypes))
 
-ggplot(data=dfHFR, aes(x = Date, y = HFR, color = Method, linetype=Method)) + 
+rtPlot <- ggplot(data=dfHFR, aes(x = Date, y = HFR, color = Method, linetype=Method)) + 
   geom_line() + labs(color = "HFR", linetype = "HFR") + 
   ggtitle("US HFRs, Ratio Estimates vs Approximate Ground Truth", subtitle="Real-time counts") +
   scale_x_date(breaks = seq(as.Date("2020-10-01"), max(dfHFR$Date), by = "3 months"), date_labels = "%b %Y") +
   xlab("") + theme_bw() +
   theme(legend.position="bottom",
         legend.title=element_blank())
-# Plot
+rtPlot
 ggsave(file.path(figure_folder, "Real", "US_ests_realtime.pdf"),
-       plot = Plot, device = "pdf", width = 8, height = 5)
+       plot = rtPlot, device = "pdf", width = 8, height = 5)
 
 ```
 
