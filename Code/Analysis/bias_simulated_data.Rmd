@@ -122,9 +122,9 @@ hfrs_lagged_short <- compute_lagged_hfrs(hhs_hosps, sim_deaths_short, lag_short,
 hfrs_conv_short <- compute_ahfrs_dynamic(hhs_hosps, sim_deaths_short, est_dates, delay_distr_short, w=1)
 
 gt_hfrs <- nhcs_hfrs[hosp_dates %in% est_dates]
-HFRtypes <- c("GT", "Lagged", "Conv")
+HFRtypes <- c("Ground Truth", "Convolutional Ratio", "Lagged Ratio")
 dfHFRshort <- data.frame(Date=rep(est_dates, length(HFRtypes)),
-                 HFR=c(gt_hfrs, hfrs_lagged_short, hfrs_conv_short), 
+                 HFR=c(gt_hfrs, hfrs_conv_short, hfrs_lagged_short), 
                  Method=factor(rep(HFRtypes, each=length(est_dates)), levels=HFRtypes))
 ggplot(data=dfHFRshort, aes(x = Date, y = HFR, color = Method, linetype=Method)) + 
   geom_line() + labs(color = "HFR", linetype = "HFR") + 
@@ -151,9 +151,8 @@ hfrs_lagged_long <- compute_lagged_hfrs(hhs_hosps, sim_deaths_long, lag_long, w=
 hfrs_conv_long <- compute_ahfrs_dynamic(hhs_hosps, sim_deaths_long, est_dates, delay_distr_long, w=1)
 
 gt_hfrs <- nhcs_hfrs[hosp_dates %in% est_dates]
-HFRtypes <- c("GT", "Lagged", "Conv")
 dfHFRlong <- data.frame(Date=rep(est_dates, length(HFRtypes)),
-                 HFR=c(gt_hfrs, hfrs_lagged_long, hfrs_conv_long), 
+                 HFR=c(gt_hfrs, hfrs_conv_long, hfrs_lagged_long), 
                  Method=factor(rep(HFRtypes, each=length(est_dates)), levels=HFRtypes))
 ggplot(data=dfHFRlong, aes(x = Date, y = HFR, color = Method, linetype=Method)) + 
   geom_line() + labs(color = "HFR", linetype = "HFR") + 
@@ -189,7 +188,7 @@ hfrs_lagged_short_flat <- compute_lagged_hfrs(hhs_hosps, sim_deaths_short_flat, 
 hfrs_conv_short_flat <- compute_ahfrs_dynamic(hhs_hosps, sim_deaths_short_flat, est_dates, delay_distr_short, w=1)
 gt_hfrs_flat <- flat_hfrs[hosp_dates %in% est_dates]
 dfHFRflat <- data.frame(Date=rep(est_dates, length(HFRtypes)),
-                 HFR=c(gt_hfrs_flat, hfrs_lagged_short_flat, hfrs_conv_short_flat), 
+                 HFR=c(gt_hfrs_flat, hfrs_conv_short_flat, hfrs_lagged_short_flat), 
                  Method=factor(rep(HFRtypes, each=length(est_dates)), levels=HFRtypes))
 ggplot(data=dfHFRflat, aes(x = Date, y = HFR, color = Method, linetype=Method)) + 
   geom_line() + labs(color = "HFR", linetype = "HFR") + 
@@ -214,7 +213,7 @@ hfrs_lagged_long_flat <- compute_lagged_hfrs(hhs_hosps, sim_deaths_long_flat, la
 hfrs_conv_long_flat <- compute_ahfrs_dynamic(hhs_hosps, sim_deaths_long_flat, est_dates, delay_distr_long, w=1)
 gt_hfrs_flat <- flat_hfrs[hosp_dates %in% est_dates]
 dfHFRflat <- data.frame(Date=rep(est_dates, length(HFRtypes)),
-                 HFR=c(gt_hfrs_flat, hfrs_lagged_long_flat, hfrs_conv_long_flat), 
+                 HFR=c(gt_hfrs_flat, hfrs_conv_long_flat, hfrs_lagged_long_flat), 
                  Method=factor(rep(HFRtypes, each=length(est_dates)), levels=HFRtypes))
 ggplot(data=dfHFRflat, aes(x = Date, y = HFR, color = Method, linetype=Method)) + 
   geom_line() + labs(color = "HFR", linetype = "HFR") + 
@@ -243,7 +242,7 @@ hfrs_lagged_short_inv <- compute_lagged_hfrs(hhs_hosps, sim_deaths_short_inv, la
 hfrs_conv_short_inv <- compute_ahfrs_dynamic(hhs_hosps, sim_deaths_short_inv, est_dates, delay_distr_short, w=1)
 gt_hfrs_inv <- inv_hfrs[hosp_dates %in% est_dates]
 dfHFRshort_inv <- data.frame(Date=rep(est_dates, length(HFRtypes)),
-                 HFR=c(gt_hfrs_inv, hfrs_lagged_short_inv, hfrs_conv_short_inv), 
+                 HFR=c(gt_hfrs_inv, hfrs_conv_short_inv, hfrs_lagged_short_inv), 
                  Method=factor(rep(HFRtypes, each=length(est_dates)), levels=HFRtypes))
 ggplot(data=dfHFRshort_inv, aes(x = Date, y = HFR, color = Method, linetype=Method)) + 
   geom_line() + labs(color = "HFR", linetype = "HFR") + 
@@ -271,7 +270,7 @@ hfrs_lagged_long_inv <- compute_lagged_hfrs(hhs_hosps, sim_deaths_long_inv, lag_
 hfrs_conv_long_inv <- compute_ahfrs_dynamic(hhs_hosps, sim_deaths_long_inv, est_dates, delay_distr_long, w=1)
 gt_hfrs_inv <- inv_hfrs[hosp_dates %in% est_dates]
 dfHFRlong_inv <- data.frame(Date=rep(est_dates, length(HFRtypes)),
-                 HFR=c(gt_hfrs_inv, hfrs_lagged_long_inv, hfrs_conv_long_inv), 
+                 HFR=c(gt_hfrs_inv, hfrs_conv_long_inv, hfrs_lagged_long_inv), 
                  Method=factor(rep(HFRtypes, each=length(est_dates)), levels=HFRtypes))
 ggplot(data=dfHFRlong_inv, aes(x = Date, y = HFR, color = Method, linetype=Method)) + 
   geom_line() + labs(color = "HFR", linetype = "HFR") + 
@@ -326,49 +325,43 @@ p1 <- ggplot(data=dfHFRshort, aes(x = Date, y = HFR, color = Method, linetype=Me
   geom_line() + labs(color = "HFR", linetype = "HFR") + 
   ggtitle("NHCS HFRs",
           subtitle="Short Delay Distribution") +
-  xlab("") + theme_bw() +
-  theme(legend.position="none") #plot.title = element_text(size=titlesize)
+  xlab("") + theme_bw()
 p2 <- ggplot(data=dfHFRlong, aes(x = Date, y = HFR, color = Method, linetype=Method)) + 
   geom_line() + labs(color = "HFR", linetype = "HFR") + 
   ggtitle("",subtitle="Long Delay Distribution") +
-  xlab("") + theme_bw() +
-  theme(legend.position="none")
+  xlab("") + theme_bw()
 p3 <- ggplot(data=dfHFRshort_inv, aes(x = Date, y = HFR, color = Method, linetype=Method)) + 
   geom_line() + labs(color = "HFR", linetype = "HFR") + 
-  ggtitle("Inverted NHCS HFRs") +#subtitle="Short Delay Distribution"
-  xlab("") + theme_bw() +
-  theme(legend.position="none")
+  ggtitle("Inverted NHCS HFRs") +
+  xlab("") + theme_bw()
 p4 <- ggplot(data=dfHFRlong_inv, aes(x = Date, y = HFR, color = Method, linetype=Method)) + 
   geom_line() + labs(color = "HFR", linetype = "HFR") + 
   ggtitle("") +#, subtitle="Long Delay Distribution"
-  xlab("") + theme_bw() +
-  theme(legend.position="none")
+  xlab("") + theme_bw() 
 
-HFRtypes2 <- c("Ground Truth", "Lagged Ratio", "Convolutional Ratio")
-dfHFRflat <- data.frame(Date=rep(est_dates, length(HFRtypes2)),
-                 HFR=c(gt_hfrs_flat, hfrs_lagged_short_flat, hfrs_conv_short_flat), 
-                 Method=factor(rep(HFRtypes2, each=length(est_dates)), levels=HFRtypes2))
+dfHFRflat <- data.frame(Date=rep(est_dates, length(HFRtypes)),
+                 HFR=c(gt_hfrs_flat, hfrs_conv_short_flat, hfrs_lagged_short_flat), 
+                 Method=factor(rep(HFRtypes, each=length(est_dates)), levels=HFRtypes))
 p5 <- ggplot(data=dfHFRflat, aes(x = Date, y = HFR, color = Method, linetype=Method)) + 
   geom_line() + labs(color = "HFR", linetype = "HFR") + 
   ggtitle("Stationary HFR") +
-  xlab("") + theme_bw() +
-  theme(legend.position="bottom",
-        legend.title=element_blank())
+  xlab("") + theme_bw()
 
-dfHFRflat2 <- data.frame(Date=rep(est_dates, length(HFRtypes2)),
-                 HFR=c(gt_hfrs_flat, hfrs_lagged_long_flat, hfrs_conv_long_flat), 
-                 Method=factor(rep(HFRtypes2, each=length(est_dates)), levels=HFRtypes2))
+dfHFRflat2 <- data.frame(Date=rep(est_dates, length(HFRtypes)),
+                 HFR=c(gt_hfrs_flat, hfrs_conv_long_flat, hfrs_lagged_long_flat), 
+                 Method=factor(rep(HFRtypes, each=length(est_dates)), levels=HFRtypes))
 p6 <- ggplot(data=dfHFRflat2, aes(x = Date, y = HFR, color = Method, linetype=Method)) + 
   geom_line() + labs(color = "HFR", linetype = "HFR") + 
   ggtitle("") +
-  xlab("") + theme_bw() +
-  theme(legend.position="none")
+  xlab("") + theme_bw()
 
 Plot <- ((p1|p2) + plot_layout(tag_level = 'new')) / 
   ((p3|p4) + plot_layout(tag_level = 'new')) / 
-  # p5 + 
   ((p5|p6) + plot_layout(tag_level = 'new')) +
-  plot_annotation(title = 'HFRs, Simulated Deaths', tag_levels = c('A', '1'))
+  plot_annotation(title = 'HFRs, Simulated Deaths', tag_levels = c('A', '1')) +
+  plot_layout(guides="collect") & 
+  theme(legend.position = "bottom",
+        legend.title = element_blank())
 Plot
 
 ggsave(file.path(figure_folder, "Simulated", "simulated_results.pdf"), plot = Plot, device = "pdf", width = 9, height = 7)
