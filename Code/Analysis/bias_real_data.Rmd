@@ -29,7 +29,7 @@ jhu_deaths <- jhu_df$value[idx]
 death_dates <- jhu_df$time_value[idx]
 names(jhu_deaths) <- death_dates
 
-saveRDS(jhu_deaths, file.path(data_folder, "JHU.RData"))
+saveRDS(jhu_deaths, file.path(data_folder, "JHU_finalized.RData"))
 ```
 
 ## Load Hospitalizations
@@ -43,7 +43,7 @@ hosp_idx <- (hhs_df$time_value >= first_hosp_date) & (hhs_df$time_value <= max_j
 hosp_dates <- hhs_df$time_value[hosp_idx]
 hhs_hosps <- hhs_df$value[hosp_idx]; names(hhs_hosps) <- hosp_dates
 
-saveRDS(hhs_hosps, file.path(data_folder, "HHS.RData"))
+saveRDS(hhs_hosps, file.path(data_folder, "HHS_finalized.RData"))
 ```
 
 ### Load NHCS HFRs
@@ -60,18 +60,7 @@ nhcs_hfr_dates <- as.Date(names(nhcs_hfrs_all))
 Lag parameter for lagged method
 
 ```{r}
-calc_optimal_lag <- function(hosps, deaths, verbose=FALSE) {
-  hosp_dates <- names(hosps); death_dates <- names(deaths)
-  intersect_dates <- as.Date(intersect(hosp_dates, death_dates))
-  deaths_both <- deaths[death_dates %in% intersect_dates]
-  hhs_hosps_both <- hosps[hosp_dates %in% intersect_dates]
-  cc <- ccf(hhs_hosps_both, deaths_both, lag.max=40, plot=FALSE)
-  max_correlation_lag <- which.max(abs(cc$acf))
-  oracle_lag <- abs(cc$lag[max_correlation_lag])
-  if (verbose) 
-    print(paste0("Correlation-maximizing lag is ", oracle_lag, " days."))
-  return(oracle_lag)
-}
+
 # est_days <- seq(est_weeks[1], est_weeks[n_ests], by="day")
 # intersect_dates <- as.Date(intersect(hosp_dates, death_dates))
 # jhu_deaths_both <- jhu_deaths[death_dates %in% intersect_dates]
@@ -117,7 +106,7 @@ hfrsNHCS <- sapply(est_weeks, function(date) {
 }); names(hfrsNHCS) <- est_weeks
 
 hfrsHJl <- compute_lagged_hfrs(hhs_hosps, jhu_deaths, l=oracle_lag, w=7, dates=est_weeks)
-hfrsHJn <- compute_ahfrs_dynamic(hhs_hosps, jhu_deaths, est_weeks, delay_distr, w=7)
+hfrsHJn <- compute_conv_hfrs(hhs_hosps, jhu_deaths, est_weeks, delay_distr, w=7)
 
 ```
 
@@ -139,95 +128,7 @@ ggplot(data=dfHFR, aes(x = Date, y = HFR, color = Method, linetype=Method)) +
 
 ```
 
-
-## Zoom in to explain bad windows
-
-```{r}
-waves <- c("Alpha", "Delta", "Omicron")
-periods <- list(
-  as.Date(intersect(seq(as.Date("2020-11-01"), as.Date("2021-05-01"), by="day"), est_weeks)),
-  as.Date(intersect(seq(as.Date("2021-06-01"), as.Date("2021-10-01"), by="day"), est_weeks)),
-  as.Date(intersect(seq(as.Date("2022-01-01"), as.Date("2022-06-01"), by="day"), est_weeks))
-)
-plot_list <- list()
-# wave <- "Alpha"
-# bad_dates <- as.Date(intersect(seq(as.Date("2020-11-01"), as.Date("2021-07-01"), by="day"), est_weeks))
-# wave <- "Delta"
-# bad_dates <- as.Date(intersect(seq(as.Date("2021-03-15"), as.Date("2021-10-01"), by="day"), est_weeks))
-# wave <- "Omicron"
-# bad_dates <- as.Date(intersect(seq(as.Date("2022-01-01"), as.Date("2022-07-01"), by="day"), est_weeks))
-
-
-
-for (i in 1:length(waves)) {
-  wave <- waves[i]
-  bad_dates <- periods[[i]]
-  conv_hfrs_period <- hfrsHJn[est_weeks %in% bad_dates]
-  lagged_hfrs_period <- hfrsHJl[est_weeks %in% bad_dates]
-  hosps_period <- hhs_hosps[names(hhs_hosps) %in% bad_dates]
-  gt_hfrs_period <- hfrsNHCS[est_weeks %in% bad_dates]
-  deaths_period <- jhu_deaths[death_dates %in% bad_dates]
-  
-  dfAgg <- data.frame(Date=bad_dates,
-                      Hosps = hosps_period,
-                      Conv_HFRs=conv_hfrs_period,
-                      Lagged_HFRs=lagged_hfrs_period,
-                      GT_HFRs=gt_hfrs_period)
-  dfAgg$Legend_Conv_HFR <- "Conv HFRs"
-  dfAgg$Legend_Lagged_HFR <- "Lagged HFRs"
-  dfAgg$Legend_HHS <- "Hospitalizations"
-  dfAgg$Legend_GT_HFR <- "GT HFRs"
-  
-  scale <- min(lagged_hfrs_period) / mean(hosps_period)
-  ymax <- max(lagged_hfrs_period, gt_hfrs_period, conv_hfrs_period, hosps_period*scale)*1.1
-  p <- ggplot(data = dfAgg, aes(x = Date)) +
-    # ggtitle(paste0("HFRs and Hospitalizations, ", wave)) +
-    ggtitle(wave) +
-    geom_line(data = dfAgg, aes(y = Conv_HFRs, color = Legend_Conv_HFR, linetype = Legend_Conv_HFR)) +
-    geom_line(data = dfAgg, aes(y = Lagged_HFRs, color = Legend_Lagged_HFR, linetype = Legend_Lagged_HFR)) +
-    geom_line(data = dfAgg, aes(y = GT_HFRs, color = Legend_GT_HFR, linetype = Legend_GT_HFR)) +
-    geom_line(data = dfAgg, aes(y = Hosps * scale, color=Legend_HHS, linetype=Legend_HHS)) +
-    scale_linetype_manual(breaks = c("GT HFRs", "Conv HFRs", "Lagged HFRs", "Hospitalizations"),
-                        values = c("GT HFRs" = "solid", "Conv HFRs" = "dashed", 
-                                   "Lagged HFRs"="longdash", "Hospitalizations" = "dotdash")) +
-    scale_color_manual(breaks = c("GT HFRs", "Conv HFRs", "Lagged HFRs", "Hospitalizations"),
-                     values = c("GT HFRs" = "red", "Conv HFRs" = "green3", 
-                                "Lagged HFRs" = "dodgerblue", "Hospitalizations" = "black")) +
-    scale_x_date(date_breaks = "1 month", date_labels = "%b %Y") +
-    scale_y_continuous(breaks = seq(from = 0, to = ymax, by = 0.05), 
-                       limits = c(0, ymax), 
-                       sec.axis = sec_axis(~./scale, name = "Hospitalizations")) +
-    ylab("HFRs") + xlab("") +
-    theme(legend.position="bottom",
-          legend.title=element_blank())
-  plot(p)
-  plot_list <- append(plot_list, list(p))
-
-}
-
-```
-
-```{r, fig.width=7, fig.height=7}
-Plot <- (plot_list[[1]] / plot_list[[2]] / plot_list[[3]]) +
-  plot_annotation(title="HFRs and Hospitalizations by Wave") +
-  plot_layout(guides = "collect") &
-  theme_bw() &
-  theme(legend.position = 'bottom',
-        legend.title=element_blank())
-
-ggsave(file.path(figure_folder, "Real", "hfrs_by_wave.pdf"), 
-       plot = Plot, device = "pdf", width = 7, height = 7) 
-
-```
-
-```{r, fig.width=7, fig.height=7}
-Plot
-```
-
-### Make figure including properly-versioned data
-
-
-
+### Load properly-versioned data
 
 Problems with hospitalization data:
 - HHS first issued Nov 16, 2020 (est_week[4]+1)
@@ -323,6 +224,7 @@ jhu_deaths_realtime <- readRDS(file.path(data_folder, "JHU_real_time.RData"))
 ```
 
 
+
 ```{r}
 hfrsNHCS_rt <- hfrsNHCS[week_st_idx:n_ests]
 
@@ -331,24 +233,41 @@ hfrsHJl_rt <- compute_lagged_hfrs(hhs_hosps_realtime, jhu_deaths_realtime,
                                   l=oracle_lag_realtime, w=7, dates=est_weeks_realtime)
 
 delay_distr_realtime <- make_delay_distr(oracle_lag_realtime, round(oracle_lag_realtime*0.9), d)
-hfrsHJn_rt <- compute_ahfrs_dynamic(hhs_hosps_realtime, jhu_deaths_realtime, 
+hfrsHJn_rt <- compute_conv_hfrs(hhs_hosps_realtime, jhu_deaths_realtime, 
                                     est_weeks_realtime, delay_distr_realtime, w=7)
 
 ```
 
-Plot just results with real-time counts
+## Plot just results with real-time counts
 
 ```{r}
+waves <- c("Original", "Delta", "Omicron") #Alpha vs Original
+periods <- list(#est_weeks; as.Date("2021-05-01")
+  as.Date(intersect(seq(as.Date("2020-11-01"), as.Date("2021-03-28"), by="day"), est_weeks_realtime)),
+  as.Date(intersect(seq(as.Date("2021-06-01"), as.Date("2021-10-01"), by="day"), est_weeks_realtime)),
+  as.Date(intersect(seq(as.Date("2022-01-01"), as.Date("2022-06-01"), by="day"), est_weeks_realtime))
+)
+# Convert to dataframe
+shades <- do.call(rbind, lapply(periods, function(x) data.frame(xmin = x[1], xmax = x[length(x)], ymin = -Inf, ymax = Inf)))
+```
+
+
+```{r}
+
 HFRtypes <- c("Approx. GT", "Convolutional Ratio", "Lagged Ratio")
 dfHFR <- data.frame(Date=rep(est_weeks_realtime, length(HFRtypes)),
                  HFR=c(hfrsNHCS_rt, hfrsHJn_rt, hfrsHJl_rt), 
                  Method=factor(rep(HFRtypes, each=length(hfrsNHCS_rt)), levels=HFRtypes))
 
+
+first_xaxis_date <- as.Date("2021-01-01") #as.Date("2020-10-01")
 rtPlot <- ggplot(data=dfHFR, aes(x = Date, y = HFR, color = Method, linetype=Method)) + 
   geom_line() + labs(color = "HFR", linetype = "HFR") + 
   ggtitle("US HFRs, Ratio Estimates vs Approximate Ground Truth", subtitle="Real-time counts") +
-  scale_x_date(breaks = seq(as.Date("2020-10-01"), max(dfHFR$Date), by = "3 months"), date_labels = "%b %Y") +
+  scale_x_date(breaks = seq(first_xaxis_date, max(dfHFR$Date), by = "3 months"), date_labels = "%b %Y") +
   xlab("") + theme_bw() +
+  geom_rect(data = shades, aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax),
+            inherit.aes = FALSE, fill = "lightgray", alpha = 0.5) +
   theme(legend.position="bottom",
         legend.title=element_blank())
 rtPlot
@@ -391,6 +310,83 @@ ggsave(file.path(figure_folder, "Real", "US_ests_realtime_both.pdf"),
 ```
 
 
+
+## Zoom in to explain bad windows
+
+```{r}
+plot_list <- list()
+
+for (i in 1:length(waves)) {
+  wave <- waves[i]
+  bad_dates <- periods[[i]]
+  # conv_hfrs_period <- hfrsHJn[est_weeks %in% bad_dates]
+  # lagged_hfrs_period <- hfrsHJl[est_weeks %in% bad_dates]
+  # hosps_period <- hhs_hosps[names(hhs_hosps) %in% bad_dates]
+  # gt_hfrs_period <- hfrsNHCS[est_weeks %in% bad_dates]
+  # deaths_period <- jhu_deaths[death_dates %in% bad_dates]
+  conv_hfrs_period <- hfrsHJn_rt[est_weeks_realtime %in% bad_dates]
+  lagged_hfrs_period <- hfrsHJl_rt[est_weeks_realtime %in% bad_dates]
+  hosps_period <- hhs_hosps_realtime[names(hhs_hosps_realtime) %in% bad_dates]
+  gt_hfrs_period <- hfrsNHCS_rt[est_weeks_realtime %in% bad_dates]
+  deaths_period <- jhu_deaths_realtime[names(jhu_deaths_realtime) %in% bad_dates]
+  
+  dfAgg <- data.frame(Date=bad_dates,
+                      Hosps = hosps_period,
+                      Conv_HFRs=conv_hfrs_period,
+                      Lagged_HFRs=lagged_hfrs_period,
+                      GT_HFRs=gt_hfrs_period)
+  dfAgg$Legend_Conv_HFR <- "Convolutional Ratio"
+  dfAgg$Legend_Lagged_HFR <- "Lagged Ratio"
+  dfAgg$Legend_HHS <- "Hospitalizations"
+  dfAgg$Legend_GT_HFR <- "GT HFRs"
+  
+  scale <- min(lagged_hfrs_period) / mean(hosps_period)
+  ymax <- max(lagged_hfrs_period, gt_hfrs_period, conv_hfrs_period, hosps_period*scale)*1.1
+  p <- ggplot(data = dfAgg, aes(x = Date)) +
+    # ggtitle(paste0("HFRs and Hospitalizations, ", wave)) +
+    ggtitle(wave) +
+    geom_line(data = dfAgg, aes(y = Conv_HFRs, color = Legend_Conv_HFR, linetype = Legend_Conv_HFR)) +
+    geom_line(data = dfAgg, aes(y = Lagged_HFRs, color = Legend_Lagged_HFR, linetype = Legend_Lagged_HFR)) +
+    geom_line(data = dfAgg, aes(y = GT_HFRs, color = Legend_GT_HFR, linetype = Legend_GT_HFR)) +
+    geom_line(data = dfAgg, aes(y = Hosps * scale, color=Legend_HHS, linetype=Legend_HHS)) +
+    scale_linetype_manual(breaks = c("GT HFRs", "Convolutional Ratio", "Lagged Ratio", "Hospitalizations"),
+                        values = c("GT HFRs" = "solid", "Convolutional Ratio" = "dashed", 
+                                   "Lagged Ratio"="longdash", "Hospitalizations" = "dotdash")) +
+    scale_color_manual(breaks = c("GT HFRs", "Convolutional Ratio", "Lagged Ratio", "Hospitalizations"),
+                     values = c("GT HFRs" = "red", "Convolutional Ratio" = "green3", 
+                                "Lagged Ratio" = "dodgerblue", "Hospitalizations" = "black")) +
+    scale_x_date(date_breaks = "1 month", date_labels = "%b %Y") +
+    scale_y_continuous(breaks = seq(from = 0, to = ymax, by = 0.05), 
+                       limits = c(0, ymax), 
+                       sec.axis = sec_axis(~./scale, name = "Hospitalizations")) +
+    ylab("HFRs") + xlab("") +
+    theme(legend.position="bottom",
+          legend.title=element_blank())
+  plot(p)
+  plot_list <- append(plot_list, list(p))
+
+}
+
+```
+
+```{r, fig.width=7, fig.height=7}
+Plot <- (plot_list[[1]] / plot_list[[2]] / plot_list[[3]]) +
+  plot_annotation(title="HFRs and Hospitalizations by Wave") +
+  plot_layout(guides = "collect") &
+  theme_bw() &
+  theme(legend.position = 'bottom',
+        legend.title=element_blank())
+
+ggsave(file.path(figure_folder, "Real", "hfrs_by_wave.pdf"), 
+       plot = Plot, device = "pdf", width = 7, height = 7) 
+
+```
+
+```{r, fig.width=7, fig.height=7}
+Plot
+```
+
+
 # Robustness checks
 
 ## Robustness to choice of hyperparameter
@@ -403,7 +399,7 @@ Nishiura convolutional estimator
 ws <- 0:4*7
 est_weeks2 <- est_weeks[4:n_ests]
 hfrs_by_w <- lapply(ws, function(w) {
-  compute_ahfrs_dynamic(hhs_hosps, jhu_deaths, est_weeks2, delay_distr, w=w)
+  compute_conv_hfrs(hhs_hosps, jhu_deaths, est_weeks2, delay_distr, w=w)
 })
 
 window_labels <- factor(c(rep("Approx. GT", length(est_weeks2)), rep(ws, each=length(est_weeks2))),
@@ -505,7 +501,7 @@ delay_shapes <- lapply(param_list, function(mean_and_sd) {
   ddgamma(0:d, shape, rate)})
 # delay_shapes <- list(delay_shapes, delay_distr)
 hfrs_by_delay <- lapply(delay_shapes, function(delay_shape) {
-  compute_ahfrs_dynamic(hhs_hosps, jhu_deaths, est_weeks, delay_shape, w=7)
+  compute_conv_hfrs(hhs_hosps, jhu_deaths, est_weeks, delay_shape, w=7)
 })
 
 # Find best mean & SD
@@ -771,7 +767,7 @@ for (i in 1:6) {
   
   hfrs_st_lagged <- compute_lagged_hfrs(hhs_hosps, jhu_deaths, l=oracle_lag_jhu, w=7, 
                                         dates=est_weeks_state, real_time=TRUE)
-  hfrs_st_conv <- compute_ahfrs_dynamic(hhs_hosps, jhu_deaths, est_weeks_state, delay_distr_st, w=7)
+  hfrs_st_conv <- compute_conv_hfrs(hhs_hosps, jhu_deaths, est_weeks_state, delay_distr_st, w=7)
 
   # Convert NCHS from weekly to daily to compute oracle lag
   nchs_deaths_daily <- rep(nchs_deaths, each=7)/7

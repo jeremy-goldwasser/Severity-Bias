@@ -274,9 +274,6 @@ Example 2
 n_dates <- 300
 sim_hfrs <- seq(0.5, 0, length.out=n_dates)
 
-sigmoid <- function(x) {
-  return (1/(1+exp(-x)))
-}
 xs <- seq(-9, 7, length.out=n_dates/2)
 hosps <- (c(sigmoid(xs), rev(sigmoid(xs)))*9000 + 1000)
 # plot(hosps)
@@ -345,4 +342,141 @@ ggsave(file.path(figure_folder, "Simulated", "sim_chging_primary.pdf"),
 
 ```
 
+
+############ Figure 2 ############
+
+```{r}
+hosps <- readRDS(file.path(data_folder, "HHS_real_time.RData"))
+nhcs_hfrs_all <- readRDS(file.path(data_folder, "hfrs_rescaled_v2.RData"))
+shorter_mean <- 16
+longer_mean <- 24
+delay_distr_shorter <- make_delay_distr(Mean=shorter_mean, Sd=round(shorter_mean*.9), d)
+delay_distr_true <- make_delay_distr(Mean=20, Sd=round(shorter_mean*.9), d)
+delay_distr_longer <- make_delay_distr(Mean=longer_mean, Sd=round(longer_mean*.9), d)
+
+```
+
+```{r}
+
+first_death_date <- as.Date(max(names(nhcs_hfrs_all)[1], names(hosps)[1]))+d
+last_death_date <- as.Date(min(names(nhcs_hfrs_all)[length(nhcs_hfrs_all)],
+                               names(hosps)[length(hosps)]))
+death_dates <- seq(first_death_date, last_death_date, by="day")
+noiseless_deaths <- compute_noiseless_deaths(hosps, nhcs_hfrs_all, delay_distr_true, est_dates)
+
+est_dates <- seq(as.Date("2021-11-01"), as.Date("2022-07-01"), by="day")
+n_ests <- length(est_dates)
+# 16. Could also use mean of delay distribution, 20
+gt_hfrs <- nhcs_hfrs_all[names(nhcs_hfrs_all) %in% est_dates]
+optimal_lag <- calc_optimal_lag(hosps, noiseless_deaths)
+lagged_hfrs <- compute_lagged_hfrs(hosps, noiseless_deaths, l=optimal_lag, dates=est_dates) 
+conv_hfrs_oracle <- compute_conv_hfrs(hosps, noiseless_deaths, est_dates, delay_distr_true)
+conv_hfrs_shorter <- compute_conv_hfrs(hosps, noiseless_deaths, est_dates, delay_distr_shorter)
+conv_hfrs_longer <- compute_conv_hfrs(hosps, noiseless_deaths, est_dates, delay_distr_longer)
+```
+
+```{r}
+
+R_gamma_shorter <- compute_R_gammas(hosps, delay_distr_true, delay_distr_shorter, est_dates)
+R_gamma_true <- compute_R_gammas(hosps, delay_distr_true, delay_distr_true, est_dates)
+R_gamma_longer <- compute_R_gammas(hosps, delay_distr_true, delay_distr_longer, est_dates)
+lagged_distr <- rep(0, d+1); lagged_distr[optimal_lag+1] <- 1
+R_gamma_lagged <- compute_R_gammas(hosps, delay_distr_true, lagged_distr, est_dates)
+
+```
+
+```{r}
+sources <- c("Ground Truth", "Estimated")
+types <- c("True", "Light-Tailed", "Heavy-Tailed", "Lagged")
+# Keep Ground Truth in Type for plotting but handle later
+df <- data.frame(
+  t = rep(est_dates, 5),
+  HFRs = c(gt_hfrs, conv_hfrs_oracle, conv_hfrs_shorter, conv_hfrs_longer, lagged_hfrs),
+  HFR = factor(c(rep("Ground Truth", n_ests), rep("Estimated", n_ests*4)), levels = sources),
+  Type = factor(c(rep("Ground Truth", n_ests), rep(types, each=n_ests)), 
+                levels = c("Ground Truth", types))  
+)
+
+mispPlot <- ggplot(df, aes(x = t, y = HFRs, linetype = HFR, color = Type)) +
+  geom_line(aes(group = interaction(HFR, Type))) +  # Group by HFR and Type
+  scale_color_manual(breaks = types,
+    values = c("Ground Truth" = "black", "Light-Tailed" = "green3", "True" = "red2", 
+               "Heavy-Tailed" = "blue", "Lagged" = "magenta")) +  
+  ggtitle("HFR estimates, misspecified delay distribution") +
+  labs(color="Delay distribution") + xlab("Date") +
+  theme_bw() + xlab("") +
+  guides(linetype = guide_legend(order = 1), color = guide_legend(order = 2)) +
+  scale_x_date(date_breaks = "1 month", labels = NULL) +
+  theme(legend.position = "bottom",
+        legend.box = "vertical",
+        legend.text = element_text(size = 11),
+        #plot.title = element_text(size = 14),
+        axis.text.x = element_blank(),
+        legend.spacing.y = unit(0.5, "cm"),
+        legend.margin = margin(t = -10))
+mispPlot
+
+delayTypes <- c("Light-Tailed", "True", "Heavy-Tailed")
+dfDistr <- data.frame(t=rep(0:d, 3),
+                      Delay=c(delay_distr_shorter, delay_distr_true, delay_distr_longer),
+                      Type=rep(delayTypes, each=d+1))
+delay_inset <- ggplot(dfDistr, aes(x=t, y=Delay, color=Type)) + 
+  geom_line() + theme_bw() + 
+  scale_color_manual(breaks = delayTypes, 
+                     values = c("Light-Tailed" = "green3", "True" = "red2", "Heavy-Tailed" = "blue")) +  
+  theme(legend.position="none",
+        plot.title = element_text(size = 10),
+        axis.title = element_text(size = 10),
+        axis.text.y = element_blank(),
+        axis.ticks.y = element_blank()) + 
+  xlab("") +
+  # xlab("Days after primary event") + 
+  ylab("") + ggtitle("Delay distribution")
+
+mispPlotInlaid <- mispPlot + 
+  annotation_custom(ggplotGrob(delay_inset), xmin=est_dates[1]-15, xmax=est_dates[1]+67, 
+                    ymin=.08, ymax=.148)
+mispPlotInlaid
+```
+
+```{r}
+df2 <- data.frame(
+  t = rep(est_dates, 4),
+  Ratios = c(R_gamma_true, R_gamma_shorter, R_gamma_longer, R_gamma_lagged),
+  Type = factor(rep(types, each=n_ests), levels = types)  
+)
+
+ratioPlot <- ggplot(df2, aes(x = t, y = Ratios, color = Type)) +
+  geom_line() +  # Group by HFR and Type
+  scale_color_manual(breaks = types,
+    values = c("Light-Tailed" = "green3", "True" = "red2", 
+               "Heavy-Tailed" = "blue", "Lagged" = "magenta")) +  
+  ggtitle(expression("Ratios R"^gamma)) +
+  theme_bw() + xlab("") +
+  scale_x_date(date_breaks = "1 month", labels = NULL) +
+  theme(legend.position = "none",
+        #plot.title = element_text(size = 14),
+        axis.text.x = element_blank())
+ratioPlot
+
+df3 <- data.frame(t = est_dates, Hosps=hosps[names(hosps) %in% est_dates])
+
+hospPlot <- ggplot(df3, aes(x = t, y = Hosps)) +
+  geom_line() +  ggtitle("Hospitalizations") +
+  scale_x_date(date_breaks = "1 month",date_labels = "%b %Y") + 
+  theme_bw() +
+  xlab("") +
+  theme(legend.position = "none",
+        )
+hospPlot
+
+```
+
+```{r, fig.width=7, fig.height=7}
+full_misp_plot <- mispPlotInlaid / ratioPlot / hospPlot + plot_layout(heights = c(3, 1, 1))
+full_misp_plot
+ggsave(file.path(figure_folder, "Simulated", "toy_misp.pdf"), 
+       plot = full_misp_plot, device = "pdf", width = 8, height = 7) 
+
+```
 
