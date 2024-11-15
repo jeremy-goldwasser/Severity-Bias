@@ -13,41 +13,25 @@ library(ggplot2)
 ```
 
 
-## Load Deaths
-- National Center for Health Statistics (NCHS) and JHU, both pulled from Delphi
-- Need to pre-smooth JHU
-
+## Load data
 
 
 ```{r}
-jhu_df <- data.frame(pub_covidcast(source="jhu-csse", signals="deaths_7dav_incidence_num",
-                                    geo_type = "nation", geo_values="*", 
-                                    time_type="day")) 
+# Load finalized hospitalizations and deaths, both pre-smoothed
 max_jhu_date <- as.Date("2023-03-01") # Not reliable after this
-idx <- (jhu_df$time_value <= max_jhu_date)
-jhu_deaths <- jhu_df$value[idx]
-death_dates <- jhu_df$time_value[idx]
-names(jhu_deaths) <- death_dates
+jhu_deaths <- readRDS( file.path(data_folder, "JHU_finalized.RData"))
+death_dates <- names(jhu_deaths)
 
-saveRDS(jhu_deaths, file.path(data_folder, "JHU_finalized.RData"))
-```
-
-## Load Hospitalizations
-
-```{r}
-hhs_df <- data.frame(pub_covidcast(source="hhs",signals= "confirmed_admissions_covid_1d_7dav", 
-                                   geo_type = "nation", geo_values="*", 
-                                   time_type="day"))
 first_hosp_date <- as.Date("2020-07-28")
-hosp_idx <- (hhs_df$time_value >= first_hosp_date) & (hhs_df$time_value <= max_jhu_date)
-hosp_dates <- hhs_df$time_value[hosp_idx]
-hhs_hosps <- hhs_df$value[hosp_idx]; names(hhs_hosps) <- hosp_dates
+hhs_hosps <- readRDS( file.path(data_folder, "HHS_finalized.RData"))
+hosp_dates <- names(hhs_hosps)
 
-saveRDS(hhs_hosps, file.path(data_folder, "HHS_finalized.RData"))
-```
+# Load real-time hospitalizations and deaths
+hhs_hosps_realtime <- readRDS(file.path(data_folder, "HHS_real_time.RData"))
+jhu_deaths_realtime <- readRDS(file.path(data_folder, "JHU_real_time.RData"))
 
-### Load NHCS HFRs
-```{r}
+
+# Load NHCS HFRs
 nhcs_hfrs_all <- readRDS(file.path(data_folder, "hfrs_rescaled_v2.RData"))
 nhcs_hfr_dates <- as.Date(names(nhcs_hfrs_all))
 
@@ -57,26 +41,12 @@ nhcs_hfr_dates <- as.Date(names(nhcs_hfrs_all))
 
 ## Get hyperparameters for estimating HFRs
 
-Lag parameter for lagged method
-
 ```{r}
+# Lag parameter for lagged method
+oracle_lag <- compute_optimal_lag(hhs_hosps, jhu_deaths)
 
-# est_days <- seq(est_weeks[1], est_weeks[n_ests], by="day")
-# intersect_dates <- as.Date(intersect(hosp_dates, death_dates))
-# jhu_deaths_both <- jhu_deaths[death_dates %in% intersect_dates]
-# hhs_hosps_both <- hhs_hosps[hosp_dates %in% intersect_dates]
-# cc <- ccf(hhs_hosps_both, jhu_deaths_both, lag.max=40, plot=FALSE)
-# max_correlation_lag <- which.max(abs(cc$acf))
-# oracle_lag <- abs(cc$lag[max_correlation_lag])
-# print(paste0("Correlation-maximizing lag is ", oracle_lag, " days."))
-oracle_lag <- calc_optimal_lag(hhs_hosps, jhu_deaths)
-```
-
-
-Get delay distribution for Nishiura method
-
-```{r}
-# # UK BS
+# Get delay distribution for Nishiura method
+# UK delay distribution
 Ns <- c(28611, 1700, 16641, 16903)
 means <- c(10.20, 14.06, 14.84, 9.24)
 sds <- c(9.51, 14.31, 12.35, 7.64)
@@ -89,12 +59,11 @@ gamma_mean <- oracle_lag
 gamma_sd <- round(gamma_mean*.9)
 delay_distr <- make_delay_distr(gamma_mean, gamma_sd, d)
 
-
 ```
 
 
 
-## Estimate true HFRs, and smooth "GT"
+## Estimate true HFRs, and smooth approx. ground truth
 
 ```{r}
 est_weeks <- seq(first_hosp_date+d+14, min(max(hosp_dates)-4*7, max(nhcs_hfr_dates)), by=7)
@@ -128,107 +97,21 @@ ggplot(data=dfHFR, aes(x = Date, y = HFR, color = Method, linetype=Method)) +
 
 ```
 
-### Load properly-versioned data
-
-Problems with hospitalization data:
-- HHS first issued Nov 16, 2020 (est_week[4]+1)
-- Most recent date often not posted for over a week
+### Repeat on properly-versioned data
 
 ```{r}
-# Identify valid weeks
-n_days_after <- 2
-week_st_idx <- 5
-est_weeks_realtime <- est_weeks[week_st_idx:n_ests]
+# Identify valid weeks. 
+n_days_after <- 2 # Most recent date often not posted for over a week
+week_st_idx <- 5 # HHS first issued Nov 16, 2020 (est_week[4]+1); 
+est_weeks_realtime <- est_weeks[week_st_idx:n_ests] 
+
 ```
-
-
-```{r}
-
-# hhs_hosps_realtime <- c()
-# for (i in 1:length(est_weeks_realtime)) { #
-#   t <- est_weeks_realtime[i]
-#   if (i==1) {
-#     dates <- "*"
-#   } else {
-#     dates <- seq(t-6, t, by="day")
-#   }
-#   hhs_df <- data.frame(pub_covidcast(source="hhs",signals= "confirmed_admissions_covid_1d", #_7dav
-#                                    geo_type = "nation", geo_values="*",
-#                                    time_type="day", as_of=t+n_days_after, time_values=dates))
-#   new_hosps <- hhs_df$value; names(new_hosps) <- as.Date(hhs_df$time_value)
-# 
-#   # Account for bad delay distr
-#   if (i==1) {
-#     new_hosps <- new_hosps[(names(new_hosps) >= first_hosp_date) & names(new_hosps) <= t]
-#     dates <- seq(first_hosp_date, t, by="day")
-#   }
-# 
-#   # Extend if most recent values are unavailable
-#   n_new_hosps <- length(new_hosps)
-#   n_desired_hosps <- t - as.Date(min(names(new_hosps))) + 1
-#   if (n_new_hosps < n_desired_hosps) {
-#     new_hosps <- c(new_hosps, rep(new_hosps[length(new_hosps)], n_desired_hosps-n_new_hosps))
-#     names(new_hosps) <- dates
-#   }
-# 
-#   hhs_hosps_realtime <- c(hhs_hosps_realtime, new_hosps)
-# 
-# }
-# hhs_hosps_realtime <- seven_day_smoothing(hhs_hosps_realtime, centered=FALSE)
-# hosp_dates_realtime <- as.Date(names(hhs_hosps_realtime))
-# plot(hosp_dates_realtime, hhs_hosps_realtime)
-# saveRDS(hhs_hosps_realtime, file.path(data_folder, "HHS_real_time.RData"))
-```
-
-
-```{r}
-hhs_hosps_realtime <- readRDS(file.path(data_folder, "HHS_real_time.RData"))
-```
-
-```{r}
-# jhu_deaths_realtime <- c()
-# for (i in 1:length(est_weeks_realtime)) {
-#   t <- est_weeks_realtime[i]
-#   if (i==1) {
-#     dates <- "*"
-#   } else {
-#     dates <- seq(t-6, t, by="day")
-#   }
-#   jhu_df <- data.frame(pub_covidcast(source="jhu-csse", signals="deaths_incidence_num",#7dav_
-#                                     geo_type = "nation", geo_values="*",
-#                                     time_type="day", as_of=t+n_days_after, time_values=dates))
-#   new_deaths <- jhu_df$value; names(new_deaths) <- jhu_df$time_value
-#   if (i==1) {
-#     new_deaths <- new_deaths[as.Date(names(new_deaths)) <= t]
-#     dates <- seq(as.Date(min(jhu_df$time_value)), t, by="day")
-#   }
-# 
-#   # Extend if most recent values are unavailable
-#   n_new_deaths <- length(new_deaths)
-#   n_desired_deaths <- t - as.Date(min(names(new_deaths))) + 1
-#   if (n_new_deaths < n_desired_deaths) {
-#     new_deaths <- c(new_deaths, rep(new_deaths[length(new_deaths)], n_desired_deaths-length(new_deaths)))
-# 
-#     names(new_deaths) <- dates
-#   }
-#   jhu_deaths_realtime <- c(jhu_deaths_realtime, new_deaths)
-# }
-# jhu_deaths_realtime <- seven_day_smoothing(jhu_deaths_realtime, centered=FALSE)
-# plot(as.Date(names(jhu_deaths_realtime)), jhu_deaths_realtime)
-# saveRDS(jhu_deaths_realtime, file.path(data_folder, "JHU_real_time.RData"))
-```
-
-
-```{r}
-jhu_deaths_realtime <- readRDS(file.path(data_folder, "JHU_real_time.RData"))
-```
-
 
 
 ```{r}
 hfrsNHCS_rt <- hfrsNHCS[week_st_idx:n_ests]
 
-oracle_lag_realtime <- calc_optimal_lag(hhs_hosps_realtime, jhu_deaths_realtime)
+oracle_lag_realtime <- compute_optimal_lag(hhs_hosps_realtime, jhu_deaths_realtime)
 hfrsHJl_rt <- compute_lagged_hfrs(hhs_hosps_realtime, jhu_deaths_realtime, 
                                   l=oracle_lag_realtime, w=7, dates=est_weeks_realtime)
 
@@ -238,9 +121,10 @@ hfrsHJn_rt <- compute_conv_hfrs(hhs_hosps_realtime, jhu_deaths_realtime,
 
 ```
 
-## Plot just results with real-time counts
+
 
 ```{r}
+## Plot just results with real-time counts
 waves <- c("Original", "Delta", "Omicron") #Alpha vs Original
 periods <- list(#est_weeks; as.Date("2021-05-01")
   as.Date(intersect(seq(as.Date("2020-11-01"), as.Date("2021-03-28"), by="day"), est_weeks_realtime)),
@@ -276,7 +160,7 @@ ggsave(file.path(figure_folder, "Real", "US_ests_realtime.pdf"),
 
 ```
 
-Plot just results with both
+Plot results with both
 
 ```{r}
 n_ests_rt <- length(est_weeks_realtime)
@@ -304,8 +188,6 @@ Plot
 ggsave(file.path(figure_folder, "Real", "US_ests_realtime_both.pdf"), 
        plot = Plot, device = "pdf", width = 8, height = 5) 
 
-# plot(hfrsHJl[week_st_idx:n_ests], type="l"); lines(hfrsHJl_rt, col="red")
-# plot(hfrsHJn[week_st_idx:n_ests], type="l"); lines(hfrsHJn_rt, col="red")
 
 ```
 
@@ -559,7 +441,7 @@ hfrsNHCS2 <- sapply(est_weeks_nchs, function(date) {
 
 
 lag_nchs <- round(gamma_mean_uk); print(lag_nchs)
-# lag_nchs <- calc_optimal_lag(hhs_hosps, nchs_deaths, verbose=TRUE)
+# lag_nchs <- compute_optimal_lag(hhs_hosps, nchs_deaths, verbose=TRUE)
 hfrsHNlretro <- compute_lagged_hfrs(hhs_hosps, nchs_deaths,
                               l=lag_nchs, w=7, dates=est_weeks_nchs, real_time=FALSE, centered=FALSE)
 
@@ -762,7 +644,7 @@ for (i in 1:6) {
   earlier_hosps <- hhs_hosps[names(hhs_hosps) <= as.Date("2022-12-31")]
   
   # Estimate real-time HFRs
-  oracle_lag_jhu <- calc_optimal_lag(earlier_hosps, jhu_deaths, verbose=TRUE)
+  oracle_lag_jhu <- compute_optimal_lag(earlier_hosps, jhu_deaths, verbose=TRUE)
   delay_distr_st <- make_delay_distr(oracle_lag_jhu, round(oracle_lag_jhu*0.9), d)
   
   hfrs_st_lagged <- compute_lagged_hfrs(hhs_hosps, jhu_deaths, l=oracle_lag_jhu, w=7, 
@@ -773,7 +655,7 @@ for (i in 1:6) {
   nchs_deaths_daily <- rep(nchs_deaths, each=7)/7
   nchs_dates_daily <- seq(min(nchs_week_ends), max(nchs_week_ends)+6, by="day")
   names(nchs_deaths_daily) <- as.Date(nchs_dates_daily)
-  oracle_lag_nchs <- calc_optimal_lag(hhs_hosps, nchs_deaths_daily, verbose=TRUE)
+  oracle_lag_nchs <- compute_optimal_lag(hhs_hosps, nchs_deaths_daily, verbose=TRUE)
 
   # Convert hospitalizations from daily to weekly 
   # hhs_hosps_weekly <- sapply(est_weeks_state, function(t) {

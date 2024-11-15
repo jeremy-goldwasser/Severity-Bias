@@ -41,7 +41,7 @@ compute_lagged_hfrs <- function(hosps, deaths, l, w=1,
   return(lagged_hfrs)
 }
 
-calc_optimal_lag <- function(hosps, deaths, verbose=FALSE) {
+compute_optimal_lag <- function(hosps, deaths, verbose=FALSE) {
   hosp_dates <- names(hosps); death_dates <- names(deaths)
   intersect_dates <- as.Date(intersect(hosp_dates, death_dates))
   deaths_both <- deaths[death_dates %in% intersect_dates]

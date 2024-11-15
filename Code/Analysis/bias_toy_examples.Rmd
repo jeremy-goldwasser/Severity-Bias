@@ -368,7 +368,7 @@ est_dates <- seq(as.Date("2021-11-01"), as.Date("2022-07-01"), by="day")
 n_ests <- length(est_dates)
 # 16. Could also use mean of delay distribution, 20
 gt_hfrs <- nhcs_hfrs_all[names(nhcs_hfrs_all) %in% est_dates]
-optimal_lag <- calc_optimal_lag(hosps, noiseless_deaths)
+optimal_lag <- compute_optimal_lag(hosps, noiseless_deaths)
 lagged_hfrs <- compute_lagged_hfrs(hosps, noiseless_deaths, l=optimal_lag, dates=est_dates) 
 conv_hfrs_oracle <- compute_conv_hfrs(hosps, noiseless_deaths, est_dates, delay_distr_true)
 conv_hfrs_shorter <- compute_conv_hfrs(hosps, noiseless_deaths, est_dates, delay_distr_shorter)
@@ -451,7 +451,7 @@ ratioPlot <- ggplot(df2, aes(x = t, y = Ratios, color = Type)) +
   scale_color_manual(breaks = types,
     values = c("Light-Tailed" = "green3", "True" = "red2", 
                "Heavy-Tailed" = "blue", "Lagged" = "magenta")) +  
-  ggtitle(expression("Ratios R"^gamma)) +
+  ggtitle(expression("Ratios A"^gamma)) +
   theme_bw() + xlab("") +
   scale_x_date(date_breaks = "1 month", labels = NULL) +
   theme(legend.position = "none",
