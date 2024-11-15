@@ -41,46 +41,22 @@ compute_lagged_hfrs <- function(hosps, deaths, l, w=1,
   return(lagged_hfrs)
 }
 
-#### Tune Lagged
-tune_lagged_hfrs_retro <- function(hosps, deaths, lags, ws, dates) {
-  lagged_cv_maes <- sapply(ws, function(w) {
-    n_into_past <- floor(w/2)
-    n_into_future <- floor((w-1)/2)
-    maes_by_lag <- sapply(lags, function(lag) {
-      lagged_hfrs_cv <- sapply(dates, function(t) {
-        window <- seq(t-n_into_past, t+n_into_future, by="day")
-        window_no_t <- window[!(window==t)]
-        hosps_window <- hosps[as.Date(names(hosps)) %in% window_no_t]
-        deaths_window <- deaths[as.Date(names(deaths)) %in% (window_no_t+lag)]
-        total_hosps <- sum(hosps_window)
-        
-        # Check if total_hosps is 0, if so, return NA to avoid division by 0
-        if (total_hosps == 0) {
-          return(NA)
-        }
-        
-        hfr_t <- sum(deaths_window)/total_hosps
-      })
-      
-      # Remove NA values before calculating mae
-      valid_values <- !is.na(lagged_hfrs_cv)
-      Y_tl_ests <- hosps[as.Date(names(hosps)) %in% dates[valid_values]] * lagged_hfrs_cv[valid_values]
-      Y_tl <- deaths[as.Date(names(deaths)) %in% (dates[valid_values] + lag)]
-      mae(Y_tl_ests, Y_tl)
-    })
-    maes_by_lag
-  })
-  
-  # Reshape in case only 1 lag is given
-  lagged_cv_maes <- matrix(lagged_cv_maes, nrow=length(lags), ncol=length(ws))
-  rownames(lagged_cv_maes) <- lags
-  colnames(lagged_cv_maes) <- ws
-  return(lagged_cv_maes)
+compute_optimal_lag <- function(hosps, deaths, verbose=FALSE) {
+  hosp_dates <- names(hosps); death_dates <- names(deaths)
+  intersect_dates <- as.Date(intersect(hosp_dates, death_dates))
+  deaths_both <- deaths[death_dates %in% intersect_dates]
+  hhs_hosps_both <- hosps[hosp_dates %in% intersect_dates]
+  cc <- ccf(hhs_hosps_both, deaths_both, lag.max=40, plot=FALSE)
+  max_correlation_lag <- which.max(abs(cc$acf))
+  oracle_lag <- abs(cc$lag[max_correlation_lag])
+  if (verbose) 
+    print(paste0("Correlation-maximizing lag is ", oracle_lag, " days."))
+  return(oracle_lag)
 }
 
 
 ###### NISHIURA HFR ######
-compute_ahfr_dynamic <- function(hosps, deaths, t, delay_shape, w=1) {
+compute_conv_hfr <- function(hosps, deaths, t, delay_shape, w=1) {
   # W is length of trailing window ending at t
   d <- length(delay_shape) - 1
   w <- ifelse(w==0, 1, w)
@@ -92,9 +68,9 @@ compute_ahfr_dynamic <- function(hosps, deaths, t, delay_shape, w=1) {
   deaths_in_window/contributing_hosps
 }
 
-compute_ahfrs_dynamic <- function(hosps, deaths, dates, delay_shape, w=1) {
+compute_conv_hfrs <- function(hosps, deaths, dates, delay_shape, w=1) {
   # Only a real-time estimator. Not implemented since the beginning.
-  ahfrs <- sapply(dates, compute_ahfr_dynamic, hosps=hosps, deaths=deaths, w=w, delay_shape=delay_shape)
+  ahfrs <- sapply(dates, compute_conv_hfr, hosps=hosps, deaths=deaths, w=w, delay_shape=delay_shape)
   names(ahfrs) <- dates
   return(ahfrs)
 }
@@ -169,4 +145,31 @@ make_delay_distr <- function(Mean, Sd, d) {
   shape <- params[1]; rate <- params[2]
   DelayShape <- ddgamma(0:d, shape, rate)
   return(DelayShape)
+}
+
+
+compute_noiseless_deaths <- function(hosps, hfrs, delay_distr, death_dates) {
+  d <- length(delay_distr) - 1
+  noiseless_deaths <- sapply(death_dates, function(t) {
+    trailing_dates <- seq(t-d,t, by="day")
+    trailing_hosps <- hosps[names(hosps) %in% trailing_dates]
+    trailing_hfrs <- hfrs[names(hfrs) %in% trailing_dates]
+    exp_deaths <- sum(rev(delay_distr)*trailing_hosps*trailing_hfrs)
+    exp_deaths
+  })
+  names(noiseless_deaths) <- death_dates
+  return(noiseless_deaths)
+}
+
+compute_R_gammas <- function(hosps, true_delay_distr, plugin_delay_distr, est_dates) {
+  d <- length(true_delay_distr) - 1
+  R_gammas <- sapply(est_dates, function(t) {
+    trailing_dates <- seq(t-d,t, by="day")
+    trailing_hosps <- hosps[names(hosps) %in% trailing_dates]
+    num <- sum(rev(true_delay_distr)*trailing_hosps)
+    denom <- sum(rev(plugin_delay_distr)*trailing_hosps)
+    num/denom
+  })
+  names(R_gammas) <- est_dates
+  return(R_gammas)
 }
