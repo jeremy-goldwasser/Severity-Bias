@@ -5,13 +5,15 @@ date: "2024-10-04"
 ---
 
 ```{r}
-git_directory <- system("git rev-parse --show-toplevel", intern = TRUE)
-data_folder <- file.path(git_directory, "Data", "National_Data")
-code_folder <- file.path(git_directory, "Code", "Analysis")
-figure_folder <- file.path(git_directory, "Figs")
-nhcs_hfrs_all <- readRDS(file.path(data_folder, "hfrs_rescaled_v2.RData"))
+# you can use the `here` package to do this a bit more easily
+# 
+# git_directory <- system("git rev-parse --show-toplevel", intern = TRUE)
+data_folder <- here::here("Data", "National_Data")
+code_folder <- here::here("Code", "Analysis")
+figure_folder <- here::here("Figs")
+nhcs_hfrs_all <- here::here(data_folder, "hfrs_rescaled_v2.RData")
 nhcs_hfr_dates <- as.Date(names(nhcs_hfrs_all))
-source(file.path(code_folder, "helper_functions.R"))
+source(here::here(code_folder, "helper_functions.R"))
 
 library(ggplot2)
 library(patchwork)
@@ -115,7 +117,7 @@ dfDistr <- data.frame(t=rep(0:d, 3),
 delay_inset <- ggplot(dfDistr, aes(x=t, y=Delay, color=Type)) + geom_line() + theme_bw() + 
   scale_color_manual(breaks = types,
     values = c("Ground Truth" = "black", "12" = "green3", "20" = "red2", "28" = "blue")) +
-  theme(legend.position="none",
+  theme(legend.position="none", plot.background = element_blank(),
         plot.title = element_text(size = 10),
         axis.title = element_text(size = 10)) + 
   xlab("Days after primary event") + ylab("") + ggtitle("Delay distribution")
@@ -186,7 +188,7 @@ dfHosp <- data.frame(t=rep(as.Date(names(hosps_window)[est_idx]), 3),
 hosp_inset <- ggplot(dfHosp, aes(x=t, y=Hosp, color=Type, group=Type)) + geom_line() + theme_bw() + 
   scale_color_manual(breaks = types,
     values = c("Rising" = "green3", "True" = "red2", "Falling" = "blue")) +  
-  theme(legend.position="none",
+  theme(legend.position="none", plot.background = element_blank(),
         plot.title = element_text(size = 10),
         axis.title = element_text(size = 10)) + 
   xlab("") + ylab("") + ggtitle("Hospitalizations")
@@ -199,7 +201,6 @@ hospPlotFinal
 ggsave(file.path(figure_folder, "Simulated", "toy_chging_primary.pdf"),
        plot = hospPlotFinal, device = "pdf", width = 7, height = 7)
 ```
-
 
 
 ```{r}

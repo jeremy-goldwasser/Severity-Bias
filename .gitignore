@@ -4,3 +4,6 @@ main*
 !Addison_Edits.pdf
 Figs/pngs
 Code/older
+.Rproj.user
+*.DS_Store
+.Rhistory
