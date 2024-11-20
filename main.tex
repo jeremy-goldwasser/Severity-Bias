@@ -411,10 +411,13 @@ next few paragraphs. Like ``Figure 2 illustrates\ldots''.}
 % may be more complicated if primary incidence has changed direction throughout
 % the delay distribution.
 
-How $A_t^\gamma$ affects bias depends on how the delay distributions convolve against the primary incidence curve. The plug-in distribution $\gamma$ operates through its denominator, ${\sum_{j=0}^d X_{t-j}\gamma_j}$. When $\gamma$ is the oracle delay distribution $\pi$, $A_t^\gamma=1$. While this is not necessarily optimal, misspecification often exacerbates the bias.
+How $A_t^\gamma$ affects bias depends on how the delay distributions convolve against the primary incidence curve. 
+% The plug-in distribution $\gamma$ operates through its denominator, ${\sum_{j=0}^d X_{t-j}\gamma_j}$. 
+When $\gamma$ is the oracle delay distribution $\pi$, $A_t^\gamma=1$. While this is not necessarily optimal, misspecification often exacerbates the bias.For example, suppose $\gamma$ has a similar shape as $\pi$, but a lower mean and lighter tail.
+If primary events are rising sharply, $\gamma$ will place more weight on recent dates with high counts, and less on the low-count past. Put formally, $\sum_{j=0}^d X_{t-j}\gamma_j > \sum_{j=0}^d X_{t-j}\pi_j$, so $A_t^\gamma < 1$. 
 
-For example, suppose $\gamma$ has a similar shape as $\pi$, but a lower mean and lighter tail.
-If primary events are rising sharply, $\gamma$ will place more weight on recent dates with high counts, and less on the low-count past. Put formally, $\sum_{j=0}^d X_{t-j}\gamma_j > \sum_{j=0}^d X_{t-j}\pi_j$, so $A_t^\gamma < 1$. $A_t^\gamma$ stays below 1 as primary incidence peaks and begins to decline, since $\gamma$ continues to upweight the current surge. Then, as incidence levels out, conditions flip. $\gamma$ emphasizes the recent low counts, whereas $\pi$ places more mass on the high-count dates atop the surge. Correspondingly, $A_t^\gamma$ rises above 1. The opposite trends holds if $\gamma$ is heavier-tailed than $\pi$, with higher mean: $A_t^\gamma$ rises above 1 alongside primary incidence, stays high into the decline, and falls below 1 as incidence levels out. 
+$A_t^\gamma$ stays below 1 as primary incidence peaks and begins to decline, since $\gamma$ continues to upweight the current surge. 
+Then, as incidence levels out, conditions flip. $\gamma$ emphasizes the recent low counts, whereas $\pi$ places more mass on the high-count dates atop the surge. Correspondingly, $A_t^\gamma$ rises above 1. The opposite trends holds if $\gamma$ is heavier-tailed than $\pi$, with higher mean: $A_t^\gamma$ rises above 1 alongside primary incidence, stays high into the decline, and falls below 1 as incidence levels out. 
 % Under rising cases $A_t^\gamma > 1$, and  $A_t^\gamma < 1$ after a fall. 
 
 The lagged ratio has a point-mass delay distribution, $\gamma_k=\mathds{1}\{k=\ell\}$. This behaves  differently than the smooth distributions discussed above. When incidence rises, $X_{t-\ell}$ is considerably lower than $X_{t-\ell}$, so $A_t^\gamma>1$. As it later begins to fall, $A_t^\gamma$ switches below 1, since its denominator $X_{t-\ell}={\sum_{j=0}^d X_{t-j}\gamma_j}$ goes over the peak. Finally, $A_t^\gamma > 1$ as incidence flattens, since $\gamma_k$ has no tail with which to capture the higher-count dates. 
