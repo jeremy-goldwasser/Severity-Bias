@@ -65,11 +65,10 @@ Plot <- ggplot(df, aes(x=t, y=HFRs, color=Curve, linetype=HFR)) +
   geom_line() + ggtitle("HFR estimates by true HFR") + xlab("") + theme_bw() + #Date
   guides(linetype = guide_legend(order = 1), color = guide_legend(order = 2)) +
   theme(legend.position = "bottom",
-        legend.text = element_text(size = 12),
-        plot.title=element_text(size=15),
-        legend.title=element_text(size=12),
-        axis.title.x=element_text(size=12),
-        axis.title.y=element_text(size=12),
+        legend.text = element_text(size=17),
+        plot.title=element_text(size=20),
+        legend.title=element_text(size=17),
+        axis.title.y=element_text(size=17),
         legend.spacing.y = unit(0.5, "cm"),
         legend.margin = margin(t = -10),
         legend.box = "vertical") + 
@@ -114,11 +113,10 @@ delayPlot <- ggplot(df, aes(x = t, y = HFRs, linetype = HFR, color = Type)) +
   theme_bw() + 
   guides(linetype = guide_legend(order = 1), color = guide_legend(order = 2)) +
   theme(legend.position = "bottom",
-        legend.text = element_text(size = 12),
-        plot.title=element_text(size=15),
-        legend.title=element_text(size=12),
-        axis.title.x=element_text(size=12),
-        axis.title.y=element_text(size=12),
+        legend.text = element_text(size=17),
+        plot.title=element_text(size=20),
+        legend.title=element_text(size=17),
+        axis.title.y=element_text(size=17),
         legend.spacing.y = unit(0.5, "cm"),
         legend.margin = margin(t = -10),
         legend.box = "vertical") 
@@ -132,8 +130,8 @@ delay_inset <- ggplot(dfDistr, aes(x=t, y=Delay, color=Type)) + geom_line() + th
   scale_color_manual(breaks = types,
     values = c("Ground Truth" = "black", "12" = "green3", "20" = "red2", "28" = "blue")) +
   theme(legend.position="none", plot.background = element_blank(),
-        plot.title = element_text(size = 10),
-        axis.title = element_text(size = 10)) + 
+        plot.title = element_text(size = 14),
+        axis.title = element_text(size = 14)) + 
   xlab("Days after primary event") + ylab("") + ggtitle("Delay distribution")
 
 delayPlotFinal <- delayPlot + annotation_custom(ggplotGrob(delay_inset), xmin=t0, xmax=t0+60, ymax=.14)
@@ -191,11 +189,10 @@ hospPlot <- ggplot(df, aes(x = t, y = HFRs, linetype = HFR, color = Type)) +
   theme_bw() + 
   guides(linetype = guide_legend(order = 1), color = guide_legend(order = 2)) +
   theme(legend.position = "bottom",
-        legend.text = element_text(size = 12),
-        plot.title=element_text(size=15),
-        legend.title=element_text(size=12),
-        axis.title.x=element_text(size=12),
-        axis.title.y=element_text(size=12),
+        legend.text = element_text(size=17),
+        plot.title=element_text(size=20),
+        legend.title=element_text(size=17),
+        axis.title.y=element_text(size=17),
         legend.spacing.y = unit(0.5, "cm"),
         legend.margin = margin(t = -10),
         legend.box = "vertical") 
@@ -211,8 +208,8 @@ hosp_inset <- ggplot(dfHosp, aes(x=t, y=Hosp, color=Type, group=Type)) + geom_li
   scale_color_manual(breaks = types,
     values = c("Rising" = "green3", "True" = "red2", "Falling" = "blue")) +  
   theme(legend.position="none", plot.background = element_blank(),
-        plot.title = element_text(size = 10),
-        axis.title = element_text(size = 10)) + 
+        plot.title = element_text(size = 14),
+        axis.title = element_text(size = 14)) + 
   xlab("") + ylab("") + ggtitle("Hospitalizations")
 hosp_inset
 
