@@ -5,13 +5,10 @@ date: "2024-10-04"
 ---
 
 ```{r}
-# you can use the `here` package to do this a bit more easily
-# 
-# git_directory <- system("git rev-parse --show-toplevel", intern = TRUE)
 data_folder <- here::here("Data", "National_Data")
 code_folder <- here::here("Code", "Analysis")
 figure_folder <- here::here("Figs")
-nhcs_hfrs_all <- here::here(data_folder, "hfrs_rescaled_v2.RData")
+nhcs_hfrs_all <- readRDS(here::here(data_folder, "HFRs_NHCS_rescaled.RData"))
 nhcs_hfr_dates <- as.Date(names(nhcs_hfrs_all))
 source(here::here(code_folder, "helper_functions.R"))
 
@@ -29,13 +26,11 @@ d <- 75
 delay_distr_med <- make_delay_distr(Mean=20, Sd=round(20*.9), d)
 n_pts <- 200
 n_ests <- n_pts - d
-hosps <- readRDS(file.path(data_folder, "HHS.RData"))#_real_time
+hosps <- readRDS(file.path(data_folder, "HHS_real_time.RData"))#
 # t0 <- as.Date("2021-05-15")
 t0 <- as.Date("2022-02-01")
 hosp_start_idx <- which(names(hosps)==t0) # d+1
 
-nhcs_hfrs_all <- readRDS(file.path(data_folder, "hfrs_rescaled_v2.RData"))
-nhcs_hfr_dates <- as.Date(names(nhcs_hfrs_all))
 chging_hfrs <- nhcs_hfrs_all[nhcs_hfr_dates %in% as.Date((t0-d):(t0-d+n_pts-1))]
 # Only 1/4th the rise in magnitude
 flatter_hfrs <- (chging_hfrs-min(chging_hfrs))*0.25+median(chging_hfrs)*.85
@@ -222,53 +217,12 @@ ggsave(file.path(figure_folder, "Simulated", "toy_chging_primary.pdf"),
 ```
 
 
-```{r}
-# rescale <- function(hosps, hfrs) {
-#   hfr_range <- max(hfrs)-min(hfrs)
-#   shifted_hosps <- (hosps-min(hosps[est_idx]))/(max(hosps)-min(hosps))*hfr_range
-#   shifted_hosps <- shifted_hosps + min(hfrs)
-#   shifted_hosps
-# }
-# shifted_og_hosps <- rescale(hosps_window, chging_hfrs)
-# shifted_alt_hosps1 <- rescale(alt_hosps1, chging_hfrs)
-# shifted_alt_hosps2 <- rescale(alt_hosps2, chging_hfrs)
-# 
-# sources <- c("GT HFRs", "Estimated", "Hospitalization")
-# n_reps <- 3
-# sources_df <- factor(c(rep(sources[1], n_ests), rep(sources[2], n_ests*n_reps), 
-#                        rep(sources[3], n_ests*n_reps)), levels=sources)
-# 
-# types <- c("GT HFRs", "True Hosps", "Falling Hosps", "Rising Hosps")
-# types_df <- factor(c(rep(types[1], n_ests), rep(rep(types[2:length(types)], each=n_ests),2)), levels=types)
-# all_data <- c(chging_hfrs[est_idx], hfrs_true_hosps, hfrs_alt_hosps1, hfrs_alt_hosps2,
-#                         shifted_og_hosps[est_idx], shifted_alt_hosps1[est_idx], shifted_alt_hosps2[est_idx])
-# df <- data.frame(t=t0+rep(1:n_ests, 7)-1, #5
-#                  data=all_data,
-#                  HFR=sources_df,
-#                  Type=types_df)
-# 
-# Plot <- ggplot(df, aes(x=t, y=data, color=Type, linetype=HFR)) +
-#   geom_line() + ggtitle("Changing Primary Incidence") +
-#   ylab("HFR") + xlab("Date") +
-#   theme_bw() + theme(legend.position = "bottom",
-#                      legend.box="vertical", legend.margin=margin()) 
-# 
-#   # scale_y_continuous(sec.axis = sec_axis(~ . * shift, name = "Hospitalizations"))
-# Plot
-# ggsave(file.path(figure_folder, "Simulated", "toy_chging_primary.pdf"), 
-#        plot = Plot, device = "pdf", width = 7, height = 7) 
-
-```
-
-
-
 
 
 ############ Figure 2 ############
 
 ```{r}
 hosps <- readRDS(file.path(data_folder, "HHS_real_time.RData"))
-nhcs_hfrs_all <- readRDS(file.path(data_folder, "hfrs_rescaled_v2.RData"))
 shorter_mean <- 16
 longer_mean <- 24
 delay_distr_shorter <- make_delay_distr(Mean=shorter_mean, Sd=round(shorter_mean*.9), d)
@@ -283,9 +237,10 @@ first_death_date <- as.Date(max(names(nhcs_hfrs_all)[1], names(hosps)[1]))+d
 last_death_date <- as.Date(min(names(nhcs_hfrs_all)[length(nhcs_hfrs_all)],
                                names(hosps)[length(hosps)]))
 death_dates <- seq(first_death_date, last_death_date, by="day")
+est_dates <- seq(as.Date("2021-11-01"), as.Date("2022-07-01"), by="day")
 noiseless_deaths <- compute_noiseless_deaths(hosps, nhcs_hfrs_all, delay_distr_true, est_dates)
 
-est_dates <- seq(as.Date("2021-11-01"), as.Date("2022-07-01"), by="day")
+
 n_ests <- length(est_dates)
 # 16. Could also use mean of delay distribution, 20
 gt_hfrs <- nhcs_hfrs_all[names(nhcs_hfrs_all) %in% est_dates]
@@ -400,114 +355,5 @@ ggsave(file.path(figure_folder, "Simulated", "toy_misp.pdf"),
        plot = full_misp_plot, device = "pdf", width = 8, height = 7) 
 
 ```
-
-
-
-
-
-
-
-
-########### Appendix figures
-
-# Example 1: One-hot delay distribution elucidates bias due to changing severity rate
-
-```{r}
-short_lag <- 14
-long_lag <- 28
-estDates <- nhcs_hfr_dates[(long_lag+1):length(nhcs_hfr_dates)]
-est_hfrs_short <- nhcs_hfrs_all[nhcs_hfr_dates %in% (estDates-short_lag)]
-est_hfrs_long <- nhcs_hfrs_all[nhcs_hfr_dates %in% (estDates-long_lag)]
-gt_nhcs <- nhcs_hfrs_all[nhcs_hfr_dates %in% estDates]
-HFRtypes <- c("GT", "Est, Short Delay", "Est, Long Delay")
-df <- data.frame(Date=rep(estDates, 3),
-                  HFR=c(gt_nhcs,est_hfrs_short,est_hfrs_long),
-                  Method=factor(rep(HFRtypes, each=length(estDates)), levels=HFRtypes))
-
-pConst <- ggplot(df, aes(x=Date, y=HFR, color=Method, linetype=Method)) + 
-  geom_line() + 
-  ggtitle("All deaths at same delay. True & Estimated HFRs.") +#Constant Primary Incidence. 
-  theme_bw() +
-  theme(legend.position="bottom",
-        legend.title = element_blank())
-plot(pConst)
-ggsave(file.path(figure_folder, "Simulated", "sim_onehot.pdf"), 
-       plot = pConst, device = "pdf", width = 7, height = 7) 
-
-```
-Example 2
-
-```{r}
-n_dates <- 300
-sim_hfrs <- seq(0.5, 0, length.out=n_dates)
-
-xs <- seq(-9, 7, length.out=n_dates/2)
-hosps <- (c(sigmoid(xs), rev(sigmoid(xs)))*9000 + 1000)
-# plot(hosps)
-
-days <- c(0, 10)
-two_day_d <- max(days)
-two_day_delay <- rep(0, two_day_d+1); two_day_delay[days+1] <- 0.5
-est_indices <- (two_day_d+1):n_dates
-
-exp_deaths <- sapply(est_indices, function(t) {
-  trailing_idx <- (t-two_day_d):t
-  trailing_hfrs <- sim_hfrs[trailing_idx]
-  hosps_in_trailing_window <- hosps[trailing_idx]
-  exp_deaths_t <- sum(hosps_in_trailing_window * trailing_hfrs * rev(two_day_delay))
-})
-
-conv_hfrs <- sapply(est_indices, function(t) {
-  trailing_idx <- (t-two_day_d):t
-  hosps_in_trailing_window <- hosps[trailing_idx]
-  deaths_t <- exp_deaths[t-two_day_d]
-  hfr_t <- deaths_t/sum(hosps_in_trailing_window * rev(two_day_delay))
-})
-lag <- mean(days)
-# lag <- min(days)
-lagged_hfrs <- sapply(est_indices, function(t) {
-  hfr_t <- exp_deaths[t-two_day_d]/hosps[t-lag]
-})
-n_est <- length(est_indices)
-gt_hfrs <- sim_hfrs[est_indices]
-
-plot(1:n_est, gt_hfrs, type="l", xlab="Date", ylab="HFR", main="True vs Est HFR", 
-     ylim=c(min(conv_hfrs, lagged_hfrs, gt_hfrs), max(conv_hfrs, lagged_hfrs, gt_hfrs)))
-lines(1:n_est, conv_hfrs, type="l", col="red")
-lines(1:n_est, lagged_hfrs, type="l", col="blue")
-lines(1:n_est, hosps[est_indices]/max(hosps)*max(sim_hfrs)*.75, type="l", col="green")
-```
-
-
-```{r}
-hosps_rescaled <- hosps[est_indices]/max(hosps)*max(sim_hfrs, lagged_hfrs, conv_hfrs)*1.5 #0.75
-conv_bias <- conv_hfrs-gt_hfrs
-conv_bias_rescaled <- conv_bias/max(conv_bias)*max(sim_hfrs)*.75
-lagged_bias <- lagged_hfrs-gt_hfrs
-trans_factor <- max(sim_hfrs) * 0.75 / max(conv_bias)
-lagged_bias_rescaled <- lagged_bias/max(conv_bias)*max(sim_hfrs)*.75
-
-data <- data.frame(
-  Date = rep(1:n_est, 4),
-  Value = c(gt_hfrs, hosps_rescaled, lagged_bias*trans_factor, conv_bias*trans_factor),
-  Line = factor(rep(c("True HFR", "Hospitalizations", "Lagged Bias", "Conv Bias"), each=n_est), 
-                    levels=c("True HFR", "Hospitalizations", "Lagged Bias", "Conv Bias"))
-)
-pChg <- ggplot(data, aes(x = Date, y = Value, colour = Line)) +
-  geom_line() +
-  labs(x = "Date", y = "HFR Level", title = "Changing Primary Incidence. True HFR and Estimation Bias.",
-       colour = "Legend") +
-  scale_colour_manual(values = c("True HFR" = "black", "Hospitalizations" = "green", 
-                                 "Lagged Bias" = "blue", "Conv Bias" = "red")) +
-  theme_bw() + theme(legend.title=element_blank(), legend.position="bottom") +
-  ylim(range(c(min(conv_bias_rescaled, lagged_bias_rescaled, gt_hfrs), 
-               max(conv_bias_rescaled, lagged_bias_rescaled, gt_hfrs)))) +
-  scale_y_continuous(sec.axis = sec_axis(~ . / trans_factor, name = "Bias Level"))
-plot(pChg)
-ggsave(file.path(figure_folder, "Simulated", "sim_chging_primary.pdf"), 
-       plot = pChg, device = "pdf", width = 7, height = 7) 
-
-```
-
 
 
