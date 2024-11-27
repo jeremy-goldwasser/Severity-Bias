@@ -82,7 +82,8 @@ In this work, we show these ratio estimators may exhibit high statistical bias.
 Bias %statistical bias 
 arises as a consequence of changing severity rates --- precisely when time-varying estimates should be most useful. 
 It also arises due to model misspecification of the delay distribution 
-between primary and secondary events (e.g., cases and deaths in CFR). This is particularly troublesome for the popular lagged ratio. 
+that relates events, like cases and deaths in CFR. 
+This is particularly troublesome for the popular lagged ratio. 
 We validate these findings empirically, tracking the hospitalization-fatality rate (HFR) during COVID-19. The ratio estimators fail to quickly signal increased risk in the onset of the Delta wave; later, in the aftermath of the inital Omicron wave, they surge while the true HFRs fall. 
 % In both settings, bias is influenced by changes in the primary incidence
 % curve, as well as long time delays between events. 
@@ -104,15 +105,23 @@ and discuss ideas for alternative methodology which may avoid it.
 In this section, we introduce the studied estimators, and analyze their bias. Subsequently, we detail the data used for empirical study and validation. 
 
 \subsection{Severity rate estimators}\label{sec:defs}
-\paragraph{Lagged estimator.} 
-The time-varying severity rate is defined as
+
+Severity rates convey the probability that a primary event will result in a secondary event in the future. 
+In the case of CFR, for example, a primary event is a positive COVID-19 case, and a secondary event is a death with a positive test result.
+Formally, the time-varying severity rate at time $t$ is defined as
 \begin{equation}\label{eq:severity}
     p_t = \mathbb{P}(\text{secondary event will occur}\given\text{primary event at time }t).
 \end{equation}
+Here, $t$ may represent a discrete interval of time, like a given day or week. It also may be understood in a continuous-time fashion. 
+For ease of analysis, throughout this paper we consider only discrete timesteps $t$, though the same general principles hold in the continuous case. 
 
-Let $\{X_t\}$, $\{Y_t\}$ denote the time series of interest. In the case of CFR, for example, $X_t$ and $Y_t$ are the total number of new cases and deaths, respectively, at day $t$. 
+Let $\{X\}$ and $\{Y\}$ denote the aggregate time series of new primary and secondary events. %In the case of CFR, for example, $X_t$ and $Y_t$ are the total number of new cases and deaths, respectively, at day $t$. 
+At time $t$, we assume data for all past $s\leq t$ is available, but future data is not. Thus, real-time estimates of severity $p_t$ can only use counts $X_{s\leq t}$ and $Y_{s\leq t}$. 
 
-The canonical estimator for time-varying severity rates is a ratio between $X_t$ and $Y_t$ events, offset by a lag $\ell$. This lagged approach is formally introduced in \citet{thomas2021estimating}, but has also been used in prior works (e.g., \citealp{germany,horita2022global,timevar_ifr,yuan2020monitoring,LIU2023100350,atlantic,wsj}). 
+\paragraph{Lagged estimator.} 
+
+The canonical estimator for time-varying severity rates is a ratio between primary and secondary events, offset by a lag $\ell$. 
+This lagged approach is formally introduced in \citet{thomas2021estimating}, but has also been used in prior works (e.g., \citealp{germany,horita2022global,timevar_ifr,yuan2020monitoring,LIU2023100350,atlantic,wsj}). 
 For real-time estimation, the \textit{lagged ratio} only uses data until the present timestep $t$: 
 % The real-time estimator only uses data until the present timestep $t$: 
 \begin{equation}\label{eq:lagged}
@@ -140,11 +149,16 @@ the two time series. The delay distribution is defined as
     \pi_k^{(t)} = \mathbb{P}(\text{secondary event at $t+k$}\given\text{primary event at $t$, secondary event occurs}).
 \end{equation*}
 
+\noindent Throughout this work, we assume the delay distribution $\pi$ is the same over all time: $\pi_k^{(t)} =
+\pi_k$ for all $k$ and $t$.
+
 While the true delay distributions are generally unknown, several
 tools exist to estimate them 
 % Several tools exist to estimate delay distributions 
-from aggregate or line-list data \citep{delay_distrs}. For ease of analysis, we consider discrete
-delay distributions, though continuous-time approaches are possible. Similarly,
+from aggregate or line-list data \citep{delay_distrs}. 
+% For ease of analysis, we consider discrete
+% delay distributions, though continuous-time approaches are possible. 
+Similarly,
 we truncate the delay distribution at $d$ days, in essence assuming all
 secondary events occur within this period. Finally, we assume delay
 distributions are constant over time, and suppress the dependence on $t$ in the notation.
@@ -152,13 +166,10 @@ distributions are constant over time, and suppress the dependence on $t$ in the 
 
 The expected number of secondary events at any given day can be expressed in
 terms of historical primary incidence, severity rates, and the delay
-distribution \citep{fusedlasso,nishiura},\footnote{Throughout this work, we
-assume primary incidence is known, and condition on $X_{s\leq t}$ implicitly. We
-also assume the delay distribution $\pi$ is the same over all time: $\pi_k^{(t)} =
-\pi_k$ for all $k$ and $t$.}
+distribution \citep{fusedlasso,nishiura}. Defining $\E_t[\cdot] = \E[\cdot\vert X_{s\leq t}]$,
 %
 \begin{align}\label{eq:model}
-    \E[Y_t] &= \sum_{k=0}^d X_{t-k} \mathbb{P}(\text{secondary at $t$}\given\text{primary at }t-k) \nonumber \\ %\infty
+    \E_t[Y_t] &= \sum_{k=0}^d X_{t-k} \mathbb{P}(\text{secondary at $t$}\given\text{primary at }t-k) \nonumber \\ %\infty
             &= \sum_{k=0}^d X_{t-k} \mathbb{P}(\text{secondary after $k$}\given\text{secondary occurs, primary at }t-k) \nonumber \\
     &\qquad\qquad\qquad\qquad\times\mathbb{P}(\text{secondary occurs}\given\text{primary at $t-k$}) \nonumber \\
     &= \sum_{k=0}^d X_{t-k} \pi_k p_{t-k}.%^{(t-k)}
@@ -167,10 +178,9 @@ also assume the delay distribution $\pi$ is the same over all time: $\pi_k^{(t)}
 %
 This is a convolution of the delay distribution against the product of
 primary incidence and the severity rate. If the severity rate is a constant
-$p$, \eqref{eq:model} simplifies to $\E[Y_t] = p\sum_{k=0}^d X_{t-k}\pi_k$.
-\citet{nishiura} rearranged this expression to estimate this time-stationary rate
-using a plug-in estimate of the delay distribution, $\gamma$, and smoothing over the entire
-history,
+$p$, \eqref{eq:model} simplifies to $\E_t[Y_t] = p\sum_{k=0}^d X_{t-k}\pi_k$.
+\citet{nishiura} rearranged this expression to estimate this time-stationary rate.
+Using a plug-in estimate $\gamma$ of the delay distribution, and smoothing from time $t_0$ to $t$, they defined
 % Using observed counts $Y_t$ and a plug-in estimate of the delay distribution,
 % \citet{nishiura} proposed the following estimator to track a stationary
 % severity rate:
@@ -215,12 +225,14 @@ secondary infections.
 % mean ``generation interval distribution $g$''?} \jmgcomment{Yes, good catch!}
 
 Severity rates and reproduction numbers are also estimated similarly. Because primary events at $t$ produce secondary events after $t$, their effect is not observed in real time. Therefore, standard real-time estimates for $R_t$ and severity rates (\ref{eq:lagged}, \ref{eq:conv}) analyze the number of secondary events at $t$ produced by relevant primary events. 
-For reproduction numbers, this is formally defined as instantaneous $R_t$, the average number of secondary infections at time $t$ produced by a single primary infection in the past. Indeed, one of the most popular frameworks to estimate $R_t$ is almost identical to the convolutional ratio \citep{fraser2007,wallinga2007how,cori2013new,rtestim}. Its only difference is that it uses the same aggregate time series, for infections, in both the numerator and denominator:
-%
+For reproduction numbers, this is formally defined as instantaneous $R_t$, the average number of secondary infections at time $t$ produced by a single primary infection in the past. 
+
+Indeed, one of the most popular frameworks to estimate $R_t$ is based on an almost identical expression to the convolutional ratio \citep{fraser2007,wallinga2007how,cori2013new,rtestim}. This expression is a point estimate for instantaneous $R_t$ derived from the renewal equation:
 \begin{equation}\label{eq:instRt}
     \hat{R}_t = \frac{I_t}{\sum_{k=1}^d I_{t-k}g_k}.
 \end{equation}
 
+The main difference between this ratio and \eqref{eq:conv} is that \eqref{eq:instRt} uses the same aggregate time series, infections, in both the numerator and denominator. In practice, $R_t$ is typically estimated in a Bayesian setting, with a posterior obtained from this transmission model. 
 
 \subsection{Well-specified analysis}\label{sec:ws_analysis}
 
@@ -231,7 +243,7 @@ In this section, we explore the bias of the convolutional ratio (\ref{eq:conv}) 
     % with maximum length $d$ \djmcomment{What does maximum length mean here?}. 
     The bias of the convolutional ratio $\hat{p}_t^\pi$ is
 \begin{equation*}
-    \bias\left(\hat{p}_t^\pi\right) = \sum_{k=0}^d \left[ \frac{X_{t-k}\pi_k}{\sum_{j=0}^d X_{t-j}\pi_j} (p_{t-k}-p_t) \right].
+    \bias\left(\hat{p}_t^\pi\right) = \E_t[\hat{p}_t^\pi] - p_t = \sum_{k=0}^d \left[ \frac{X_{t-k}\pi_k}{\sum_{j=0}^d X_{t-j}\pi_j} (p_{t-k}-p_t) \right].
 \end{equation*}
 % \djmcomment{I rewrote this expression just a bit. Since you talk about $(p_{t-k}
 % - p_t)$ first, it may make sense to put it first. Then I added the bracket just
@@ -311,11 +323,12 @@ The degree of bias in Proposition \ref{thm:OracleBias} depends on three factors.
 
 
 
-As noted previously, the convolutional ratio is equivalent to the lagged ratio if $\gamma$ is a point mass distribution at $\ell$. In this oracle setting, all secondary events occur after exactly $\ell$ days, a highly unrealistic situation. Nevertheless, if this is the case, then 
-$$
-\bias\left(\hat{p}_t^\ell\right) = \bias\left(\hat{p}_t^\gamma\right) = p_{t-\ell}-p_t.
-$$
-This toy setting and others are discussed in Appendix~\ref{apx:analysis}.
+% As noted previously, the convolutional ratio is equivalent to the lagged ratio if $\gamma$ is a point mass distribution at $\ell$. In this oracle setting, all secondary events occur after exactly $\ell$ days, a highly unrealistic situation. Nevertheless, if this is the case, then 
+% $$
+% \bias\left(\hat{p}_t^\ell\right) = \bias\left(\hat{p}_t^\gamma\right) = p_{t-\ell}-p_t.
+% $$
+% This toy setting and others are discussed in Appendix~\ref{apx:analysis}.
+Appendix~\ref{apx:analysis} discusses toy settings in which the well-specified bias simplifies in elucidating ways.
 
 \subsection{Misspecified analysis}\label{sec:misp}
 
@@ -425,9 +438,9 @@ These patterns translate accordingly into the biases themselves. The lagged rati
 
 
 \subsection{Experimental setup}\label{sec:setup}
-\djmcomment{I wonder if it wouldn't be better to put this section (2.1) as the last section before you move to Results rather than the first?}
-\jmgcomment{Tricky. I had originally had it there, but Addison argued the opposite: The analysis has 2 figures that use this data, so it makes sense to introduce earlier. I could go either way.}
-
+% \djmcomment{I wonder if it wouldn't be better to put this section (2.1) as the last section before you move to Results rather than the first?}
+% \jmgcomment{Tricky. I had originally had it there, but Addison argued the opposite: The analysis has 2 figures that use this data, so it makes sense to introduce earlier. I could go either way.}
+\jmgcomment{Should it be its own whole section?}
 % \djmcomment{References. I personally try to use the \texttt{cleveref} package so
 % that I can write something like ``In \textbackslash cref$\{$sec:blah$\}$\ldots''
 % which gets typeset as ``In Section 3\ldots''. You can use \textbackslash
@@ -593,15 +606,20 @@ To elucidate the oracle bias in Proposition \ref{thm:OracleBias}, we let the con
     \label{fig:sims}
 \end{figure}
 
-Figure \ref{fig:sims} displays the results on the six settings of delay distribution and HFR. In addition to the HFR curves, it also visualizes the ratios $A_t^\gamma$, which merely rescale the HFR estimates in the stationary case. Given a constant rate $p$, the oracle convolutional ratio is unbiased, so Proposition \ref{thm:MispBias} reduces to $\mathbb{E}[\hat{p}_t^\gamma] = p A_t^\gamma$. Furthermore, $\mathbb{E}[\hat{p}_t^\gamma] = \hat{p}_t^\gamma$, as our setup simulates deaths without noise. Consequently, $A_t^\gamma = \frac{\hat{p}_t^\gamma }{p}$. 
+Figure \ref{fig:sims} displays the results on the six settings of delay distribution and HFR. 
 % Consequently, $\hat{p}_t^\gamma = p A_t^\gamma$. 
 %so the $A_t^\gamma$ curve merely rescales the estimated HFRs by a factor of $p$. 
-
-
 Matching expectations, HFRs are significantly more biased given the longer underlying delay distribution. 
 In all three HFR settings, the lagged ratios swing more widely. For example, when the true HFR is a constant 10\%, they peak at 12\% under the light-tailed distribution, compared to 15\% with the heavy tail. The oracle convolutional ratio does not share the lagged estimator's dramatic oscillations. Rather, it tracks the general shape of true curve, albeit at a delay. For the NHCS HFRs, the average delay was 5 days for the light-tailed distribution, and 12 days with heavy tail; these delays were 6 and 15 days for the inverted curve. (To compute the average delay, we again took the maximal cross-correlation between the two series.)
 
-In general, the oracle convolutional ratio performs much better than the lagged estimator. Our analysis accounts for this wide gap in performance. In the case of a stationary severity rate, for example, Proposition \ref{thm:OracleBias} assures the oracle convolutional ratio is unbiased. But if the delay distribution is misspecified, Proposition \ref{thm:MispBias} expresses the resulting bias via the ratio $A_t^\gamma$. This quantity does not depend on the severity rate, so the bias moves in similar trajectories across the three HFR settings. 
+% In general, the oracle convolutional ratio performs much better than the lagged estimator. Our analysis accounts for this wide gap in performance. In the case of a stationary severity rate, for example, Proposition \ref{thm:OracleBias} assures the oracle convolutional ratio is unbiased. But if the delay distribution is misspecified, Proposition \ref{thm:MispBias} expresses the resulting bias via the ratio $A_t^\gamma$. This quantity does not depend on the severity rate, so the bias moves in similar trajectories across the three HFR settings. 
+In general, the oracle convolutional ratio is much more accurate than the lagged estimator. The analysis in Section~\ref{sec:misp} accounts for this wide gap in performance. The lagged bias moves in ways that align with our observations.
+
+Proposition \ref{thm:MispBias} expresses the lagged bias via the rescaled oracle bias plus a misspecification term, both of which depend on the ratio $A_t^\gamma$. 
+
+These ratios $A_t^\gamma$ are visualized in Figure \ref{fig:sims} as rescaled HFR estimates in the stationary case.
+% In addition to the HFR curves, it also visualizes the ratios $A_t^\gamma$, which merely rescale the HFR estimates in the stationary case. 
+Given a constant rate $p$, the oracle convolutional ratio is unbiased, so Proposition \ref{thm:MispBias} reduces to $\mathbb{E}[\hat{p}_t^\gamma] = p A_t^\gamma$. Furthermore, $\mathbb{E}[\hat{p}_t^\gamma] = \hat{p}_t^\gamma$, as our setup simulates deaths without noise. Consequently, $A_t^\gamma = \frac{\hat{p}_t^\gamma }{p}$. 
 
 The analysis in Section~\ref{sec:misp} explains these trajectories. During the Delta and Omicron waves, rapid rises in hospitalizations produced high values of $A_t^\ell$. This accounts for the spikes in August 2021 and January 2022, across all 3 HFR settings. Positive bias is also expected when hospitalizations have leveled out from a decline. This consistently occurs in spring 2022, with $A_t^\ell$ reaching 1.2 and 1.5 for the short and long distributions. Lastly, the lagged estimator should have negative bias as primary events fall. We observe this in Delta (September 2021) and Omicron (Februrary 2022). 
 
@@ -712,8 +730,8 @@ Future work along the lines of \citet{rt_study} could apply our analytical frame
 We first prove Proposition \ref{thm:OracleBias}, the bias of the oracle convolutional ratio. 
 \begin{proof}
     \begin{align*}%\label{eq:OracleBias}
-    \text{Bias}(\hat{p}_t^\pi) &= \E[\hat{p}_t^\pi] - p_t \\
-    &= \frac{\E[Y_t]}{\sum_{k=0}^d X_{t-k}\pi_k} - p_t \\ 
+    \text{Bias}(\hat{p}_t^\pi) &= \E_t[\hat{p}_t^\pi] - p_t \\
+    &= \frac{\E_t[Y_t]}{\sum_{k=0}^d X_{t-k}\pi_k} - p_t \\ 
     &= \frac{\sum_{k=0}^d X_{t-k}\pi_k p_{t-k}}{\sum_{k=0}^d X_{t-k}\pi_k} - \frac{p_t \sum_{k=0}^d X_{t-k}\pi_k}{\sum_{k=0}^d X_{t-k}\pi_k}\\
     &= \sum_{k=0}^d \frac{X_{t-k}\pi_k}{\sum_{j=0}^d X_{t-j}\pi_j} (p_{t-k}-p_t).
 \end{align*}
@@ -725,7 +743,7 @@ either through the delay distribution $\pi$ or through the primary incidence cur
 Next, we prove the bias expression under misspecified delay distribution (Proposition \ref{thm:MispBias}). 
 \begin{proof}
     \begin{align*}
-    \text{Bias}(\hat{p}_t^\gamma) &= \frac{\E[Y_t]}{\sum_{k=0}^d X_{t-k}\gamma_k} - p_t \\
+    \text{Bias}(\hat{p}_t^\gamma) &= \frac{\E_t[Y_t]}{\sum_{k=0}^d X_{t-k}\gamma_k} - p_t \\
     &= \frac{\sum_{k=0}^d X_{t-k}\pi_k p_{t-k}}{\sum_{k=0}^d X_{t-k}\gamma_k} - \frac{\sum_{k=0}^d X_{t-k}\gamma_k p_t}{\sum_{k=0}^d X_{t-k}\gamma_k} \\
     &= \sum_{k=0}^d \frac{X_{t-k}}{\sum_{j=0}^d X_{t-j}\gamma_j}(\pi_k p_{t-k}-\gamma_k p_t) \\
     &= \sum_{k=0}^d \frac{X_{t-k}}{\sum_{j=0}^d X_{t-j}\gamma_j}(\pi_k p_{t-k}-(\pi_k +(\gamma_k-\pi_k)) p_t) \\
@@ -889,8 +907,8 @@ Several states have similar biases as the US results (Fig. \ref{fig:basic_est_vs
 
 Figure \ref{fig:sims_mean_lag} presents the simulation results from Section~\ref{sec:results_sim} when the lag is the mean of the delay distribution. It clearly indicates the lagged ratio is not markedly better under this lag. This is in step with Figure \ref{fig:lag}, which demonstrated that its performance on real data are robust to choice of lag.
 
-\subsection{Further discussion}\label{apx:analysis}
-In this section, we present examples that further explain the bias. These are more contrived that the ones in Section~\ref{sec:ws_analysis}, for example using unrealistic delay distributions. Nevertheless, their bias can be simplified to simple analytic formulas, isolating the three contributing factors.
+\subsection{Further analysis}\label{apx:analysis}
+In this section, we present examples that further explain the well-specified bias. These are more contrived that the ones in Section~\ref{sec:ws_analysis}, for example using unrealistic delay distributions. Nevertheless, their bias can be simplified to simple analytic formulas, isolating the three contributing factors.
 % In contrast to the examples in~\ref{sec:ws_analysis}, the ones here use contrived delay distributions and
 
 \begin{figure}
@@ -933,9 +951,9 @@ The absolute bias is monotonically decreasing in $\frac{X_{t}}{X_{t-d}}$, the pr
 
 Figure \ref{fig:chging_primary} displays this setting. Hospitalizations are defined as $X = \sigma(s)*9000+1000$, where $\sigma$ is the sigmoid function and $s$ takes 300 evenly spaced steps from -9 to 7. The true HFRs fall from 0.5 to 0 over the same number of even steps. Indeed, the convolutional ratio's bias dips as hospitalizations rise, and rises as they fall. 
 
-When daily hospitalizations approach a constant level, the two estimators become the same ratio, so their biases converge. During periods of change, however, the lagged estimator has different bias. It first moves in the opposite direction as the convolutional bias, before switching to the same direction. Moreover, the magnitude of the lagged is far greater. 
+The figure also plots with lagged ratio with $\ell=\frac{d}{2}$, the mean of the delay distribution. When daily hospitalizations are close to constant, the two estimators converge towards the same ratio. During periods of change, however, the lagged estimator has different bias. It first moves upwards --- the opposite direction as the convolutional bias --- with far greater magnitude. This can be explained by the ratio $A_t^\ell = \frac{X_{t-2\ell}+X_t}{2X_{t-\ell}}$ from Proposition \ref{thm:MispBias}. As hospitalizations begin to steeply rise, $X_{t-2\ell}$ and $X_{t-\ell}$ are similar, but $X_t > X_{t-\ell}$. Hence, $A_t^\ell>1$, contributing positive bias to both the oracle and misspecification terms. As hospitalizations level out near the top, $A_t^\ell < 1$, hence the bias falling lower. The opposite pattern occurs as hospitalizations fall. 
 
-Since the convolutional ratio uses the true delay distribution, it has oracle bias in Proposition \ref{thm:MispBias}. The lagged ratio has lag at the mean of the delay distribution, $\ell=\frac{d}{2}$. Its behavior can be explained by the ratio $A_t^\ell = \frac{X_{t-2\ell}+X_t}{2X_{t-\ell}}$. As hospitalizations begin to steeply rise, $X_{t-2\ell}$ and $X_{t-\ell}$ are similar, but $X_t > X_{t-\ell}$. Therefore $A_t^\ell>1$, inflating the positive oracle bias term and adding misspecification bias. As hospitalizations level out near the top, $A_t^\ell < 1$, hence the bias falling lower. The opposite pattern occurs as hospitalizations fall. 
+% Since the convolutional ratio uses the true delay distribution, it has oracle bias in Proposition \ref{thm:MispBias}. The lagged ratio has lag at the mean of the delay distribution, $\ell=\frac{d}{2}$. Its behavior can be explained by the ratio $A_t^\ell = \frac{X_{t-2\ell}+X_t}{2X_{t-\ell}}$. As hospitalizations begin to steeply rise, $X_{t-2\ell}$ and $X_{t-\ell}$ are similar, but $X_t > X_{t-\ell}$. Therefore $A_t^\ell>1$, inflating the positive oracle bias term and adding misspecification bias. As hospitalizations level out near the top, $A_t^\ell < 1$, hence the bias falling lower. The opposite pattern occurs as hospitalizations fall. 
 
 
 \end{document}
