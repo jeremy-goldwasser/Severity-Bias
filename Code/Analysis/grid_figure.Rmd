@@ -18,20 +18,21 @@ dfHFRshort_inv <- data[[3]]
 dfHFRlong_inv <- data[[4]]
 dfHFRshort_flat <- data[[5]]
 dfHFRlong_flat <- data[[6]]
+
 ```
 
 
 
 ```{r, fig.width=9, fig.height=7}
-# titlesize <- 12
+flat_hfr <- 0.1
 p1 <- ggplot(data=dfHFRshort, aes(x = Date, y = HFR, color = Method, linetype=Method)) + 
   geom_line() + labs(color = "HFR", linetype = "HFR") + 
   ggtitle("NHCS HFRs",
-          subtitle="Short Delay Distribution") +
+          subtitle="Short delay distribution") +
   xlab("") + theme_bw()
 p2 <- ggplot(data=dfHFRlong, aes(x = Date, y = HFR, color = Method, linetype=Method)) + 
   geom_line() + labs(color = "HFR", linetype = "HFR") + 
-  ggtitle("",subtitle="Long Delay Distribution") +
+  ggtitle("",subtitle="Long delay distribution") +
   xlab("") + theme_bw()
 p3 <- ggplot(data=dfHFRshort_inv, aes(x = Date, y = HFR, color = Method, linetype=Method)) + 
   geom_line() + labs(color = "HFR", linetype = "HFR") + 
@@ -39,7 +40,7 @@ p3 <- ggplot(data=dfHFRshort_inv, aes(x = Date, y = HFR, color = Method, linetyp
   xlab("") + theme_bw()
 p4 <- ggplot(data=dfHFRlong_inv, aes(x = Date, y = HFR, color = Method, linetype=Method)) + 
   geom_line() + labs(color = "HFR", linetype = "HFR") + 
-  ggtitle("") +#, subtitle="Long Delay Distribution"
+  ggtitle("") +
   xlab("") + theme_bw() 
 
 p5 <- ggplot(data=dfHFRshort_flat, aes(x = Date, y = HFR, color = Method, linetype=Method)) + 
@@ -58,7 +59,7 @@ p6 <- ggplot(data=dfHFRlong_flat, aes(x = Date, y = HFR, color = Method, linetyp
 Plot <- ((p1|p2) + plot_layout(tag_level = 'new')) / 
   ((p3|p4) + plot_layout(tag_level = 'new')) / 
   ((p5|p6) + plot_layout(tag_level = 'new')) +
-  plot_annotation(title = 'HFRs, Simulated Deaths',
+  plot_annotation(title = 'HFRs, simulated deaths',
                   theme = theme(plot.title = element_text(size = 16))) +#, tag_levels = c('A', '1')
   plot_layout(guides="collect") & 
   theme(legend.position = "bottom",
@@ -69,6 +70,7 @@ Plot
 
 
 ```{r, fig.width=9, fig.height=7}
-ggsave(file.path(figure_folder, "Simulated", "simulated_results_delay_mean.pdf"), plot = Plot, device = "pdf", width = 9, height = 7)
 # ggsave(file.path(figure_folder, "Simulated", "simulated_results_corr_lag.pdf"), plot = Plot, device = "pdf", width = 9, height = 7)
+ggsave(file.path(figure_folder, "Simulated", "simulated_results_delay_mean.pdf"), plot = Plot, device = "pdf", width = 9, height = 7)
+
 ```

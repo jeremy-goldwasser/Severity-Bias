@@ -66,7 +66,7 @@ hfrs_lagged_short <- compute_lagged_hfrs(hosps, sim_deaths_short, lag_short, w=1
 hfrs_conv_short <- compute_conv_hfrs(hosps, sim_deaths_short, est_dates, delay_distr_short, w=1)
 
 gt_hfrs <- hfrs_nhcs[hfr_dates %in% est_dates]
-HFRtypes <- c("Ground Truth", "Oracle Convolutional Ratio", "Lagged Ratio")
+HFRtypes <- c("Ground truth", "Oracle convolutional ratio", "Lagged ratio")
 dfHFRshort <- data.frame(Date=rep(est_dates, length(HFRtypes)),
                  HFR=c(gt_hfrs, hfrs_conv_short, hfrs_lagged_short), 
                  Method=factor(rep(HFRtypes, each=n_est), levels=HFRtypes))

@@ -63,10 +63,10 @@ Plot <- ggplot(df, aes(x=t, y=HFRs, color=Curve, linetype=HFR)) +
   geom_line() + ggtitle("HFR estimates by true HFR") + xlab("") + theme_bw() + #Date
   guides(linetype = guide_legend(order = 1), color = guide_legend(order = 2)) +
   theme(legend.position = "bottom",
-        legend.text = element_text(size=17),
-        plot.title=element_text(size=20),
-        legend.title=element_text(size=17),
-        axis.title.y=element_text(size=17),
+        plot.title=element_text(size=23),
+        legend.text = element_text(size=19),
+        legend.title=element_text(size=19),
+        axis.title.y=element_text(size=19),
         legend.spacing.y = unit(0.5, "cm"),
         legend.margin = margin(t = -10),
         legend.box = "vertical") + 
@@ -111,10 +111,10 @@ delayPlot <- ggplot(df, aes(x = t, y = HFRs, linetype = HFR, color = Type)) +
   theme_bw() +
   guides(linetype = guide_legend(order = 1), color = guide_legend(order = 2)) +
   theme(legend.position = "bottom",
-        legend.text = element_text(size=17),
-        plot.title=element_text(size=20),
-        legend.title=element_text(size=17),
-        axis.title.y=element_text(size=17),
+        plot.title=element_text(size=23),
+        legend.text = element_text(size=19),
+        legend.title=element_text(size=19),
+        axis.title.y=element_text(size=19),
         legend.spacing.y = unit(0.5, "cm"),
         legend.margin = margin(t = -10),
         legend.box = "vertical")
@@ -183,10 +183,10 @@ hospPlot <- ggplot(df, aes(x = t, y = HFRs, linetype = HFR, color = Type)) +
   theme_bw() + 
   guides(linetype = guide_legend(order = 1), color = guide_legend(order = 2)) +
   theme(legend.position = "bottom",
-        legend.text = element_text(size=17),
-        plot.title=element_text(size=20),
-        legend.title=element_text(size=17),
-        axis.title.y=element_text(size=17),
+        plot.title=element_text(size=23),
+        legend.text = element_text(size=19),
+        legend.title=element_text(size=19),
+        axis.title.y=element_text(size=19),
         legend.spacing.y = unit(0.5, "cm"),
         legend.margin = margin(t = -10),
         legend.box = "vertical") 
@@ -202,8 +202,8 @@ hosp_inset <- ggplot(dfHosp, aes(x=t, y=Hosp, color=Type, group=Type)) + geom_li
   scale_color_manual(breaks = types,
     values = c("Rising" = "green3", "True" = "red2", "Falling" = "blue")) +  
   theme(legend.position="none", plot.background = element_blank(),
-        plot.title = element_text(size = 14),
-        axis.title = element_text(size = 14)) + 
+        plot.title = element_text(size = 14)
+        ) + 
   xlab("") + ylab("") + ggtitle("Hospitalizations")
 hosp_inset
 
@@ -260,7 +260,7 @@ R_gamma_lagged <- compute_R_gammas(hosps, delay_distr_true, lagged_distr, est_da
 
 ```{r}
 sources <- c("Ground truth", "Estimated")
-types <- c("True", "Light-Tailed", "Heavy-Tailed", "Lagged")
+types <- c("True", "Light-tailed", "Heavy-tailed", "Lagged")
 # Keep Ground truth in Type for plotting but handle later
 df <- data.frame(
   t = rep(est_dates, 5),
@@ -273,8 +273,8 @@ df <- data.frame(
 mispPlot <- ggplot(df, aes(x = t, y = HFRs, linetype = HFR, color = Type)) +
   geom_line(aes(group = interaction(HFR, Type))) +  # Group by HFR and Type
   scale_color_manual(breaks = types,
-    values = c("Ground truth" = "black", "Light-Tailed" = "green3", "True" = "red2", 
-               "Heavy-Tailed" = "blue", "Lagged" = "magenta")) +  
+    values = c("Ground truth" = "black", "Light-tailed" = "green3", "True" = "red2", 
+               "Heavy-tailed" = "blue", "Lagged" = "magenta")) +  
   ggtitle("HFR estimates, misspecified delay distribution") +
   labs(color="Delay distribution") + xlab("Date") +
   theme_bw() + xlab("") +
@@ -282,23 +282,24 @@ mispPlot <- ggplot(df, aes(x = t, y = HFRs, linetype = HFR, color = Type)) +
   scale_x_date(date_breaks = "1 month", labels = NULL) +
   theme(legend.position = "bottom",
         legend.box = "vertical",
-        legend.text = element_text(size = 11),
-        #plot.title = element_text(size = 14),
+        legend.text = element_text(size = 12),
+        legend.title = element_text(size = 13),
+        plot.title = element_text(size = 17),
         axis.text.x = element_blank(),
         legend.spacing.y = unit(0.5, "cm"),
         legend.margin = margin(t = -10))
 mispPlot
 
-delayTypes <- c("Light-Tailed", "True", "Heavy-Tailed")
+delayTypes <- c("Light-tailed", "True", "Heavy-tailed")
 dfDistr <- data.frame(t=rep(0:d, 3),
                       Delay=c(delay_distr_shorter, delay_distr_true, delay_distr_longer),
                       Type=rep(delayTypes, each=d+1))
 delay_inset <- ggplot(dfDistr, aes(x=t, y=Delay, color=Type)) + 
   geom_line() + theme_bw() + 
   scale_color_manual(breaks = delayTypes, 
-                     values = c("Light-Tailed" = "green3", "True" = "red2", "Heavy-Tailed" = "blue")) +  
+                     values = c("Light-tailed" = "green3", "True" = "red2", "Heavy-tailed" = "blue")) +  
   theme(legend.position="none",
-        plot.title = element_text(size = 10),
+        plot.title = element_text(size = 12),
         axis.title = element_text(size = 10),
         axis.text.y = element_blank(),
         axis.ticks.y = element_blank()) + 
@@ -322,8 +323,8 @@ df2 <- data.frame(
 ratioPlot <- ggplot(df2, aes(x = t, y = Ratios, color = Type)) +
   geom_line() +  # Group by HFR and Type
   scale_color_manual(breaks = types,
-    values = c("Light-Tailed" = "green3", "True" = "red2", 
-               "Heavy-Tailed" = "blue", "Lagged" = "magenta")) +  
+    values = c("Light-tailed" = "green3", "True" = "red2", 
+               "Heavy-tailed" = "blue", "Lagged" = "magenta")) +  
   ggtitle(expression("Ratios A"^gamma)) +
   theme_bw() + xlab("") +
   scale_x_date(date_breaks = "1 month", labels = NULL) +
