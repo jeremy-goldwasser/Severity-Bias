@@ -1,0 +1,223 @@
+```{r}
+
+data_folder <- here::here("Data", "National_Data")
+code_folder <- here::here("Code", "Analysis")
+figure_folder <- here::here("Figures")
+source(here::here(code_folder, "helper_functions.R"))
+
+library(ggplot2)
+library(patchwork)
+hosps <- readRDS(file.path(data_folder, "HHS_real_time.RData"))
+hosp_dates <- as.Date(names(hosps))
+hfrs_nhcs <- readRDS(here::here(data_folder, "HFRs_NHCS_rescaled.RData"))
+hfr_dates <- as.Date(names(hfrs_nhcs))
+
+```
+
+
+
+### Load NHCS HFRs and HHS Hospitalizations
+```{r}
+d <- 75
+first_death_date <- max(min(hosp_dates), min(hfr_dates))+d
+last_death_date <- min(max(hosp_dates), max(hfr_dates))
+death_dates <- seq(first_death_date, last_death_date, by="day")
+```
+
+
+## Get delay distribution
+
+Get delay distributions for Nishiura method
+
+```{r}
+d <- 75
+short_mean <- 12
+long_mean <- 24
+delay_distr_short <- make_delay_distr(Mean=short_mean, Sd=round(short_mean*.9), d)
+delay_distr_long <- make_delay_distr(Mean=long_mean, Sd=round(long_mean*.9), d)
+```
+
+
+## Real HFRs
+
+#### Convolve to simulate deaths
+
+```{r}
+sim_deaths_short <- compute_noiseless_deaths(hosps, hfrs_nhcs, delay_distr_short, death_dates)
+sim_deaths_long <- compute_noiseless_deaths(hosps, hfrs_nhcs, delay_distr_long, death_dates)
+```
+
+#### Estimate HFRs
+
+
+```{r}
+# lag_short <- compute_optimal_lag(hosps, sim_deaths_short)
+lag_short <- round(sum(0:d*delay_distr_short))
+
+# Estimate HFRs weekly, & offset to account for potential smoothing 
+# est_dates <- death_dates[seq(1+7*6, length(death_dates), by=7)]
+est_dates <- death_dates[seq(1+7*6, length(death_dates), by=1)]
+n_est <- length(est_dates)
+```
+
+
+```{r}
+hfrs_lagged_short <- compute_lagged_hfrs(hosps, sim_deaths_short, lag_short, w=1, dates=est_dates)
+hfrs_conv_short <- compute_conv_hfrs(hosps, sim_deaths_short, est_dates, delay_distr_short, w=1)
+
+gt_hfrs <- hfrs_nhcs[hfr_dates %in% est_dates]
+HFRtypes <- c("Ground Truth", "Oracle Convolutional Ratio", "Lagged Ratio")
+dfHFRshort <- data.frame(Date=rep(est_dates, length(HFRtypes)),
+                 HFR=c(gt_hfrs, hfrs_conv_short, hfrs_lagged_short), 
+                 Method=factor(rep(HFRtypes, each=n_est), levels=HFRtypes))
+ggplot(data=dfHFRshort, aes(x = Date, y = HFR, color = Method, linetype=Method)) + 
+  geom_line() + labs(color = "HFR", linetype = "HFR") + 
+  ggtitle("Simulation: Estimated vs True HFRs (NHCS)",
+          subtitle="Short Delay Distribution") +
+  scale_x_date(breaks = seq(as.Date("2020-10-01"), max(est_dates), by = "3 months"), date_labels = "%b %Y") +
+  xlab("") +
+  theme(legend.position="bottom",
+        legend.title=element_blank())
+
+
+```
+
+
+```{r}
+# Using correlation-maximizing lag doesn't improve; actually hurts a bit
+# lag_long <- compute_optimal_lag(hosps, sim_deaths_long)
+lag_long <- round(sum(0:d*delay_distr_long))
+print(lag_long)
+
+# Estimate HFRs weekly
+hfrs_lagged_long <- compute_lagged_hfrs(hosps, sim_deaths_long, lag_long, w=1, dates=est_dates)
+hfrs_conv_long <- compute_conv_hfrs(hosps, sim_deaths_long, est_dates, delay_distr_long, w=1)
+
+dfHFRlong <- data.frame(Date=rep(est_dates, length(HFRtypes)),
+                 HFR=c(gt_hfrs, hfrs_conv_long, hfrs_lagged_long), 
+                 Method=factor(rep(HFRtypes, each=n_est), levels=HFRtypes))
+ggplot(data=dfHFRlong, aes(x = Date, y = HFR, color = Method, linetype=Method)) + 
+  geom_line() + labs(color = "HFR", linetype = "HFR") + 
+  ggtitle("Simulation: Estimated vs True HFRs (NHCS)",
+          subtitle="Long Delay Distribution") +
+  scale_x_date(breaks = seq(as.Date("2020-10-01"), max(est_dates), by = "3 months"), date_labels = "%b %Y") +
+  xlab("") +
+  theme(legend.position="bottom",
+        legend.title=element_blank())
+```
+
+
+# Inverted HFR
+
+
+```{r}
+inv_hfrs <- (1/hfrs_nhcs)*min(hfrs_nhcs)*max(hfrs_nhcs)
+sim_deaths_short_inv <- compute_noiseless_deaths(hosps, inv_hfrs, delay_distr_short, death_dates)
+
+# lag_short <- compute_optimal_lag(hosps, sim_deaths_short_inv)
+
+hfrs_lagged_short_inv <- compute_lagged_hfrs(hosps, sim_deaths_short_inv, lag_short, w=1, dates=est_dates)
+hfrs_conv_short_inv <- compute_conv_hfrs(hosps, sim_deaths_short_inv, est_dates, delay_distr_short, w=1)
+gt_hfrs_inv <- inv_hfrs[hfr_dates %in% est_dates]
+dfHFRshort_inv <- data.frame(Date=rep(est_dates, length(HFRtypes)),
+                 HFR=c(gt_hfrs_inv, hfrs_conv_short_inv, hfrs_lagged_short_inv), 
+                 Method=factor(rep(HFRtypes, each=n_est), levels=HFRtypes))
+ggplot(data=dfHFRshort_inv, aes(x = Date, y = HFR, color = Method, linetype=Method)) + 
+  geom_line() + labs(color = "HFR", linetype = "HFR") + 
+  ggtitle("Simulation: Estimated vs True HFRs (Inverted)",
+          subtitle="Short Delay Distribution") +
+  scale_x_date(breaks = seq(as.Date("2020-10-01"), max(est_dates), by = "3 months"), date_labels = "%b %Y") +
+  xlab("") +
+  theme(legend.position="bottom",
+        legend.title=element_blank())
+
+```
+
+Repeat with longer delay
+
+```{r}
+inv_hfrs <- (1/hfrs_nhcs)*min(hfrs_nhcs)*max(hfrs_nhcs)
+sim_deaths_long_inv <- compute_noiseless_deaths(hosps, inv_hfrs, delay_distr_long, death_dates)
+
+# lag_long <- compute_optimal_lag(hosps, sim_deaths_long_inv)
+
+hfrs_lagged_long_inv <- compute_lagged_hfrs(hosps, sim_deaths_long_inv, lag_long, w=1, dates=est_dates)
+hfrs_conv_long_inv <- compute_conv_hfrs(hosps, sim_deaths_long_inv, est_dates, delay_distr_long, w=1)
+
+dfHFRlong_inv <- data.frame(Date=rep(est_dates, length(HFRtypes)),
+                 HFR=c(gt_hfrs_inv, hfrs_conv_long_inv, hfrs_lagged_long_inv), 
+                 Method=factor(rep(HFRtypes, each=n_est), levels=HFRtypes))
+ggplot(data=dfHFRlong_inv, aes(x = Date, y = HFR, color = Method, linetype=Method)) + 
+  geom_line() + labs(color = "HFR", linetype = "HFR") + 
+  ggtitle("Simulation: Estimated vs True HFRs (Inverted)",
+          subtitle="Long Delay Distribution") +
+  scale_x_date(breaks = seq(as.Date("2020-10-01"), max(est_dates), by = "3 months"), date_labels = "%b %Y") +
+  xlab("") +
+  theme(legend.position="bottom",
+        legend.title=element_blank())
+```
+
+
+```{r}
+# Offset analysis (weekly)
+paste0("Offset, True HFRs with short delay: ", compute_optimal_lag(gt_hfrs, hfrs_conv_short), " days")
+paste0("Offset, True HFRs with long delay: ", compute_optimal_lag(gt_hfrs, hfrs_conv_long), " days")
+paste0("Offset, Inverted HFRs with short delay: ", compute_optimal_lag(gt_hfrs_inv, hfrs_conv_short_inv), " days")
+paste0("Offset, Inverted HFRs with long delay: ", compute_optimal_lag(gt_hfrs_inv, hfrs_conv_long_inv), " days")
+
+
+```
+
+
+# Flat HFR
+
+```{r}
+flat_hfr <- 0.1
+flat_hfrs <- rep(flat_hfr, length(hfrs_nhcs)); names(flat_hfrs) <- hfr_dates
+sim_deaths_short_flat <- compute_noiseless_deaths(hosps, flat_hfrs, delay_distr_short, death_dates)
+
+# lag_short <- compute_optimal_lag(hosps, sim_deaths_short_flat)
+
+hfrs_lagged_short_flat <- compute_lagged_hfrs(hosps, sim_deaths_short_flat, lag_short, w=1, dates=est_dates)
+hfrs_conv_short_flat <- compute_conv_hfrs(hosps, sim_deaths_short_flat, est_dates, delay_distr_short, w=1)
+gt_hfrs_flat <- flat_hfrs[hfr_dates %in% est_dates]
+dfHFRshort_flat <- data.frame(Date=rep(est_dates, length(HFRtypes)),
+                 HFR=c(gt_hfrs_flat, hfrs_conv_short_flat, hfrs_lagged_short_flat), 
+                 Method=factor(rep(HFRtypes, each=n_est), levels=HFRtypes))
+ggplot(data=dfHFRshort_flat, aes(x = Date, y = HFR, color = Method, linetype=Method)) + 
+  geom_line() + labs(color = "HFR", linetype = "HFR") + 
+  ggtitle("Simulation: Estimated vs True HFRs (Flat)") +
+  scale_x_date(breaks = seq(as.Date("2020-10-01"), max(est_dates), by = "3 months"), date_labels = "%b %Y") +
+  xlab("") +
+  theme(legend.position="bottom",
+        legend.title=element_blank())
+
+```
+
+```{r}
+sim_deaths_long_flat <- compute_noiseless_deaths(hosps, flat_hfrs, delay_distr_long, death_dates)
+
+# lag_long <- compute_optimal_lag(hosps, sim_deaths_long_flat)
+
+hfrs_lagged_long_flat <- compute_lagged_hfrs(hosps, sim_deaths_long_flat, lag_long, w=1, dates=est_dates)
+hfrs_conv_long_flat <- compute_conv_hfrs(hosps, sim_deaths_long_flat, est_dates, delay_distr_long, w=1)
+dfHFRlong_flat <- data.frame(Date=rep(est_dates, length(HFRtypes)),
+                 HFR=c(gt_hfrs_flat, hfrs_conv_long_flat, hfrs_lagged_long_flat), 
+                 Method=factor(rep(HFRtypes, each=n_est), levels=HFRtypes))
+ggplot(data=dfHFRlong_flat, aes(x = Date, y = HFR, color = Method, linetype=Method)) + 
+  geom_line() + labs(color = "HFR", linetype = "HFR") + 
+  ggtitle("Simulation: Estimated vs True HFRs (Flat)") +
+  scale_x_date(breaks = seq(as.Date("2020-10-01"), max(est_dates), by = "3 months"), date_labels = "%b %Y") +
+  xlab("") +
+  theme(legend.position="bottom",
+        legend.title=element_blank())
+
+```
+
+```{r}
+data <- list(dfHFRshort, dfHFRlong, dfHFRshort_inv, dfHFRlong_inv, dfHFRshort_flat, dfHFRlong_flat)
+# saveRDS(data, here::here(data_folder, "sim_dfs_grid_fig_corr_lag.RData"))
+saveRDS(data, here::here(data_folder, "sim_dfs_grid_fig_delay_mean.RData"))
+
+```
+

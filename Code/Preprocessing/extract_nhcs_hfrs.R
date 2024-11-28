@@ -1,9 +1,7 @@
-setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
-git_directory <- system("git rev-parse --show-toplevel", intern = TRUE)
-data_folder <- file.path(git_directory, "Data", "National_Data")
+data_folder <- here::here("Data", "National_Data")
 
 # data_folder <- "/Users/jeremygoldwasser/Desktop/HFR/repo/HFR/Data/National_Data"
-dat <- read.csv(file.path(data_folder, "COVID-19_Hospital_Data_from_the_National_Hospital_Care_Survey.csv"))
+dat <- read.csv(here::here(data_folder, "COVID-19_Hospital_Data_from_the_National_Hospital_Care_Survey.csv"))
 library(tidyverse)
 library(stats)
 
@@ -30,7 +28,7 @@ df2$HFR <- df2$HFR/100
 weeks <- df2$Week
 
 raw_weekly_hfrs <- df2$HFR; names(raw_weekly_hfrs) <- weeks
-saveRDS(raw_weekly_hfrs, file.path(data_folder, "raw_hfrs.RData"))
+saveRDS(raw_weekly_hfrs, here::here(data_folder, "HFRs_NHCS_raw.RData"))
 
 ####### Smooth with spline #######
 spline_model <- smooth.spline(as.numeric(weeks), df2$HFR)
@@ -45,6 +43,5 @@ smoothed_daily_hfrs <- spline(weeks, smoothed_weekly_hfrs, n=length(days))$y
 names(smoothed_daily_hfrs) <- days
 
 ####### Save #######
-# plot(days, smoothed_daily_hfrs, type="l")
-saveRDS(smoothed_daily_hfrs, file.path(data_folder, "smoothed_hfrs.RData"))
+saveRDS(smoothed_daily_hfrs, here::here(data_folder, "HFRs_NHCS_smoothed.RData"))
 

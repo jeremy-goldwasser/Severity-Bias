@@ -8,14 +8,14 @@ date: "2024-09-27"
 library(tidyverse)
 git_directory <- system("git rev-parse --show-toplevel", intern = TRUE)
 
-code_folder <- file.path(git_directory, "Code", "Analysis")
-source(file.path(code_folder, "helper_functions.R"))
+code_folder <- here::here("Code", "Analysis")
+source(here::here(code_folder, "helper_functions.R"))
 library(epidatr)
 library(extraDistr)
 library(stats)
 library(splines)
 
-data_folder <- file.path(git_directory, "Data", "National_Data")
+data_folder <- here::here(git_directory, "Data", "National_Data")
 ```
 
 
@@ -37,7 +37,7 @@ in_hosp_days <- seq(as.Date("2020-01-01"), as.Date("2022-12-31"), by="day")
 
 ```{r}
 # Convert raw HFRs to daily
-nhcs_hfrs_raw <- readRDS(file.path(data_folder, "raw_hfrs.RData"))
+nhcs_hfrs_raw <- readRDS(here::here(data_folder, "HFRs_NHCS_raw.RData"))
 raw_dates <- as.Date(names(nhcs_hfrs_raw))
 daily_hfr_dates <- seq(min(raw_dates), max(raw_dates)+6, by="day")
 hfrs_raw_daily <- approx(x = raw_dates, y = nhcs_hfrs_raw, xout = daily_hfr_dates, rule = 2)$y
@@ -61,7 +61,7 @@ nhcs_hfrs_rescaled_raw <- nhcs_hfrs_sub/frac_deaths_in_hospital_sub
 spline_model <- smooth.spline(as.numeric(rescaled_hfr_dates), nhcs_hfrs_rescaled_raw, spar=0.6)
 smoothed_hfrs <- predict(spline_model, x = as.numeric(rescaled_hfr_dates))$y; names(smoothed_hfrs) <- rescaled_hfr_dates
 
-saveRDS(smoothed_hfrs, file.path(data_folder, "hfrs_rescaled_v2.RData"))
+saveRDS(smoothed_hfrs, here::here(data_folder, "HFRs_NHCS_rescaled.RData"))
 
 ```
 
@@ -113,7 +113,7 @@ hhs_hosps_est <- hhs_hosps_daily[names(hhs_hosps_daily) %in% est_weeks]
 
 # Rescaled NHCS HFR divides by percentage of deaths in hospital L days later
 est_days <- seq(min(est_weeks)-d, max(est_weeks), by="day")
-nhcs_hfrs_all <- readRDS(file.path(data_folder, "smoothed_hfrs.RData"))
+nhcs_hfrs_all <- readRDS(here::here(data_folder, "HFRs_NHCS_smoothed.RData"))
 nhcs_hfrs_sub <- nhcs_hfrs_all[as.Date(names(nhcs_hfrs_all)) %in% est_days]
 
 trans2 <- mean(jhu_deaths_est)/mean(hhs_hosps_est)/mean(smoothed_hfrs)

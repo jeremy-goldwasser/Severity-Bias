@@ -5,18 +5,15 @@ date: "2024-10-04"
 ---
 
 ```{r}
-# you can use the `here` package to do this a bit more easily
-# 
-# git_directory <- system("git rev-parse --show-toplevel", intern = TRUE)
 data_folder <- here::here("Data", "National_Data")
 code_folder <- here::here("Code", "Analysis")
-figure_folder <- here::here("Figs")
-nhcs_hfrs_all <- readRDS(here::here(data_folder, "HFRs_NHCS_rescaled.RData"))
-nhcs_hfr_dates <- as.Date(names(nhcs_hfrs_all))
+figure_folder <- here::here("Figures")
 source(here::here(code_folder, "helper_functions.R"))
 
 library(ggplot2)
 library(patchwork)
+hfrs_nhcs <- readRDS(here::here(data_folder, "HFRs_NHCS_rescaled.RData"))
+hfr_dates <- as.Date(names(hfrs_nhcs))
 ```
 
 
@@ -28,10 +25,10 @@ library(patchwork)
 ```{r}
 short_lag <- 14
 long_lag <- 28
-estDates <- nhcs_hfr_dates[(long_lag+1):length(nhcs_hfr_dates)]
-est_hfrs_short <- nhcs_hfrs_all[nhcs_hfr_dates %in% (estDates-short_lag)]
-est_hfrs_long <- nhcs_hfrs_all[nhcs_hfr_dates %in% (estDates-long_lag)]
-gt_nhcs <- nhcs_hfrs_all[nhcs_hfr_dates %in% estDates]
+estDates <- hfr_dates[(long_lag+1):length(hfr_dates)]
+est_hfrs_short <- hfrs_nhcs[hfr_dates %in% (estDates-short_lag)]
+est_hfrs_long <- hfrs_nhcs[hfr_dates %in% (estDates-long_lag)]
+gt_nhcs <- hfrs_nhcs[hfr_dates %in% estDates]
 HFRtypes <- c("Ground truth", "Estimate, short delay", "Estimate, long delay")
 df <- data.frame(Date=rep(estDates, 3),
                   HFR=c(gt_nhcs,est_hfrs_short,est_hfrs_long),
@@ -48,8 +45,8 @@ pConst <- ggplot(df, aes(x=Date, y=HFR, color=Method, linetype=Method)) +
 
         legend.title = element_blank())
 plot(pConst)
-ggsave(file.path(figure_folder, "Simulated", "sim_onehot.pdf"), 
-       plot = pConst, device = "pdf", width = 7, height = 7) 
+ggsave(here::here(figure_folder, "Simulated", "sim_onehot.pdf"), 
+       plot = pConst, device = "pdf", width = 7, height = 5) 
 
 ```
 
@@ -123,8 +120,8 @@ pChg <- ggplot(data, aes(x = Date, y = Value, colour = Line)) +
                max(conv_bias_rescaled, lagged_bias_rescaled, gt_hfrs)))) +
   scale_y_continuous(sec.axis = sec_axis(~ . / trans_factor, name = "Bias Level"))
 plot(pChg)
-ggsave(file.path(figure_folder, "Simulated", "sim_chging_primary.pdf"), 
-       plot = pChg, device = "pdf", width = 7, height = 7) 
+ggsave(here::here(figure_folder, "Simulated", "sim_chging_primary.pdf"), 
+       plot = pChg, device = "pdf", width = 7, height = 5) 
 
 ```
 

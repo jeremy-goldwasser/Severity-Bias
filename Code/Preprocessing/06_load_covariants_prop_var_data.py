@@ -38,7 +38,7 @@ THIS_DIR = os.path.dirname(os.path.realpath(__file__))
 
 # SEQCOUNTS_CSV_FILENAME = "perCountryData_asof_Sept423.json"
 SEQCOUNTS_CSV_FILENAME = "perCountryData.json"
-DATA_PATH = os.path.join(THIS_DIR, "../../Data/National_Data")
+DATA_PATH = os.path.join(THIS_DIR, "../../Data/Variants")
 SEQCOUNTS_CSV_PATH = os.path.join(DATA_PATH, SEQCOUNTS_CSV_FILENAME)
 
 ########################################################################################################################
