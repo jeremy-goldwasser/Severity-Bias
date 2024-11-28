@@ -543,14 +543,17 @@ We analyze HFR estimates on real data in Section~\ref{sec:results_real}, and sim
          \caption{HFRs and hospitalizations in three periods with major bias.} 
          \label{fig:wave}
      \end{subfigure}
-        \caption{Convolutional ratio estimates are biased regardless of which delay distribution is selected. Real-time counts, Nov. 2020 - Dec. 2022. Biased periods of major waves are highlighted.}
+        \caption{HFR estimates from real-time aggregates, Nov. 2020 --- Dec. 2022. Biased periods of major waves are highlighted.}
         \label{fig:basic_est_vs_gt_figs}
 \end{figure}
+
+Figure \ref{fig:basic_est_vs_gt_figs} displays real-time HFR estimates on the data described in Section~\ref{sec:setup}. We computed HFRs from November 2020 to December 2022, spanning the major COVID variants. The real-time hospitalization and death counts exhibit a fair degree of instability, so we preprocessed them with seven-day smoothing. Even then, the basic HFRs \eqref{eq:conv} and \eqref{eq:lagged} still had a few days with wild spikes. To smooth these artifacts away, we further applied a seven-day trailing window to the ratio estimators, as in \eqref{eq:laggedSmooth} and \eqref{eq:convSmooth}. Figure \ref{fig:window} in Appendix \ref{apx:robustness} examines how trailing window length affects HFR estimates.
 
 % Figure \ref{fig:basic_est_vs_gt_figs} highlights the bias of these ratio
 % estimators 
 % \djmcomment{as described in Propositions 1 and 2 when applied to\ldots}. 
-Figure \ref{fig:basic_est_vs_gt_figs} highlights the poor performance of the ratio estimators on the data described in Section~\ref{sec:setup}. 
+% Figure \ref{fig:basic_est_vs_gt_figs} highlights the poor performance of the ratio estimators on the data described in Section~\ref{sec:setup}. 
+Overall, both ratio estimators perform very poorly. 
 As described in Propositions \ref{thm:OracleBias} and \ref{thm:MispBias}, the bias is consistent and nontrivial, especially for the lagged estimator.
 Both the lagged and convolutional ratios respond very slowly to
 changes in the HFR. As the HFR declines following the wave in winter 2021, both
