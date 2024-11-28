@@ -529,14 +529,15 @@ We analyze HFR estimates on real data in Section~\ref{sec:results_real}, and sim
 
 \begin{figure}
      \centering
-     \begin{subfigure}[b]{0.55\linewidth}
+     \begin{subfigure}[b]{0.75\linewidth} %0.55
          \centering
          \includegraphics[width=\linewidth]{Figures/Real/US_ests_realtime.pdf}
          \caption{Comparing convolutional and lagged ratios against approximate ground truth.}
+         \vspace{10pt}
          \label{fig:basic_est_vs_gt}
      \end{subfigure}
-     \hfill
-     \begin{subfigure}[b]{0.4\linewidth}
+     % \hfill
+     \begin{subfigure}[b]{0.9\linewidth}% 0.4
          \centering
          \includegraphics[width=\linewidth]{Figures/Real/hfrs_by_wave.pdf}
          \caption{HFRs and hospitalizations in three periods with major bias.} 
