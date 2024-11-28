@@ -7,32 +7,35 @@ date: "2024-10-04"
 ```{r}
 data_folder <- here::here("Data", "National_Data")
 code_folder <- here::here("Code", "Analysis")
-figure_folder <- here::here("Figs")
-nhcs_hfrs_all <- readRDS(here::here(data_folder, "HFRs_NHCS_rescaled.RData"))
-nhcs_hfr_dates <- as.Date(names(nhcs_hfrs_all))
+figure_folder <- here::here("Figures")
 source(here::here(code_folder, "helper_functions.R"))
 
 library(ggplot2)
 library(patchwork)
+hosps <- readRDS(file.path(data_folder, "HHS_real_time.RData"))
+hosp_dates <- as.Date(names(hosps))
+hfrs_nhcs <- readRDS(here::here(data_folder, "HFRs_NHCS_rescaled.RData"))
+hfr_dates <- as.Date(names(hfrs_nhcs))
 ```
 
 
+############ Figure 1 ############
+
 Example A: Changing HFR
-- deaths come from noiseless model with real hosps, different HFRs, and reasonable delay distribution
-- compare real change to version with only 1/4th the change in magnitude during that window. shifting to emphasize the bias is due to the change in HFRs, not merely their magnitude.
 
 ```{r}
+# Deaths come from noiseless model with real hosps, different HFRs, and reasonable delay distribution
+# Compare real change to version with smaller change in magnitude during that window. Shifting to emphasize the bias is due to the change in HFRs, not merely their magnitude.
 d <- 75
 delay_distr_med <- make_delay_distr(Mean=20, Sd=round(20*.9), d)
 n_pts <- 200
 n_ests <- n_pts - d
-hosps <- readRDS(file.path(data_folder, "HHS_real_time.RData"))#
-# t0 <- as.Date("2021-05-15")
-t0 <- as.Date("2022-02-01")
-hosp_start_idx <- which(names(hosps)==t0) # d+1
 
-chging_hfrs <- nhcs_hfrs_all[nhcs_hfr_dates %in% as.Date((t0-d):(t0-d+n_pts-1))]
-# Only 1/4th the rise in magnitude
+t0 <- as.Date("2022-02-01")
+hosp_start_idx <- which(hosp_dates==t0)
+
+chging_hfrs <- hfrs_nhcs[hfr_dates %in% as.Date((t0-d):(t0-d+n_pts-1))]
+# Shrink the change in magnitude
 flatter_hfrs <- (chging_hfrs-min(chging_hfrs))*0.25+median(chging_hfrs)*.85
 
 
@@ -51,7 +54,7 @@ est_idx <- (d+1):n_pts
 hosps_window <- hosps[(hosp_start_idx-d):(hosp_start_idx+n_ests-1)]
 est_flat <- calc_nish_hfrs(hosps_window, flatter_hfrs, delay_distr_med)
 est_chging <- calc_nish_hfrs(hosps_window, chging_hfrs, delay_distr_med)
-sources <- c("Ground Truth", "Estimated"); types <- c("True (NHCS)", "Flatter")
+sources <- c("Ground truth", "Estimated"); types <- c("True (NHCS)", "Flatter")
 df <- data.frame(t=t0+rep(1:n_ests, 4)-1,
                  HFRs=c(chging_hfrs[est_idx], flatter_hfrs[est_idx], est_chging, est_flat),
                  HFR=factor(rep(sources, each=n_ests*2), levels=sources),
@@ -87,25 +90,25 @@ est_short <- calc_nish_hfrs(hosps_window, chging_hfrs, delay_distr_short)
 est_med <- calc_nish_hfrs(hosps_window, chging_hfrs, delay_distr_med)
 est_long <- calc_nish_hfrs(hosps_window, chging_hfrs, delay_distr_long)
 
-sources <- c("Ground Truth", "Estimated")
-# types <- c("Short (12)", "Med (20)", "Long (28)")  # Only keep the necessary types
+sources <- c("Ground truth", "Estimated")
 types <- c("12", "20", "28")
-# Keep Ground Truth in Type for plotting but handle later
+
+# Keep Ground truth in Type for plotting but handle later
 df <- data.frame(
   t = t0+rep(1:n_ests, 4)-1,
   HFRs = c(chging_hfrs[est_idx], est_short, est_med, est_long),
-  HFR = factor(c(rep("Ground Truth", n_ests), rep("Estimated", n_ests*3)), levels = sources),
-  Type = factor(c(rep("Ground Truth", n_ests), rep(types, each=n_ests)), levels = c("Ground Truth", types))  
+  HFR = factor(c(rep("Ground truth", n_ests), rep("Estimated", n_ests*3)), levels = sources),
+  Type = factor(c(rep("Ground truth", n_ests), rep(types, each=n_ests)), levels = c("Ground truth", types))  
 )
 
 delayPlot <- ggplot(df, aes(x = t, y = HFRs, linetype = HFR, color = Type)) +
   geom_line(aes(group = interaction(HFR, Type))) +  # Group by HFR and Type
-  # Manually set color, exclude Ground Truth from legend
+  # Manually set color, exclude Ground truth from legend
   scale_color_manual(breaks = types,
-    values = c("Ground Truth" = "black", "12" = "green3", "20" = "red2", "28" = "blue")) +  
+    values = c("Ground truth" = "black", "12" = "green3", "20" = "red2", "28" = "blue")) +
   ggtitle("HFR estimates by true delay distribution") +
   labs(color="Delay mean") + xlab("") +#Date
-  theme_bw() + 
+  theme_bw() +
   guides(linetype = guide_legend(order = 1), color = guide_legend(order = 2)) +
   theme(legend.position = "bottom",
         legend.text = element_text(size=17),
@@ -114,7 +117,7 @@ delayPlot <- ggplot(df, aes(x = t, y = HFRs, linetype = HFR, color = Type)) +
         axis.title.y=element_text(size=17),
         legend.spacing.y = unit(0.5, "cm"),
         legend.margin = margin(t = -10),
-        legend.box = "vertical") 
+        legend.box = "vertical")
 ```
 
 ```{r}
@@ -123,7 +126,7 @@ dfDistr <- data.frame(t=rep(0:d, 3),
                       Type=rep(types, each=d+1))
 delay_inset <- ggplot(dfDistr, aes(x=t, y=Delay, color=Type)) + geom_line() + theme_bw() + 
   scale_color_manual(breaks = types,
-    values = c("Ground Truth" = "black", "12" = "green3", "20" = "red2", "28" = "blue")) +
+    values = c("Ground truth" = "black", "12" = "green3", "20" = "red2", "28" = "blue")) +
   theme(legend.position="none", plot.background = element_blank(),
         plot.title = element_text(size = 14),
         axis.title = element_text(size = 14)) + 
@@ -141,10 +144,7 @@ delayPlotFinal
 ```
 
 
-Example 3: Primary incidence
-
-vision: plot has hosps with their axis shown; true hfrs; estimated hfrs with both hosp cases; different colors for different hosp versions; different line types for true vs estimated
-
+Example C: Primary incidence
 
 ```{r}
 
@@ -165,20 +165,19 @@ hfrs_alt_hosps2 <- calc_nish_hfrs(alt_hosps2, chging_hfrs, delay_distr_med)
 
 
 ```{r}
-sources <- c("Ground Truth", "Estimated")
+sources <- c("Ground truth", "Estimated")
 types <- c("True", "Rising", "Falling")
-# Keep Ground Truth in Type for plotting but handle later
 df <- data.frame(
   t = t0+rep(1:n_ests, 4)-1,
   HFRs = c(chging_hfrs[est_idx], hfrs_true_hosps, hfrs_alt_hosps1, hfrs_alt_hosps2),
-  HFR = factor(c(rep("Ground Truth", n_ests), rep("Estimated", n_ests*3)), levels = sources),
-  Type = factor(c(rep("Ground Truth", n_ests), rep(types, each=n_ests)), levels = c("Ground Truth", types))  
+  HFR = factor(c(rep("Ground truth", n_ests), rep("Estimated", n_ests*3)), levels = sources),
+  Type = factor(c(rep("Ground truth", n_ests), rep(types, each=n_ests)), levels = c("Ground truth", types))  
 )
 
 hospPlot <- ggplot(df, aes(x = t, y = HFRs, linetype = HFR, color = Type)) +
   geom_line(aes(group = interaction(HFR, Type))) +  # Group by HFR and Type
   scale_color_manual(breaks = types,
-    values = c("Ground Truth" = "black", "Rising" = "green3", "True" = "red2", "Falling" = "blue")) +  
+    values = c("Ground truth" = "black", "Rising" = "green3", "True" = "red2", "Falling" = "blue")) +  
   ggtitle("HFR estimates by primary incidence") +
   labs(color="Delay mean") + xlab("") +# xlab("Date") +
   theme_bw() + 
@@ -222,7 +221,6 @@ ggsave(file.path(figure_folder, "Simulated", "toy_chging_primary.pdf"),
 ############ Figure 2 ############
 
 ```{r}
-hosps <- readRDS(file.path(data_folder, "HHS_real_time.RData"))
 shorter_mean <- 16
 longer_mean <- 24
 delay_distr_shorter <- make_delay_distr(Mean=shorter_mean, Sd=round(shorter_mean*.9), d)
@@ -232,18 +230,17 @@ delay_distr_longer <- make_delay_distr(Mean=longer_mean, Sd=round(longer_mean*.9
 ```
 
 ```{r}
+first_death_date <- max(hfr_dates[1], hosp_dates[1])+d
+last_death_date <- min(hfr_dates[length(hfr_dates)], hosp_dates[length(hosps)])
 
-first_death_date <- as.Date(max(names(nhcs_hfrs_all)[1], names(hosps)[1]))+d
-last_death_date <- as.Date(min(names(nhcs_hfrs_all)[length(nhcs_hfrs_all)],
-                               names(hosps)[length(hosps)]))
 death_dates <- seq(first_death_date, last_death_date, by="day")
 est_dates <- seq(as.Date("2021-11-01"), as.Date("2022-07-01"), by="day")
-noiseless_deaths <- compute_noiseless_deaths(hosps, nhcs_hfrs_all, delay_distr_true, est_dates)
-
+noiseless_deaths <- compute_noiseless_deaths(hosps, hfrs_nhcs, delay_distr_true, est_dates)
 
 n_ests <- length(est_dates)
+
 # 16. Could also use mean of delay distribution, 20
-gt_hfrs <- nhcs_hfrs_all[names(nhcs_hfrs_all) %in% est_dates]
+gt_hfrs <- hfrs_nhcs[hfr_dates %in% est_dates]
 optimal_lag <- compute_optimal_lag(hosps, noiseless_deaths)
 lagged_hfrs <- compute_lagged_hfrs(hosps, noiseless_deaths, l=optimal_lag, dates=est_dates) 
 conv_hfrs_oracle <- compute_conv_hfrs(hosps, noiseless_deaths, est_dates, delay_distr_true)
@@ -262,21 +259,21 @@ R_gamma_lagged <- compute_R_gammas(hosps, delay_distr_true, lagged_distr, est_da
 ```
 
 ```{r}
-sources <- c("Ground Truth", "Estimated")
+sources <- c("Ground truth", "Estimated")
 types <- c("True", "Light-Tailed", "Heavy-Tailed", "Lagged")
-# Keep Ground Truth in Type for plotting but handle later
+# Keep Ground truth in Type for plotting but handle later
 df <- data.frame(
   t = rep(est_dates, 5),
   HFRs = c(gt_hfrs, conv_hfrs_oracle, conv_hfrs_shorter, conv_hfrs_longer, lagged_hfrs),
-  HFR = factor(c(rep("Ground Truth", n_ests), rep("Estimated", n_ests*4)), levels = sources),
-  Type = factor(c(rep("Ground Truth", n_ests), rep(types, each=n_ests)), 
-                levels = c("Ground Truth", types))  
+  HFR = factor(c(rep("Ground truth", n_ests), rep("Estimated", n_ests*4)), levels = sources),
+  Type = factor(c(rep("Ground truth", n_ests), rep(types, each=n_ests)), 
+                levels = c("Ground truth", types))  
 )
 
 mispPlot <- ggplot(df, aes(x = t, y = HFRs, linetype = HFR, color = Type)) +
   geom_line(aes(group = interaction(HFR, Type))) +  # Group by HFR and Type
   scale_color_manual(breaks = types,
-    values = c("Ground Truth" = "black", "Light-Tailed" = "green3", "True" = "red2", 
+    values = c("Ground truth" = "black", "Light-Tailed" = "green3", "True" = "red2", 
                "Heavy-Tailed" = "blue", "Lagged" = "magenta")) +  
   ggtitle("HFR estimates, misspecified delay distribution") +
   labs(color="Delay distribution") + xlab("Date") +
@@ -335,7 +332,7 @@ ratioPlot <- ggplot(df2, aes(x = t, y = Ratios, color = Type)) +
         axis.text.x = element_blank())
 ratioPlot
 
-df3 <- data.frame(t = est_dates, Hosps=hosps[names(hosps) %in% est_dates])
+df3 <- data.frame(t = est_dates, Hosps=hosps[hosp_dates %in% est_dates])
 
 hospPlot <- ggplot(df3, aes(x = t, y = Hosps)) +
   geom_line() +  ggtitle("Hospitalizations") +

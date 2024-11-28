@@ -1,13 +1,17 @@
-library(tidyverse)
+
 ```{r}
-git_directory <- system("git rev-parse --show-toplevel", intern = TRUE)
-data_folder <- file.path(git_directory, "Data", "National_Data")
-code_folder <- file.path(git_directory, "Code", "Analysis")
-figure_folder <- file.path(git_directory, "Figs")
-source(file.path(code_folder, "helper_functions.R"))
+# git_directory <- system("git rev-parse --show-toplevel", intern = TRUE)
+# data_folder <- file.path(git_directory, "Data", "National_Data")
+# code_folder <- file.path(git_directory, "Code", "Analysis")
+# figure_folder <- file.path(git_directory, "Figs")
+# source(file.path(code_folder, "helper_functions.R"))
+data_folder <- here::here("Data", "National_Data")
+code_folder <- here::here("Code", "Analysis")
+figure_folder <- here::here("Figures")
+source(here::here(code_folder, "helper_functions.R"))
+
 library(epidatr)
-library(extraDistr)
-library(stats)
+# library(stats)
 library(patchwork)
 library(ggplot2)
 ```
@@ -20,11 +24,11 @@ library(ggplot2)
 # Load finalized hospitalizations and deaths, both pre-smoothed
 max_jhu_date <- as.Date("2023-03-01") # Not reliable after this
 jhu_deaths <- readRDS( file.path(data_folder, "JHU_finalized.RData"))
-death_dates <- names(jhu_deaths)
+death_dates <- as.Date(names(jhu_deaths))
 
 first_hosp_date <- as.Date("2020-07-28")
 hhs_hosps <- readRDS( file.path(data_folder, "HHS_finalized.RData"))
-hosp_dates <- names(hhs_hosps)
+hosp_dates <- as.Date(names(hhs_hosps))
 
 # Load real-time hospitalizations and deaths
 hhs_hosps_realtime <- readRDS(file.path(data_folder, "HHS_real_time.RData"))
@@ -32,7 +36,7 @@ jhu_deaths_realtime <- readRDS(file.path(data_folder, "JHU_real_time.RData"))
 
 
 # Load NHCS HFRs
-nhcs_hfrs_all <- readRDS(file.path(data_folder, "hfrs_rescaled_v2.RData"))
+nhcs_hfrs_all <- readRDS(file.path(data_folder, "HFRs_NHCS_rescaled.RData"))
 nhcs_hfr_dates <- as.Date(names(nhcs_hfrs_all))
 
 ```
@@ -180,7 +184,7 @@ df <- data.frame(Date=rep(est_weeks_realtime, 5),
 Plot <- ggplot(data=df, aes(x = Date, y = HFR, color = type, linetype=source)) +
   geom_line() + labs(color = "HFR", linetype = "HFR") +
   ggtitle("US HFRs, Ratio Estimates vs Approximate Ground Truth") +#, subtitle="Real-time counts"
-  scale_x_date(breaks = seq(as.Date("2020-10-01"), max(dfHFR$Date), by = "3 months"), date_labels = "%b %Y") +
+  scale_x_date(breaks = seq(as.Date("2020-10-01"), max(df$Date), by = "3 months"), date_labels = "%b %Y") +
   xlab("") + theme_bw() +
   theme(legend.position="bottom",
         legend.title=element_blank())
@@ -278,7 +282,7 @@ Plot
 Nishiura convolutional estimator
 
 ```{r}
-ws <- 0:4*7
+ws <- c(1, 1:4*7)
 est_weeks2 <- est_weeks[4:n_ests]
 hfrs_by_w <- lapply(ws, function(w) {
   compute_conv_hfrs(hhs_hosps, jhu_deaths, est_weeks2, delay_distr, w=w)

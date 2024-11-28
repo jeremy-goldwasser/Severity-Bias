@@ -3,12 +3,13 @@ library(lubridate)
 library(tidyverse)
 
 # Load data
-git_directory <- system("git rev-parse --show-toplevel", intern = TRUE)
-nat_data_path <- file.path(git_directory, "Data", "National_Data")
-variant_path <- file.path(git_directory, "Data", "Variants")
+# git_directory <- system("git rev-parse --show-toplevel", intern = TRUE)
+git_directory <- here::here()
+nat_data_path <- here::here(git_directory, "Data", "National_Data")
+variant_path <- here::here(git_directory, "Data", "Variants")
 
 ###### Preprocess ######
-df <- read.csv(file.path(variant_path, "seq_df_us_biweekly.csv"))
+df <- read.csv(here::here(variant_path, "seq_df_us_biweekly.csv"))
 
 # Let other = OG variant. It shouldn't come back in 2022
 df$Other[df$Date >= as.Date("2022-01-01")] <- 0
@@ -129,4 +130,4 @@ df <- df[,c(1,5,2,3,4)] # Reorder
 variant_list <- list(variant_hfrs0, variant_hfrs14, variant_starts, df)
 names(variant_list) <- c("HFRs-0 lag", "HFRs-2wk lag", "Variant Dates", "Proportions")
 
-saveRDS(variant_list, file.path(nat_data_path, 'variant_hfrs.RData'))
+saveRDS(variant_list, here::here(nat_data_path, 'variant_hfrs.RData'))

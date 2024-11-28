@@ -1,5 +1,4 @@
 library(lubridate)
-library(Matrix)
 library(extraDistr)
 
 ################ LAGGED HFR ################
@@ -24,8 +23,6 @@ compute_lagged_hfr <- function(hosps, deaths, t, l=19, w=1,
   }
   # Y_{t}/X_{t-l}; different strategies for window
   hosps_l_ago <- sum(hosps[names(hosps)>=t-n_into_past-l & names(hosps)<=t+n_into_future-l])
-  # print(t-n_into_past-l)
-  # print(hosps[names(hosps)==(t-n_into_past-l)])
   deaths_t <- sum(deaths[names(deaths)>=t-n_into_past & names(deaths)<=t+n_into_future])
   return(deaths_t / hosps_l_ago)
 }

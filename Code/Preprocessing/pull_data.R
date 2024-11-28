@@ -1,7 +1,7 @@
-git_directory <- system("git rev-parse --show-toplevel", intern = TRUE)
-data_folder <- file.path(git_directory, "Data", "National_Data")
-code_folder <- file.path(git_directory, "Code", "Analysis")
-source(file.path(code_folder, "helper_functions.R"))
+data_folder <- here::here("Data", "National_Data")
+code_folder <- here::here("Code", "Analysis")
+source(here::here(code_folder, "helper_functions.R"))
+
 library(epidatr)
 
 ############### Load and save finalized counts ###############
@@ -14,7 +14,7 @@ jhu_deaths <- jhu_df$value[idx]
 death_dates <- jhu_df$time_value[idx]
 names(jhu_deaths) <- death_dates
 
-saveRDS(jhu_deaths, file.path(data_folder, "JHU_finalized.RData"))
+saveRDS(jhu_deaths, here::here(data_folder, "JHU_finalized.RData"))
 
 hhs_df <- data.frame(pub_covidcast(source="hhs",signals= "confirmed_admissions_covid_1d_7dav", 
                                    geo_type = "nation", geo_values="*", 
@@ -24,12 +24,12 @@ hosp_idx <- (hhs_df$time_value >= first_hosp_date) & (hhs_df$time_value <= max_j
 hosp_dates <- hhs_df$time_value[hosp_idx]
 hhs_hosps <- hhs_df$value[hosp_idx]; names(hhs_hosps) <- hosp_dates
 
-saveRDS(hhs_hosps, file.path(data_folder, "HHS_finalized.RData"))
+saveRDS(hhs_hosps, here::here(data_folder, "HHS_finalized.RData"))
 
 
 ############### Load and save real-time counts ###############
 
-nhcs_hfrs_all <- readRDS(file.path(data_folder, "hfrs_rescaled_v2.RData"))
+nhcs_hfrs_all <- readRDS(here::here(data_folder, "HFRs_NHCS_rescaled.RData"))
 nhcs_hfr_dates <- as.Date(names(nhcs_hfrs_all))
 d <- 75
 est_weeks <- seq(first_hosp_date+d+14, min(max(hosp_dates)-4*7, max(nhcs_hfr_dates)), by=7)
@@ -72,7 +72,7 @@ for (i in 1:length(est_weeks_realtime)) { #
 hhs_hosps_realtime <- seven_day_smoothing(hhs_hosps_realtime, centered=FALSE)
 hosp_dates_realtime <- as.Date(names(hhs_hosps_realtime))
 plot(hosp_dates_realtime, hhs_hosps_realtime)
-saveRDS(hhs_hosps_realtime, file.path(data_folder, "HHS_real_time.RData"))
+saveRDS(hhs_hosps_realtime, here::here(data_folder, "HHS_real_time.RData"))
 
 
 ### JHU
@@ -105,4 +105,4 @@ for (i in 1:length(est_weeks_realtime)) {
 }
 jhu_deaths_realtime <- seven_day_smoothing(jhu_deaths_realtime, centered=FALSE)
 plot(as.Date(names(jhu_deaths_realtime)), jhu_deaths_realtime)
-saveRDS(jhu_deaths_realtime, file.path(data_folder, "JHU_real_time.RData"))
+saveRDS(jhu_deaths_realtime, here::here(data_folder, "JHU_real_time.RData"))
