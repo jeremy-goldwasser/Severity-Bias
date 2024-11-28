@@ -312,7 +312,7 @@ deathSourcePlot <- ggplot(df_deaths_by_source, aes(x=Date, y=Deaths, color=Sourc
         plot.title = element_text(size = 17))
 deathSourcePlot
 ggsave(file.path(figure_folder, "Real", "death_curves.pdf"), 
-       plot = deathSourcePlot, device = "pdf", width = 5, height = 5)
+       plot = deathSourcePlot, device = "pdf", width = 7, height = 5)
 ```
 
 
