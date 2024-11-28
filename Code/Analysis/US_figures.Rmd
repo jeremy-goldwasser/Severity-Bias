@@ -87,8 +87,11 @@ rtPlot <- ggplot(data=df_real_time, aes(x = Date, y = HFR, color = Method, linet
 
         legend.title=element_blank())
 rtPlot
+# ggsave(file.path(figure_folder, "Real", "US_ests_realtime.pdf"),
+#        plot = rtPlot, device = "pdf", width = 8, height = 5)
 ggsave(file.path(figure_folder, "Real", "US_ests_realtime.pdf"),
-       plot = rtPlot, device = "pdf", width = 8, height = 5)
+       plot = rtPlot, device = "pdf", width = 10, height = 4)
+
 
 ```
 
