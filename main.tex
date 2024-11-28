@@ -310,7 +310,7 @@ The degree of bias in Proposition \ref{thm:OracleBias} depends on three factors.
         \caption{Simple examples of severity rate bias to illustrate the three
         factors. Deaths were computed noiselessly from \eqref{eq:model}.
         Section~\ref{sec:setup} details data sources: 
-        NHCS HFRs and HHS hospitalizations in early 2022,
+        NHCS HFRs and real-time HHS hospitalizations in early 2022,
         and delay distribution estimated with JHU deaths.}
         % , with
         % NHCS HFRs and HHS hospitalizations during early 2022. 
@@ -588,7 +588,7 @@ We further evaluated these methods in a variety of simulation settings. Given a 
 $$Y_t = \sum_{k=0}^d X_{t-k} \mathbb{P}(\text{die at $t$}\given\text{hosp at }t-k) = \sum_{k=0}^d X_{t-k} \pi_k p_{t-k}.$$
 
 Like the experiments in Sections~\ref{sec:ws_analysis} and~\ref{sec:misp}, we
-used finalized HHS hospitalization counts. However, the simulations in this
+used real-time HHS hospitalization counts. The simulations in this
 section evaluate performance over a two-year period, with a broader range of
 underlying HFR curves. To supplement the NHCS HFRs, we mimicked the opposite
 trend by inverting and rescaling them. We also modeled a stationary HFR of 10\%
@@ -601,7 +601,7 @@ To elucidate the oracle bias in Proposition \ref{thm:OracleBias}, we let the con
 
 \begin{figure}
     \centering
-    \includegraphics[width=\linewidth]{Figs/Simulated/simulated_results.pdf}
+    \includegraphics[width=\linewidth]{Figs/Simulated/simulated_results_corr_lag.pdf}
     \caption{True and Estimated HFRs from Simulated Deaths. First column has short delay distribution, second has long.}
     \label{fig:sims}
 \end{figure}
@@ -610,12 +610,12 @@ Figure \ref{fig:sims} displays the results on the six settings of delay distribu
 % Consequently, $\hat{p}_t^\gamma = p A_t^\gamma$. 
 %so the $A_t^\gamma$ curve merely rescales the estimated HFRs by a factor of $p$. 
 Matching expectations, HFRs are significantly more biased given the longer underlying delay distribution. 
-In all three HFR settings, the lagged ratios swing more widely. For example, when the true HFR is a constant 10\%, they peak at 12\% under the light-tailed distribution, compared to 15\% with the heavy tail. The oracle convolutional ratio does not share the lagged estimator's dramatic oscillations. Rather, it tracks the general shape of true curve, albeit at a delay. For the NHCS HFRs, the average delay was 5 days for the light-tailed distribution, and 12 days with heavy tail; these delays were 6 and 15 days for the inverted curve. (To compute the average delay, we again took the maximal cross-correlation between the two series.)
+In all three HFR settings, the lagged ratios swing more widely. For example, when the true HFR is a constant 10\%, they peak at 12\% under the light-tailed distribution, compared to 15\% with the heavy tail. The oracle convolutional ratio does not share the lagged estimator's dramatic oscillations. Rather, it tracks the general shape of true curve, albeit at a delay. For the NHCS HFRs, the average delay was 5 days for the light-tailed distribution, and 12 days with heavy tail; these delays were 6 and 14 days for the inverted curve. (To compute the average delay, we again took the maximal cross-correlation between the two series.)
 
 % In general, the oracle convolutional ratio performs much better than the lagged estimator. Our analysis accounts for this wide gap in performance. In the case of a stationary severity rate, for example, Proposition \ref{thm:OracleBias} assures the oracle convolutional ratio is unbiased. But if the delay distribution is misspecified, Proposition \ref{thm:MispBias} expresses the resulting bias via the ratio $A_t^\gamma$. This quantity does not depend on the severity rate, so the bias moves in similar trajectories across the three HFR settings. 
 In general, the oracle convolutional ratio is much more accurate than the lagged estimator. The analysis in Section~\ref{sec:misp} accounts for this wide gap in performance. The lagged bias moves in ways that align with our observations.
 
-Proposition \ref{thm:MispBias} expresses the lagged bias via the rescaled oracle bias plus a misspecification term, both of which depend on the ratio $A_t^\gamma$. 
+Proposition \ref{thm:MispBias} expresses the lagged bias via the rescaled oracle bias plus a misspecification term, both of which depend on the ratio $A_t^\gamma$. WORK IN PROGRESS
 
 These ratios $A_t^\gamma$ are visualized in Figure \ref{fig:sims} as rescaled HFR estimates in the stationary case.
 % In addition to the HFR curves, it also visualizes the ratios $A_t^\gamma$, which merely rescale the HFR estimates in the stationary case. 
@@ -900,7 +900,7 @@ Several states have similar biases as the US results (Fig. \ref{fig:basic_est_vs
 \subsection{Alternative lag on simulation}
 \begin{figure}
     \centering
-    \includegraphics[width=\linewidth]{Figs/Simulated/simulated_results_corr_lag.pdf}
+    \includegraphics[width=\linewidth]{Figs/Simulated/simulated_results_delay_mean.pdf}%_corr_lag
     \caption{Lag chosen as mean of delay distribution. Same simulated data as Section~\ref{sec:results_sim}.}
     \label{fig:sims_mean_lag}
 \end{figure}
