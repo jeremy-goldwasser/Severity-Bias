@@ -115,8 +115,11 @@ bothPlot <- ggplot(data=df_both, aes(x = Date, y = HFR, color = type, linetype=s
         legend.title=element_blank()
         )
 bothPlot
+# ggsave(file.path(figure_folder, "Real", "US_ests_realtime_both.pdf"),
+#        plot = bothPlot, device = "pdf", width = 8, height = 5)
 ggsave(file.path(figure_folder, "Real", "US_ests_realtime_both.pdf"),
-       plot = bothPlot, device = "pdf", width = 8, height = 5)
+       plot = bothPlot, device = "pdf", width = 10, height = 4)
+
 
 
 ```
@@ -137,7 +140,7 @@ hfrsNHCS_rt <- hfrsNHCS[week_st_idx:n_ests]
 
 
 plot_list <- list()
-
+y1name <- ""; y2name <- ""#Hospitalizations
 for (i in 1:length(waves)) {
   
   wave <- waves[i]
@@ -153,8 +156,8 @@ for (i in 1:length(waves)) {
                       Conv_HFRs=conv_hfrs_period,
                       Lagged_HFRs=lagged_hfrs_period,
                       GT_HFRs=gt_hfrs_period)
-  dfAgg$Legend_Conv_HFR <- "Convolutional Ratio"
-  dfAgg$Legend_Lagged_HFR <- "Lagged Ratio"
+  dfAgg$Legend_Conv_HFR <- "Convolutional ratio"
+  dfAgg$Legend_Lagged_HFR <- "Lagged ratio"
   dfAgg$Legend_HHS <- "Hospitalizations"
   dfAgg$Legend_GT_HFR <- "GT HFRs"
   
@@ -167,19 +170,22 @@ for (i in 1:length(waves)) {
     geom_line(data = dfAgg, aes(y = Lagged_HFRs, color = Legend_Lagged_HFR, linetype = Legend_Lagged_HFR)) +
     geom_line(data = dfAgg, aes(y = GT_HFRs, color = Legend_GT_HFR, linetype = Legend_GT_HFR)) +
     geom_line(data = dfAgg, aes(y = Hosps * scale, color=Legend_HHS, linetype=Legend_HHS)) +
-    scale_linetype_manual(breaks = c("GT HFRs", "Convolutional Ratio", "Lagged Ratio", "Hospitalizations"),
-                        values = c("GT HFRs" = "solid", "Convolutional Ratio" = "dashed", 
-                                   "Lagged Ratio"="longdash", "Hospitalizations" = "dotdash")) +
-    scale_color_manual(breaks = c("GT HFRs", "Convolutional Ratio", "Lagged Ratio", "Hospitalizations"),
-                     values = c("GT HFRs" = "red", "Convolutional Ratio" = "green3", 
-                                "Lagged Ratio" = "dodgerblue", "Hospitalizations" = "black")) +
+    ylab(y1name) + 
+    scale_linetype_manual(breaks = c("GT HFRs", "Convolutional ratio", "Lagged ratio", "Hospitalizations"),
+                        values = c("GT HFRs" = "solid", "Convolutional ratio" = "dashed", 
+                                   "Lagged ratio"="longdash", "Hospitalizations" = "dotdash")) +
+    scale_color_manual(breaks = c("GT HFRs", "Convolutional ratio", "Lagged ratio", "Hospitalizations"),
+                     values = c("GT HFRs" = "red", "Convolutional ratio" = "green3", 
+                                "Lagged ratio" = "dodgerblue", "Hospitalizations" = "black")) +
     scale_x_date(date_breaks = "1 month", date_labels = "%b %Y") +
     scale_y_continuous(breaks = seq(from = 0, to = ymax, by = 0.05), 
                        limits = c(0, ymax), 
-                       sec.axis = sec_axis(~./scale, name = "Hospitalizations")) +
-    ylab("HFRs") + xlab("") +
+                       sec.axis = sec_axis(~./scale, name = y2name)) +
+    xlab("") +
     theme_bw() +
     theme(legend.position="bottom",
+          axis.text.x = element_text(angle=45, vjust=0.5),
+          plot.title = element_text(size=17),
           legend.title=element_blank())
   plot(p)
   plot_list <- append(plot_list, list(p))
@@ -188,26 +194,40 @@ for (i in 1:length(waves)) {
 
 ```
 
-```{r, fig.width=7, fig.height=7}
-wavePlot <- (plot_list[[1]] / plot_list[[2]] / plot_list[[3]]) + 
+```{r}
+# wavePlot <- (plot_list[[1]] / plot_list[[2]] / plot_list[[3]]) + 
+#   plot_annotation(title="HFRs and hospitalizations by wave",
+#                   theme=theme(plot.title=element_text(size=17))) +
+#   plot_layout(guides = "collect") &
+#   theme(legend.position = 'bottom',
+#         legend.text = element_text(size=12),
+#         legend.title=element_blank())
+# ggsave(file.path(figure_folder, "Real", "hfrs_by_wave.pdf"),
+#        plot = wavePlot, device = "pdf", width = 7, height = 7)
+
+wavePlot <- (plot_list[[1]] + plot_list[[2]] + plot_list[[3]]) +
   plot_annotation(title="HFRs and hospitalizations by wave",
-                  theme=theme(plot.title=element_text(size=17))) +
+                  theme=theme(plot.title=element_text(size=19))) +
   plot_layout(guides = "collect") &
   theme(legend.position = 'bottom',
-        legend.text = element_text(size=12),
+        legend.text = element_text(size=15),
         legend.title=element_blank())
-wavePlot
 ggsave(file.path(figure_folder, "Real", "hfrs_by_wave.pdf"),
-       plot = wavePlot, device = "pdf", width = 7, height = 7)
+       plot = wavePlot, device = "pdf", width = 10, height = 4)
 
-        
 
 ```
+
+```{r, fig.width=10, fig.height=4}
+wavePlot
+
+```
+
 
 ```{r, fig.width=7, fig.height=7}
-wavePlot
-```
+# wavePlot
 
+```
 
 # Robustness checks
 
