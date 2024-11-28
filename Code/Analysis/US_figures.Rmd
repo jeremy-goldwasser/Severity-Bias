@@ -238,7 +238,7 @@ windowPlot <- p1+p2 + plot_annotation(
 )
 windowPlot
 ggsave(file.path(figure_folder, "Real", "window_size.pdf"), 
-       plot = windowPlot, device = "pdf", width = 10, height = 5) 
+       plot = windowPlot, device = "pdf", width = 10, height = 4) 
 
 ```
 
@@ -252,7 +252,7 @@ lagPlot <- ggplot(df_lags, aes(x = Date, y = HFR, color = Lag, linetype = Lag)) 
   ggtitle("HFRs by lag parameter")#, subtitle="JHU deaths, lagged HFR"
 lagPlot
 ggsave(file.path(figure_folder, "Real", "hfrs_by_lag.pdf"),
-       plot = lagPlot, device = "pdf", width = 8, height = 5)
+       plot = lagPlot, device = "pdf", width = 10, height = 4)
 
 ```
 
