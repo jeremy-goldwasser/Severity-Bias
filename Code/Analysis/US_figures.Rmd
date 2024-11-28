@@ -90,7 +90,7 @@ rtPlot
 # ggsave(file.path(figure_folder, "Real", "US_ests_realtime.pdf"),
 #        plot = rtPlot, device = "pdf", width = 8, height = 5)
 ggsave(file.path(figure_folder, "Real", "US_ests_realtime.pdf"),
-       plot = rtPlot, device = "pdf", width = 10, height = 4)
+       plot = rtPlot, device = "pdf", width = 10, height = 5)
 
 
 ```
@@ -118,10 +118,8 @@ bothPlot <- ggplot(data=df_both, aes(x = Date, y = HFR, color = type, linetype=s
         legend.title=element_blank()
         )
 bothPlot
-# ggsave(file.path(figure_folder, "Real", "US_ests_realtime_both.pdf"),
-#        plot = bothPlot, device = "pdf", width = 8, height = 5)
 ggsave(file.path(figure_folder, "Real", "US_ests_realtime_both.pdf"),
-       plot = bothPlot, device = "pdf", width = 10, height = 4)
+       plot = bothPlot, device = "pdf", width = 8, height = 5)
 
 
 
