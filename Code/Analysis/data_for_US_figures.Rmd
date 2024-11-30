@@ -117,7 +117,7 @@ Figure 5 (appendix)
 
 ```{r}
 n_ests_rt <- length(est_weeks_realtime)
-HFRtypes <- c("Ground Truth", "Convolutional", "Lagged")
+HFRtypes <- c("Ground truth", "Convolutional", "Lagged")
 types_factor <- factor(c(rep(HFRtypes, each=n_ests_rt), rep(HFRtypes[2:3], each=n_ests_rt)), levels=HFRtypes)
 Source <- c("GT HFR", "Finalized", "Real-Time")
 source_factor <- factor(c(rep(Source[1], each=n_ests_rt), 
