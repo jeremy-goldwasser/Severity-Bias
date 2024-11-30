@@ -200,7 +200,7 @@ This estimator is widely used in practice \citep{nishiuraEx1, nishiuraEx2, Russe
 We refer to \ref{eq:conv} as the \textit{convolutional ratio}. 
 % The convolutional ratio \eqref{eq:conv} can be understood as a
 This estimator can be understood as a generalization of \eqref{eq:lagged}. 
-It reduces to the lagged ratio when ${\gamma}$ is a point mass distribution 
+It reduces to the lagged ratio when ${\gamma}$ is a point-mass distribution 
 where all secondary events occur after $\ell$ days. 
 % They also are equivalent if primary events are constant.
 Otherwise, it may relate the two time series more accurately by means of a smooth delay distribution, since the true distribution is unlikely to be a point mass. 
@@ -350,81 +350,65 @@ For the lagged estimator, \eqref{thm:MispBias} becomes
 \end{equation}
 
 Proposition \ref{thm:MispBias}, proven in Appendix~\ref{apx:proofs}, provides an
-additive decomposition of the misspecified ratio's bias. In both terms,
-$A_t^\gamma$ dictates the extent to which the misspecified distribution alters
-the bias. The first term scales the oracle bias, whereas the other solely
-expresses misspecification. Which of these two terms will dominate depends on
-the true severity rate $p_t$, the oracle bias, and the ratio $A_t^\gamma$. If
-oracle bias is small, for example, then its multiplicative scaling should have
-relatively little effect, in which case the misspecification term may drive
-bias. This seems to generally be the case in the simulated experiments in
-Section~\ref{sec:results_sim}.
+additive decomposition of the misspecified ratio's bias. The first term scales the oracle bias, whereas the other solely expresses misspecification.  
+In both terms, $A_t^\gamma$ dictates the extent to which the misspecified distribution alters the bias. 
+This term expresses how the delay distributions convolve against the primary incidence curve. 
+When $A_t^\gamma=1$, the bias reduces to the oracle case. Values of $A_t^\gamma$ > 1 will amplify the oracle bias and add positive misspecification bias. 
+Otherwise, $A_t^\gamma<1$ shrinks the oracle bias and adds negative misspecification bias.
 
-% \djmcomment{I think that Figure 2 needs a direct discussion somewhere in these
-% next few paragraphs. Like ``Figure 2 illustrates\ldots''.} 
-% \jmgcomment{Good idea. I've restructured this section accordingly. Along the way, I added some commentary about the misspecified convolutional ratio when primary incidence begins falling.}
+Curves with $A_t^\gamma>1$ tend to have more positive bias than the oracle ratio, while $A_t^\gamma<1$ contributes negative bias (Figure \ref{fig:misspecified}, \ref{fig:sims}). 
+The rescaled oracle and misspecification terms move together when oracle bias is positive. 
+In theory, they are at odds with one another when oracle bias is negative. For example, $A_t^\gamma>1$ draws oracle bias further below 0, while adding positive misspecification error. 
+% This occurs even when the rescaled oracle and misspecification terms are at odds with one another. For example, $A_t^\gamma<1$ pulls negative oracle bias upwards towards 0, while adding negative misspecification error. 
+However, the misspecification term consistently wins out when this occurs in our experiments. Section~\ref{sec:results_sim} discusses this and other empirical findings in greater depth.
 
+% This occurs even when the oracle bias and misspecification terms have different signs. 
+% Whenever the oracle bias is positive, for example, 
+% If oracle bias is relatively small, then its multiplicative scaling should have
+% relatively little effect, in which case the misspecification term may drive
+% bias.
 
+We detail the behavior of $A_t^\gamma$ in common settings of interest, under three standard delay distributions.
+\begin{enumerate}
+    \item Smooth delay distribution with a lighter tail than the true distribution $\pi$, and more mass concentrated at recent dates.
+    \item Smooth delay distribution with a heavier tail and lower mean than $\pi$. 
+    \item Lagged delay distribution, a point mass at $\ell$. We refer to its ratio $A_t^\gamma$ as $A_t^\ell$.  Let $\ell$ be near the mean of $\pi$.
+\end{enumerate}
 
-% Suppose primary events have stabilized after falling for a long time (see April 2022 in Fig.~\ref{fig:misspecified}). If the plug-in delay distribution is
-% too light-tailed, then $A_t^\gamma>1$, since it does not upweight distant dates
-% with high primary counts. Therefore, this distribution inflates the oracle bias
-% multiplicatively and adds positive misspecification bias. If primary events have
-% consistently risen instead, then $A_t^\gamma < 1$, so the oracle bias term would
-% shrink and the misspecification bias would be negative. This explains the
-% negative bias of the light-tailed distribution in mid-January.  These relations
-% may be more complicated if primary incidence has changed direction throughout
-% the delay distribution.
+\paragraph{Primary incidence rising.} 
+Consider the case where primary events are rising --- first slowly, then rapidly before leveling off. A light-tailed $\gamma$ will place more weight on recent dates with high counts than $\pi$. Then $\sum_{j=0}^d X_{t-j}\gamma_j > \sum_{j=0}^d X_{t-j}\pi_j$, so $A_t^\gamma < 1$. The opposite occurs for heavy-tailed $\gamma$. Relative to $\pi$, $\gamma$ convolves with more weight on the distant low-count dates, and less on the ongoing surge. This trend holds from the beginning of the wave through its peak.
 
-How $A_t^\gamma$ affects bias depends on how the delay distributions convolve against the primary incidence curve. 
-% The plug-in distribution $\gamma$ operates through its denominator, ${\sum_{j=0}^d X_{t-j}\gamma_j}$. 
-When $\gamma$ is the oracle delay distribution $\pi$, $A_t^\gamma=1$. While this is not necessarily optimal, misspecification often exacerbates the bias.For example, suppose $\gamma$ has a similar shape as $\pi$, but a lower mean and lighter tail.
-If primary events are rising sharply, $\gamma$ will place more weight on recent dates with high counts, and less on the low-count past. Put formally, $\sum_{j=0}^d X_{t-j}\gamma_j > \sum_{j=0}^d X_{t-j}\pi_j$, so $A_t^\gamma < 1$. 
+% The plug-in distribution $\gamma_k=\mathds{1}\{k=\ell\}$ does not always mirror the same smooth delay distribution. 
+The plug-in distribution $\gamma_k=\mathds{1}\{k=\ell\}$ convolves all its mass at $X_{t-\ell}$. 
+During the steepest phase of the rise, this is considerably lower than $X_{t}$. %$X_{t-\ell}$
+In contrast, $\pi$ distributes mass across the $d$ trailing dates. Roughly half of its mass convolves the last $\ell$ days, whose counts exceed $X_{t-\ell}$. 
+The dates before $t-\ell$ have less of an offsetting effect, since incidence has risen at a growing rate. Therefore $\sum_{j=0}^d X_{t-j}\gamma_j > X_{t-\ell}$, so $A_t^\ell>1$.
 
-$A_t^\gamma$ stays below 1 as primary incidence peaks and begins to decline, since $\gamma$ continues to upweight the current surge. 
-Then, as incidence levels out, conditions flip. 
-Because $\pi$ is more right-skewed than $\gamma$, it places more mass on the higher-count dates during the surge.
-% $\gamma$ emphasizes the recent low counts, whereas $\pi$ places more mass on the high-count dates atop the surge. 
-Correspondingly, $A_t^\gamma$ rises above 1. The opposite trends holds if $\gamma$ is heavier-tailed than $\pi$, with higher mean: $A_t^\gamma$ rises above 1 alongside primary incidence, stays high into the decline, and falls below 1 as incidence levels out. 
-% Under rising cases $A_t^\gamma > 1$, and  $A_t^\gamma < 1$ after a fall. 
+Figure \ref{fig:misspecified} visualizes this on simulated deaths as hospitalizations rise between December 2021 and mid-January 2022. 
+% Throughout the entire rise, $A_t^\gamma$ is above or below 1 for smooth $\gamma$. 
+Throughout the entire rise, $A_t^\gamma$ is below 1 for the light-tailed distribution, and above 1 with the heavy tail.
+Meanwhile, $A_t^\ell$ spikes to 1.2 during the quick rise in the first half of January.
+This corresponds to the lagged HFR rising to 20\%, while the true HFRs fall to 15\%. 
 
-The lagged ratio has a point-mass delay distribution, $\gamma_k=\mathds{1}\{k=\ell\}$. This behaves  differently than the smooth distributions discussed above. When incidence rises, $X_{t-\ell}$ is considerably lower than $X_{t-\ell}$, so $A_t^\gamma>1$. As it later begins to fall, $A_t^\gamma$ switches below 1, since its denominator $X_{t-\ell}={\sum_{j=0}^d X_{t-j}\gamma_j}$ goes over the peak. Finally, $A_t^\gamma > 1$ as incidence flattens, since $\gamma_k$ has no tail with which to capture the higher-count dates. 
+\paragraph{Primary incidence begins falling.}
+Next, assume primary incidence reaches a maximum and begins to fall. The smooth distributions behave much the same as when incidence was rising. The lower-mean distribution has more mass around the peak than $\pi$, so $A_t^\gamma < 1$. Conversely, $A_t^\gamma>1$ for the heavier-tail distribution because it convolves more mass before the top of the rise.
 
-% The lagged estimator also exhibits interesting behavior as primary incidence falls from its peak. 
-% Counts neared the peak $\ell$ days ago, so $X_{t-\ell}$ is approximately the maximum value of ${\sum_{j=0}^d X_{t-j}\gamma_j}$. 
-% In contrast, a smoother distribution like $\pi$ will produce a smaller convolution due to its inclusion of lower counts before and after the peak. 
-% As a result, $A_t^\ell<1$, contributing negative bias.
+The lagged bias changes its behavior in this period. While $A_t^\ell$ had exceeded 1 before the peak, it quickly plunges below 1. 
+In fact, $\ell$ days after the peak, the lagged estimator attains the smallest possible value of $A_t^\gamma$, since $X_{t-\ell}$ maximizes its denominator $\sum_{j=0}^d X_{t-j}\gamma_j$. 
 
-% In this case, the lagged ratio roughly obtains the worst-case delay distribution in Proposition~\ref{thm:MispBias}. 
-More generally, $A_t^\gamma$ is most extreme when $\gamma$ is a point-mass distribution at the maximal or minimal values of $X_{t-d}, \ldots, X_t$. This inevitably occurs with the lagged estimator as its convolution sweeps across the primary incidence curve. In contrast, the convolutional ratios do not reach such extremes by nature of their smooth delay distributions. 
-Hence, the lagged ratio is likely to have larger fluctuations of $A_t^\ell$, and thus higher bias.
+In general, $A_t^\gamma$ is most extreme when $\gamma$ is a point-mass distribution at the maximal or minimal value of $X_{t-d}, \ldots, X_t$. This inevitably occurs with the lagged estimator as its convolution sweeps across the primary incidence curve. The convolutional ratios do not reach such extremes by nature of their smooth delay distributions. Hence, the lagged ratio is likely to have larger fluctuations of $A_t^\ell$, and thus higher bias.
 In some settings, it may even attain the worst-case delay distribution in Proposition~\ref{thm:MispBias}. 
 
-Figure~\ref{fig:misspecified} illustrates these biases. As anticipated, $A_t^\gamma$ with a lighter-tailed gamma distribution is less than 1 while hospitalizations surge in January 2022. It then spikes when they bottom out in March and April. The heavy-tailed distribution follows the opposite pattern, switching from high to low around March 1st. For the lagged ratio, $A_t^\ell$ spikes high to low to high again. Moreover, its peaks are higher than its smooth counterparts.
+In Figure \ref{fig:misspecified}, $A_t^\ell$ reaches 0.8 around the beginning of February 2022. This is precisely $\ell=16$ days after daily new hospitalizations peak above 20,000 in mid-January. The lagged ratio falls accordingly from 20\% to 13\%, with the true HFRs remaining roughly constant at 15\%. In the same period, the misspecified convolutional ratios stay within 2\% of the true HFR.
 
-These patterns translate accordingly into the biases themselves. The lagged ratio has higher bias than the convolutional ratios across its three spikes. In general, curves with $A_t^\gamma>1$ have more positive bias than the oracle ratio, while $A_t^\gamma<1$ corresponds to negative bias. This aligns with the misspecification term in Proposition~\ref{thm:MispBias}. Analysis in Section~\ref{sec:results_sim} further indicates that $A_t^\gamma$ predominantly affects bias through this term. 
+\paragraph{Primary incidence levels out from a fall.}
+The most jarring instance of misspecification bias occurs as primary incidence continues to fall, then levels out. By construction, the true delay distribution has a heavier tail than the low-mean, light-tailed distribution. It also has a heavier tail than the lagged point mass, which has no tail at all. This has important implications as the peak of the surge fades into the past, and primary incidence levels out. Compared to $\pi$, the light-tailed and lagged distribution convolve little to no mass with the high-count period of the surge. As a result, $A_t^\gamma$ and $A_t^\ell$ both rise above 1. The magnitude of the spike depends on the size of the change in primary incidence.
 
-% In some cases,  $\gamma_k=\mathds{1}\{k=\ell\}$ can be thought as a light-tailed
-% distribution. It assigns all its mass at $\ell$ --- chosen to be around the mean
-% of $\pi$ --- and none in the long tail of $\pi$. 
-% In the flattened-out period
-% around April 2022, the lagged estimator has similar positive bias as the
-% short-tailed convolutional ratio. 
+Figure \ref{fig:misspecified} displays this false spike. Around late March 2022, $A_t^\gamma$ and $A_t^\ell$ reach a maximum near 1.2 and 1.5, respectively. Their corresponding HFRs reach 18\% and 22\% while the true HFR is only 15\%. 
 
-% Overall, however, the lagged estimator's bias is more subtle because it relies
-% exclusively on primary incidence $\ell$ days ago. When counts rise sharply
-% between $t-\ell$ and $t$, then $A_t^\ell>1$ due to its small
-% denominator. This contrasts with the smooth, light-tailed $\gamma$ described
-% above, which emphasizes recent high counts. 
-% Figure~\ref{fig:misspecified}
-% highlights this divergence in behavior as hospitalizations peak in mid-January. 
+The opposite trend occurs for the heavier-tailed delay distribution. More of its mass convolves with the top of the surge than $\pi$, so its $A_t^\gamma<1$. Figure \ref{fig:misspecified} shows it minimizing at 0.8 in April 2022. Its convolutional ratio has about 2\% lower HFR than the oracle curve.
 
-% The lagged estimator also has interesting behavior as primary incidence falls from its peak. The denominator of $A_t^\ell$ is large, since counts neared the peak $\ell$ days ago. Meanwhile, the numerator is smaller due to its inclusion of lower counts before and after the peak. As a result, $A_t^\ell<1$, contributing negative bias. Misspecified smooth delay distributions will be less biased under these conditions, since they incorporate the lower counts into the denominator of $A_t^\gamma$. 
-% This accounts for the lagged ratio's spurious dip in February 2022. 
-
-% Note the denominator of $A_t^\gamma$, ${\sum_{j=0}^d X_{t-j}\gamma_j}$, is most extreme when $\gamma$ is a point-mass distribution at the maximal or minimal values of $X_{t-d}, \ldots, X_t$. This inevitably occurs with the lagged estimator as its convolution sweeps across the primary incidence curve. In contrast, the convolutional ratios do not reach such extremes by nature of their smooth delay distributions. 
-% This explains why in Figure~\ref{fig:misspecified}, the ratio $A_t^\ell$ fluctuates furthest away from 1 for the lagged estimator. 
-% Hence, the lagged ratio can occasionally be understood as providing the worst-case delay distribution in Proposition~\ref{thm:MispBias}.
+\paragraph{}
 
 \begin{figure}
     \centering
@@ -433,8 +417,6 @@ These patterns translate accordingly into the biases themselves. The lagged rati
     Convolutional ratio estimates use oracle delay distribution, misshapen gammas (mean 16 and 24), and point mass at correlation-maximizing lag (16).}%(i.e. lag) at oracle mean
     \label{fig:misspecified}
 \end{figure}
-
-% \textcolor{brown}{For...}
 
 
 \subsection{Experimental setup}\label{sec:setup}
@@ -503,9 +485,9 @@ cross-correlation between hospitalizations and deaths over all time
 \citep{atlantic}. 
 
 We let the delay distribution be a discrete gamma, a common
-choice \citet{delay_distrs}. We set its mean to this oracle lag, as lags are often chosen to be the
-mean of the delay distribution. This mean of 20 matches nicely with a UK study
-that finds a median hospitalization-to-death time of 11 days \citep{UKdelay},
+choice \citet{delay_distrs}. We set its length $d$ to 75 days, a conservative choice. 
+For its mean, we used the oracle lag above, as lags are often chosen to be the
+mean of the delay distribution. This mean of 20 matches nicely with a UK study that finds a median hospitalization-to-death time of 11 days \citep{UKdelay},
 and a CDC report that 63\% of COVID deaths are reported within 10 days
 \citep{cdc_deaths_demographic_geographic_2023}. 
 We set the standard deviation to 18, because the delay distributions fit by the UK study had standard deviations that were roughly 90\% of their means. 
@@ -565,24 +547,45 @@ in real time, they fail during the Delta surge.
 The most significant bias comes in the middle of the Omicron wave in spring 2022. 
 In this period, the HFR remains around 15\% until April, then sharply declines to 9\% two months later. The lagged ratios first fluctuate above and below the true HFRs. Subsequently, both estimates surge as the true HFR nears its nadir, with the lagged ratio nearing 30\%. This dramatic upswing signals a serious false alarm. 
 The analysis in Sections~\ref{sec:ws_analysis} and \ref{sec:misp} explain each
-of these failure cases. We start by analyzing the convolutional ratio with
+of these failure cases. 
+
+\paragraph{Well-specified analysis.}
+We start by analyzing the convolutional ratio with
 respect to the well-specified bias expression in Proposition \ref{thm:OracleBias}.
 While this expression assumes that the true delay distribution is known, we found
-that different choices of delay distribution generally yield the same bias
+that different choices of delay distribution generally yield similar bias
 (Appendix~\ref{apx:robustness}). This indicates that our estimates may not be far
 from the oracle ratio.
 
-First, Proposition \ref{thm:OracleBias} indicates that the bias moves in the opposite direction of the true severity rate. This occurs during the Delta wave, when the HFRs rise well before the ratio estimates do. Conversely, falling HFRs produce positive bias, as observed in the original and Omicron waves.
-% Falling HFRs correspond to positive bias, as observed in early 2021 and 2022. 
-Second, the enormity of the bias during Omicron can partially be attributed to the precipitous decline in hospitalizations, as falling primary incidence has been shown to exacerbate the bias. Average daily hospitalizations declined from over 20,000 in mid-January to only 1,500 by April 1. 
+Proposition \ref{thm:OracleBias} indicates that the bias moves in the opposite direction of the true severity rate. This occurs during the Delta wave, when the HFRs rise well before the ratio estimates do. Conversely, falling HFRs produce positive bias, as observed in the original and Omicron waves.
+
+The enormity of the bias during Omicron can partially be attributed to the precipitous decline in hospitalizations, as falling primary incidence has been shown to exacerbate the bias. Average daily hospitalizations declined from over 20,000 in mid-January to only 1,500 by April 1. 
 Finally, the delay distribution is relatively long with JHU deaths due to its alignment by report date. This is shown to have a substantial impact on the bias, as analyzed in Appendix~\ref{apx:NCHS_deaths}.
-Third, the misspecification analysis explains central discrepancies between the
-convolutional and lagged ratios. The lagged ratio's erratic behavior during
-Omicron is almost identical to the simulated results in
-Figure~\ref{fig:misspecified}. This bias is likely due to changes in
-hospitalization counts, which affect $A_t^\ell$ in Proposition \ref{thm:MispBias}.
-Finally, the lagged ratio is briefly less negatively biased in August 2021, during the Delta wave. Like the spike in January 2022, this can be explained by the sharp rise in hospitalizations. The surge causes $A_t^\ell$ to rise above 1, so the additive term in \ref{thm:MispBias} is positive. This briefly offsets the negative oracle bias, bringing the lagged ratio closer to the true HFR. Similarly, the lagged bias is less \textit{positive} in February 2021. Here, $A_t^\ell < 1$ due to falling hospitalizations, so the additive term is negative. 
-% Our analysis attributed the bias to $A_t^\ell$ in Proposition \ref{thm:MispBias}, affected by changes in hospitalization counts.
+
+\paragraph{Misspecified analysis.}
+The misspecification analysis explains central discrepancies between the convolutional and lagged ratios. 
+Section~\ref{sec:misp} discusses how $A_t^\ell<1$ in the initial weeks of declining primary incidence. As a result, the lagged ratio should incur negative misspecification error. We observe this when hospitalizations with the original variant fall from their peak in mid-January 2021. Throughout February, lagged estimates are about 2\% below the positively biased convolutional ratios.
+
+When primary incidence rises, $A_t^\ell>1$, contributing positive bias relative to the oracle convolutional ratio. Correspondingly, as hospitalizations surge due to the Delta variant in August 2021, the lagged ratio is less negatively biased. 
+
+Lastly, we explained that $A_t^\ell>1$ after a fall in primary incidence. This accounts for the lagged ratio having higher bias in April 2022, when hospitalizations level out from the Omicron surge. Figure \ref{fig:misspecified} visualizes this same period, where the true HFRs and delay distribution are known. There, $A_t^\ell$ reaches 1.5, by far its maximum --- validating the magnitude of the difference between the convolutional and lagged ratios.
+
+% In particular, the lagged ratio has higher positive bias as hospitalizations level out from the Omicron surge in winter 2022. 
+% Section~\ref{sec:misp} found that $A_t^\ell>1$ after a fall in primary incidence. 
+% This contributes positive bias over the oracle convolutional ratio, matching our observation. 
+% Indeed, the lagged ratio is more biased during the same period on simulated deaths in Figure \ref{fig:misspecified}. 
+
+
+% Finally, the lagged ratio briefly has less negative bias in August 2021, as hospitalizations surge due to the Delta variant. 
+% The bias can be explained by the discussion in Section~\ref{sec:misp} on rising primary incidence. 
+% Per our analysis, $A_t^\ell$ rises above 1, adding positive misspecification bias in \ref{thm:MispBias}. 
+% This brings the lagged ratio closer to the true HFR. 
+% The opposite 
+
+% Analogously, the lagged bias is less \textit{positive} in February 2021 as hospitalizations fall. 
+% Here, $A_t^\ell < 1$ due to falling hospitalizations, so the additive term is negative. 
+
+\paragraph{}
 
 We performed several robustness checks to assess the stability of these findings. Appendix~\ref{apx:robustness} explores the effect of different hyperparameters and locations. By and large, the ratio estimators yield roughly the same bias regardless of these considerations. It also compares HFR estimates using finalized counts, rather than the data available in real time. This exploration finds that the observed biases could not be attributed to real-time reporting issues. 
 
@@ -617,24 +620,31 @@ Matching expectations, HFRs are significantly more biased given the longer under
 In all three HFR settings, the lagged ratios swing more widely. For example, when the true HFR is a constant 10\%, they peak at 12\% under the light-tailed distribution, compared to 15\% with the heavy tail. The oracle convolutional ratio does not share the lagged estimator's dramatic oscillations. Rather, it tracks the general shape of true curve, albeit at a delay. For the NHCS HFRs, the average delay was 5 days for the light-tailed distribution, and 12 days with heavy tail; these delays were 6 and 14 days for the inverted curve. (To compute the average delay, we again took the maximal cross-correlation between the two series.)
 
 % In general, the oracle convolutional ratio performs much better than the lagged estimator. Our analysis accounts for this wide gap in performance. In the case of a stationary severity rate, for example, Proposition \ref{thm:OracleBias} assures the oracle convolutional ratio is unbiased. But if the delay distribution is misspecified, Proposition \ref{thm:MispBias} expresses the resulting bias via the ratio $A_t^\gamma$. This quantity does not depend on the severity rate, so the bias moves in similar trajectories across the three HFR settings. 
-In general, the oracle convolutional ratio is much more accurate than the lagged estimator. The analysis in Section~\ref{sec:misp} accounts for this wide gap in performance. The lagged bias moves in ways that align with our observations.
-
-Proposition \ref{thm:MispBias} expresses the lagged bias via the rescaled oracle bias plus a misspecification term, both of which depend on the ratio $A_t^\gamma$. WORK IN PROGRESS
-
+% In general, the oracle convolutional ratio is much more accurate than the lagged estimator. 
+The analysis in Section~\ref{sec:misp} accounts for the wide gap in performance between the two estimators. 
+%The lagged bias moves in ways that align with our observations. 
+% Proposition \ref{thm:MispBias} expresses bias under misspecification via the rescaled oracle bias plus a misspecification term, both of which depend on the ratio $A_t^\gamma$. 
+Proposition \ref{thm:MispBias} expresses bias under misspecification as a function of the ratio $A_t^\gamma$. 
 These ratios $A_t^\gamma$ are visualized in Figure \ref{fig:sims} as rescaled HFR estimates in the stationary case.
 % In addition to the HFR curves, it also visualizes the ratios $A_t^\gamma$, which merely rescale the HFR estimates in the stationary case. 
 Given a constant rate $p$, the oracle convolutional ratio is unbiased, so Proposition \ref{thm:MispBias} reduces to $\mathbb{E}[\hat{p}_t^\gamma] = p A_t^\gamma$. Furthermore, $\mathbb{E}[\hat{p}_t^\gamma] = \hat{p}_t^\gamma$, as our setup simulates deaths without noise. Consequently, $A_t^\gamma = \frac{\hat{p}_t^\gamma }{p}$. 
 
-The analysis in Section~\ref{sec:misp} explains these trajectories. During the Delta and Omicron waves, rapid rises in hospitalizations produced high values of $A_t^\ell$. This accounts for the spikes in August 2021 and January 2022, across all 3 HFR settings. Positive bias is also expected when hospitalizations have leveled out from a decline. This consistently occurs in spring 2022, with $A_t^\ell$ reaching 1.2 and 1.5 for the short and long distributions. Lastly, the lagged estimator should have negative bias as primary events fall. We observe this in Delta (September 2021) and Omicron (Februrary 2022). 
+In expectation, the lagged ratio is higher than the oracle convolutional ratio when $A_t^\gamma>1$, and lower when $A_t^\gamma<1$. Comparing the $A_t^\gamma$ curves to the estimated HFRs, the bias moves very similarly. 
+For example, 
+% The analysis in Section~\ref{sec:misp} explains these trajectories. During
+during the Delta and Omicron waves, rapid rises in hospitalizations produced high values of $A_t^\ell$. This accounts for the spikes in August 2021 and January 2022. %, across all 3 HFR settings
+When hospitalizations level out from the Omicron surge, $A_t^\ell$ spikes to 1.2 and 1.5 for the short and long distributions --- hence the positive bias in spring 2022. 
+% Positive bias is also expected when hospitalizations have leveled out from a decline. This consistently occurs in spring 2022, with $A_t^\ell$ reaching 1.2 and 1.5 for the short and long distributions. 
+Lastly, the lagged estimator should have negative bias as primary events fall. We observe this in Delta (September 2021) and Omicron (Februrary 2022). 
 
 % Not sure if these two paragraphs belong in the discussion. They're analytical, but don't belong in Section 2.4 because they rely on these empirical results. 
-The misspecified bias (Proposition \ref{thm:MispBias}) rescales the oracle bias and adds a misspecification term. Studying Figure \ref{fig:sims}, we observe the misspecification term tends to dominate when $A_t^\gamma$ strays away from 1. To understand this, consider periods in which the oracle bias is negative. Here, the oracle and misspecification terms are at odds with each other. 
-When $A_t^\gamma > 1$, it both amplifies the negative oracle bias and adds positive misspecification bias. The opposite effect occurs when $A_t^\gamma<1$. 
+The misspecified bias (Proposition \ref{thm:MispBias}) rescales the oracle bias and adds a misspecification term. Studying Figure \ref{fig:sims}, we observe the misspecification term tends to dominate when $A_t^\gamma$ strays away from 1. To understand this, consider periods in which the oracle bias is negative. As introduced in Section~\ref{sec:misp}, the oracle and misspecification terms are at odds with each other when this is the case. 
+% When $A_t^\gamma > 1$, it both amplifies the negative oracle bias and adds positive misspecification bias. The opposite effect occurs when $A_t^\gamma<1$. 
 % $A_t^\gamma > 1$ amplifies the negative bias while adding positive misspecification bias, whereas $A_t^\gamma<1$ has the opposite effect.
 
-Invariably, the lagged ratio's bias moves in the direction of the misspecification term $p_t(A_t^\gamma-1)$. Under the true NHCS HFRs, for example, the lagged estimates spike with $A_t^\ell$ in August 2021. In the inverted setting, the lagged bias tracks the down-up-down motion of $A_t^\ell$ during the first five months of 2021. That the misspecification term wins out in these conflicting settings indicates it accounts for a disproportionate amount of the bias. 
+Invariably, the lagged ratio moves in the direction of the misspecification term $p_t(A_t^\gamma-1)$. Under the true NHCS HFRs, for example, the lagged estimates spike with $A_t^\ell$ in August 2021. In the inverted setting, the lagged bias tracks the down-up-down motion of $A_t^\ell$ during the first five months of 2021. That the misspecification term wins out in these conflicting settings indicates it comprises a disproportionate amount of the bias. Indeed, the oracle bias is generally low enough that multiplicative rescaling may not have a large effect.
 
-For a further example, consider the bias at April 2022 in panel A2. The true HFR is 14\%, with the convolutional ratio nearby at 15\%. Meanwhile, the lagged ratio peaks at 22.5\%, driven upwards by an $A_t^\ell$ of $1.5$. Decomposing the lagged bias of $8.5\%$ with Proposition \ref{thm:MispBias}, the oracle term $A_t^\ell \text{Bias}(\hat{p}_t^\pi)$ equals only $1.5\%$; meanwhile, the misspecification term $p_t(A_t^\ell-1) = 7\%$, accounting for the majority of the bias. 
+For a further example, consider the bias at April 2022 on the middle right. The true HFR is 14\%, with the convolutional ratio nearby at 15\%. Meanwhile, the lagged ratio peaks at 22.5\%, driven upwards by an $A_t^\ell$ of $1.5$. Decomposing the lagged bias of $8.5\%$ with Proposition \ref{thm:MispBias}, the oracle term $A_t^\ell \text{Bias}(\hat{p}_t^\pi)$ equals only $1.5\%$; meanwhile, the misspecification term $p_t(A_t^\ell-1) = 7\%$, accounting for the majority of the bias. 
 
 \section{Discussion}
 
