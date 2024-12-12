@@ -84,7 +84,7 @@ arises as a consequence of changing severity rates --- precisely when time-varyi
 It also arises due to model misspecification of the delay distribution 
 that relates events, like cases and deaths in CFR. 
 This is particularly troublesome for the popular lagged ratio. 
-We validate these findings empirically, tracking the hospitalization-fatality rate (HFR) during COVID-19. The ratio estimators fail to quickly signal increased risk in the onset of the Delta wave; later, in the aftermath of the inital Omicron wave, they surge while the true HFRs fall. 
+We validate these findings empirically, tracking the hospitalization-fatality rate (HFR) during COVID-19. The ratio estimators failed to quickly signal increased risk in the onset of the Delta wave; later, in the aftermath of the inital Omicron wave, they surged while the true HFRs fell. 
 % In both settings, bias is influenced by changes in the primary incidence
 % curve, as well as long time delays between events. 
 % % This bias may be influenced by changes in primary incidence levels
@@ -232,7 +232,7 @@ Indeed, one of the most popular frameworks to estimate $R_t$ is based on an almo
     \hat{R}_t = \frac{I_t}{\sum_{k=1}^d I_{t-k}g_k}.
 \end{equation}
 
-The main difference between this ratio and \eqref{eq:conv} is that \eqref{eq:instRt} uses the same aggregate time series, infections, in both the numerator and denominator. In practice, $R_t$ is typically estimated in a Bayesian setting, with a posterior obtained from this transmission model. 
+The main difference between this ratio and \eqref{eq:conv} is that \eqref{eq:instRt} uses the same aggregate time series, infections, in both the numerator and denominator. In practice, $R_t$ is typically estimated in a Bayesian setting, with a posterior obtained from this transmission model. By contrast, the popular estimator from \citet{wallinga_teunis} is analogous to equation \eqref{eq:severity}, but requires data after time $t$.
 
 \subsection{Well-specified analysis}\label{sec:ws_analysis}
 
@@ -542,7 +542,7 @@ changes in the HFR. As the HFR declines following the wave in winter 2021, both
 ratios remain near 0.2 for several months. More troublingly, they are very slow
 to detect the rising HFR in the early Delta period (summer 2021). %A central
 If the purpose of these estimators is to inform stakeholders of increased risks
-in real time, they fail during the Delta surge.
+in real time, they failed during the Delta surge.
 
 The most significant bias comes in the middle of the Omicron wave in spring 2022. 
 In this period, the HFR remains around 15\% until April, then sharply declines to 9\% two months later. The lagged ratios first fluctuate above and below the true HFRs. Subsequently, both estimates surge as the true HFR nears its nadir, with the lagged ratio nearing 30\%. This dramatic upswing signals a serious false alarm. 
