@@ -1,48 +1,10 @@
 \documentclass{article}
+
 \input{macros}
-\usepackage{graphicx} % Required for inserting images
-\usepackage{dsfont}
-\usepackage{amsfonts}
-\usepackage{amsmath}
-\usepackage{caption}
-\usepackage{subcaption}
-
 \usepackage{adjustbox}
-% \usepackage{changepage}
-% \usepackage{geometry}
-
-
-% DJM macros
-\renewcommand{\hat}{\widehat} % DJM: I find the regular hat hard to see.
-\newcommand{\given}{\; \vert \;}
+\renewcommand{\hat}{\widehat} % DJM: I find the regular hat hard to see
+\newcommand{\given}{\, \vert \,}
 \DeclareMathOperator{\bias}{Bias}
-
-% \usepackage{authblk}
-
-% \title{Challenges in Real-Time Estimation of Changing Epidemic Severity Rates}
-\title{Challenges in Estimating Time-Varying Epidemic Severity Rates from Aggregate Data}
-
-\author{Jeremy Goldwasser\thanks{Department of Statistics, University of California, Berkeley} \and 
-        Addison Hu\footnotemark[1] \and
-        Alyssa Bilinski\thanks{Brown University School of Public Health} \and
-        Daniel McDonald\thanks{Department of Statistics, University of British Columbia} \and
-        Ryan Tibshirani\footnotemark[1]}
-
-% \author[1]{Jeremy Goldwasser}
-% \author[1]{Addison Hu}
-% \author[2]{Alyssa Bilinski}
-% \author[3]{Daniel McDonald}
-% \author[1]{Ryan Tibshirani}
-
-% \affil[1]{\footnotesize University of California, Berkeley}
-% \affil[2]{\footnotesize Brown University School of Public Health}
-% \affil[3]{\footnotesize University of British Columbia}
-
-% \renewcommand\Authsep{, }
-% \renewcommand\Authands{, and }
-% \renewcommand\Affilfont{\itshape\small}
-
-
 
 \usepackage{xcolor}
 \newcommand{\ahcomment}[1]{{\color{red}[AH: #1]}}
@@ -50,53 +12,82 @@
 \newcommand{\djmcomment}[1]{{\color{teal}[DJM: #1]}}
 \newcommand{\jmgcomment}[1]{{\color{cyan}[JMG: #1]}}
 
-\begin{document}
+\title{Challenges in Estimating Time-Varying Epidemic Severity Rates from
+  Aggregate Data} 
 
+\author{Jeremy Goldwasser\thanks{Department of Statistics, University of
+    California, Berkeley} 
+  \and  
+  Addison J.\ Hu\thanks{Department of Statistics, Carnegie Mellon University}
+  \and 
+  Alyssa Bilinski\thanks{Brown University School of Public Health} 
+  \and
+  Daniel J.\ McDonald\thanks{Department of Statistics, University of British
+    Columbia} 
+  \and 
+  Ryan J.\ Tibshirani\footnotemark[1]}
+
+\date{}
+
+\begin{document}
 \maketitle
+
 \begin{abstract}
-    Severity rates like case-fatality rate and infection-fatality rate are popular metrics in public health. To guide decision-making in response to changes like new variants or vaccines, it is imperative to understand how these rates shift in real time. 
-    In practice, time-varying severity rates are typically estimated with a ratio of aggregate counts.
-    We demonstrate that these estimators are capable of exhibiting large statistical biases, with concerning implications for public health practice. Severity ratios may fail to detect heightened risks or falsely signal nonexistent surges.
-    % We demonstrate that standard ratio estimators for time-varying severity rates may exhibit high statistical bias, failing to detect increases in fatality risk or falsely signaling nonexistent surges. 
-    We supplement our theoretical analyses with experimental results on real and simulated COVID-19 data. Finally, we highlight strategies to predict and mitigate this bias, drawing connections with effective reproduction number ($R_t$) estimation.\footnote{Code is available at \url{https://github.com/jeremy-goldwasser/Severity-Bias}.}
+Severity rates like the case-fatality rate and infection-fatality rate are
+key metrics in public health. To guide decision-making in response to changes
+like new variants or vaccines, it is imperative to understand how these rates
+shift in real time. In practice, time-varying severity rates are typically
+estimated using a ratio of aggregate counts. We demonstrate that these
+estimators are capable of exhibiting large statistical biases, with concerning
+implications for public health practice, as they may fail to detect heightened 
+risks or falsely signal nonexistent surges. We supplement our mathematical 
+analyses with experimental results on real and simulated COVID-19 data. Finally,
+we briefly discuss strategies to mitigate this bias, drawing connections with
+effective reproduction number ($R_t$) estimation. 
+%\footnote{Code is available at
+%\url{https://github.com/jeremy-goldwasser/Severity-Bias}.}    
 \end{abstract}
 \section{Introduction}
 
-Several public health metrics express the probability that a second, more serious outcome will follow a primary event. 
-% For example, the case-fatality rate (CFR) is commonly used as a proxy for the underlying infection-fatality rate (IFR) to assess the intensity of an epidemic. 
-For example, the case-fatality rate (CFR) and infection-fatality rate (IFR) are commonly used to assess the intensity of an epidemic \citep{nishiuraEx1, nishiuraEx2, cfr_line_list, lancet_ifr, timevar_ifr}. 
-Other examples of such “severity rates” include the hospitalization-fatality rate and case-hospitalization rate \citep{HFR_line_list1, HFR_linelist2, HFR_linelist3}. 
+Several public health metrics of interest express the probability that a second,
+often more serious outcome will follow a primary event. For example, the
+case-fatality rate (CFR) and infection-fatality rate (IFR) are commonly used to
+assess the deadliness of an epidemic \citep{nishiuraEx1, nishiuraEx2,
+  cfr_line_list, lancet_ifr, timevar_ifr}. Another central example of a
+``severity rate'', which is a term that we use for metrics of this general form,
+is the hospitalization-fatality rate (HFR) \citep{HFR_linelist3, HFR_linelist1,  
+  HFR_linelist2}.
 
-In an ideal setting, severity rates can be obtained directly from comprehensive line-list or claims data of individual patient outcomes \citep{HFR_line_list1,HFR_linelist2,HFR_linelist3,cfr_line_list}. However, in fast-moving epidemics like COVID-19, large-scale tracking is infeasible, especially in real-time \citep{UKpaper}. Instead, rates are routinely estimated from aggregate count data. While many works assume they are constant over time \citep{reich2012estimating,ghani,jewell2007nonparametric,lancet_controversial}, consequential shifts can occur in response to factors such as new therapeutics, vaccines, and variants \citep{nyt}. Time-varying severity rates are typically estimated with a ratio of the two aggregate data streams.  For example, aggregated cases and deaths were widely used to report COVID CFRs, both in academic literature \citep{germany,horita2022global,timevar_ifr,yuan2020monitoring,LIU2023100350} and major news publications like the Atlantic \citep{atlantic} and Wall Street Journal \citep{wsj}. In fact, ratio estimators are so common that IFR, for example, is often referred to as the infection-fatality \textit{ratio} \citep{timevar_ifr, lancet_ifr}.
-% While other methods exist
+In an ideal setting, severity rates can be obtained directly from a
+comprehensive line-list or claims data set containing individual patient
+outcomes \citep{HFR_linelist3, HFR_linelist1, HFR_linelist2,
+  cfr_line_list}. However, in fast-moving epidemics like COVID-19, large-scale 
+tracking of individuals has been infeasible, especially in real-time. Instead,
+severity rates are routinely estimated from aggregate count data. While it is
+common to assume they are constant in time \citep{ghani, jewell2007nonparametric, 
+  reich2012estimating, lancet_controversial}, consequential shifts in severity
+rates can occur in response to factors such as new therapeutics, vaccines, and
+variants \citep{nyt}. Time-varying severity rates are often estimated with a
+ratio of primary and secondary aggregate data streams. For example, aggregated
+case and death data was widely used to report COVID-19 CFRs, both in academic 
+literature \citep{germany, horita2022global, timevar_ifr, yuan2020monitoring,
+LIU2023100350} and major news outlets like The Atlantic \citep{atlantic} and
+Wall Street Journal \citep{wsj}. In fact, ratio estimators are so common that
+CFR and IFR are often referred to as case-fatality and infection-fatality
+\textit{ratios}. 
 
-% In this work, we demonstrate that these ratio estimators may target the wrong
-% severity rates 
-% \djmcomment{``wrong severity rates'' doesn't sound quite right.
-% It makes me think, for some reason of swapping one for another. Maybe ``may
-% target the desired severity rate, but with a bias: the estimates will
-% necessarily be too high or low.''}. 
-% In this work, we demonstrate that these ratio methods are biased: 
-% On average, the estimated severity rates will necessarily be too high or low.
-In this work, we show these ratio estimators may exhibit high statistical bias. 
-Bias %statistical bias 
-arises as a consequence of changing severity rates --- precisely when time-varying estimates should be most useful. 
-It also arises due to model misspecification of the delay distribution 
-that relates events, like cases and deaths in CFR. 
-This is particularly troublesome for the popular lagged ratio. 
-We validate these findings empirically, tracking the hospitalization-fatality rate (HFR) during COVID-19. The ratio estimators failed to quickly signal increased risk in the onset of the Delta wave; later, in the aftermath of the inital Omicron wave, they surged while the true HFRs fell. 
-% In both settings, bias is influenced by changes in the primary incidence
-% curve, as well as long time delays between events. 
-% % This bias may be influenced by changes in primary incidence levels
-% During COVID-19, we show ratio estimators would have failed to quickly identify
-% the rise in hospitalization-fatality rate (HFR) during the onset of the Delta
-% wave. After the initial Omicron surge, the severity ratio estimates spiked even
-% though the true HFRs fell. 
-We provide heuristics for when to expect this bias in practice,
-% and suggest alternative methodology which overcomes it.
-and discuss ideas for alternative methodology which may avoid it.
-% We conclude by discussing ideas for alternative methodology which may avoid the biases we identify in ratio-based estimators.
-
+In this work, we show that these ratio estimators are prone to nontrivial
+statistical bias. Bias arises as a consequence of changing severity
+rates---precisely when time-varying estimates should be most useful. It also 
+arises due to misspecification of the delay distribution, which relates events, 
+like cases and deaths in CFR. This is particularly troublesome for the popular
+lagged ratio estimator, which divides values of two aggregate data streams. We
+validate these findings empirically, tracking the hospitalization-fatality rate
+(HFR) during COVID-19. The ratio estimators failed to quickly signal increased
+risk in the onset of the Delta wave; later, in the aftermath of the inital
+Omicron wave, they surged while the true HFRs fell. We provide heuristics for
+when to expect this bias in practice, and discuss ideas for alternative
+methodology which may avoid it. 
 
 \section{Methods}\label{sec:methods}
 % \djmcomment{Some journals don't mind (and even encourage) empty sections, but I 
@@ -731,7 +722,6 @@ differences in case definition and testing eligibility.
 % The most fundamental difference between Eq. \eqref{eq:instRt} and \eqref{eq:conv} is the former expresses the rate for a single time series. 
 As discussed in Section~\ref{sec:defs}, severity rates may be understood in connection with reproduction numbers. This connection extends to their bias as well. For example, we  demonstrated that the convolutional ratio is unbiased if the severity rate and delay distribution in the $d$ days before $t$ are stationary. In a similar vein, \citet{fraser2007} noted that instantaneous $R_t$ is equal to case $R_t$ if conditions remain unchanged. 
 Future work along the lines of \citet{rt_study} could apply our analytical framework to $R_t$ bias, examining the fidelity of instantaneous $R_t$ as a proxy for case $R_t$. 
-
 
 \bibliographystyle{apalike}
 \bibliography{refs}
