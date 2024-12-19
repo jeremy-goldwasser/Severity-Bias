@@ -20,7 +20,7 @@
   \and  
   Addison J.\ Hu\thanks{Department of Statistics, Carnegie Mellon University}
   \and 
-  Alyssa Bilinski\thanks{Brown University School of Public Health} 
+  Alyssa Bilinski\thanks{Departments of Health Policy and Biostatistics, Brown University} 
   \and
   Daniel J.\ McDonald\thanks{Department of Statistics, University of British
     Columbia} 
@@ -43,38 +43,37 @@ implications for public health practice, as they may fail to detect heightened
 risks or falsely signal nonexistent surges. We supplement our mathematical 
 analyses with experimental results on real and simulated COVID-19 data. Finally,
 we briefly discuss strategies to mitigate this bias, drawing connections with
-effective reproduction number ($R_t$) estimation. 
-%\footnote{Code is available at
-%\url{https://github.com/jeremy-goldwasser/Severity-Bias}.}    
+effective reproduction number ($R_t$) estimation.    
 \end{abstract}
+
 \section{Introduction}
 
 Several public health metrics of interest express the probability that a second,
 often more serious outcome will follow a primary event. For example, the
 case-fatality rate (CFR) and infection-fatality rate (IFR) are commonly used to
 assess the deadliness of an epidemic \citep{nishiuraEx1, nishiuraEx2,
-  cfr_line_list, lancet_ifr, timevar_ifr}. Another central example of a
+  cfr_line_list, timevar_ifr, lancet_ifr}. Another central example of a
 ``severity rate'', which is a term that we use for metrics of this general form,
 is the hospitalization-fatality rate (HFR) \citep{HFR_linelist3, HFR_linelist1,  
   HFR_linelist2}.
 
 In an ideal setting, severity rates can be obtained directly from a
 comprehensive line-list or claims data set containing individual patient
-outcomes \citep{HFR_linelist3, HFR_linelist1, HFR_linelist2,
-  cfr_line_list}. However, in fast-moving epidemics like COVID-19, large-scale 
-tracking of individuals has been infeasible, especially in real-time. Instead,
-severity rates are routinely estimated from aggregate count data. While it is
-common to assume they are constant in time \citep{ghani, jewell2007nonparametric, 
+outcomes \citep{HFR_linelist3, cfr_line_list, HFR_linelist1, HFR_linelist2}.
+However, in fast-moving epidemics like COVID-19, large-scale tracking of
+individuals has been infeasible, especially in real-time. Instead, severity
+rates are routinely estimated from aggregate count data. While it is common to
+assume they are constant in time \citep{ghani, jewell2007nonparametric,
   reich2012estimating, lancet_controversial}, consequential shifts in severity
 rates can occur in response to factors such as new therapeutics, vaccines, and
 variants \citep{nyt}. Time-varying severity rates are often estimated with a
 ratio of primary and secondary aggregate data streams. For example, aggregated
-case and death data was widely used to report COVID-19 CFRs, both in academic 
-literature \citep{germany, horita2022global, timevar_ifr, yuan2020monitoring,
-LIU2023100350} and major news outlets like The Atlantic \citep{atlantic} and
-Wall Street Journal \citep{wsj}. In fact, ratio estimators are so common that
-CFR and IFR are often referred to as case-fatality and infection-fatality
-\textit{ratios}. 
+case and death data was widely used to report COVID-19 CFRs, both in academic
+literature \citep{yuan2020monitoring, timevar_ifr, horita2022global,
+  LIU2023100350, germany} and in major news outlets like The Atlantic
+\citep{atlantic} and Wall Street Journal \citep{wsj}. In fact, ratio estimators
+are so common that CFR and IFR are often referred to as case-fatality and
+infection-fatality \emph{ratios}.
 
 In this work, we show that these ratio estimators are prone to nontrivial
 statistical bias. Bias arises as a consequence of changing severity
@@ -89,141 +88,163 @@ Omicron wave, they surged while the true HFRs fell. We provide heuristics for
 when to expect this bias in practice, and discuss ideas for alternative
 methodology which may avoid it. 
 
-\section{Methods}\label{sec:methods}
-% \djmcomment{Some journals don't mind (and even encourage) empty sections, but I 
-% prefer to have some text between section headings. Just a sentence or two is fine.}
-% \jmgcomment{Good idea. I see Xueda did that with PLOS CompBio, so I'll do that here.}
-In this section, we introduce the studied estimators, and analyze their bias. Subsequently, we detail the data used for empirical study and validation. 
+\section{Methods}
+\label{sec:methods}
 
-\subsection{Severity rate estimators}\label{sec:defs}
+In this section, we introduce the main estimators we study, and analyze their 
+bias. Subsequently, we detail the data used for empirical study and validation. 
 
-Severity rates convey the probability that a primary event will result in a secondary event in the future. 
-In the case of CFR, for example, a primary event is a positive COVID-19 case, and a secondary event is a death with a positive test result.
-Formally, the time-varying severity rate at time $t$ is defined as
-\begin{equation}\label{eq:severity}
-    p_t = \mathbb{P}(\text{secondary event will occur}\given\text{primary event at time }t).
+\subsection{Severity rate estimators}
+\label{sec:defs}
+
+Severity rates convey the probability that a primary event will result in a
+secondary event in the future. In the case of CFR, for example, a primary event
+is a positive COVID-19 case and a secondary event is a death with a positive
+test result. Formally, a time-varying severity rate at time $t$ is generally
+defined as:  
+\begin{equation}
+\label{eq:severity}
+p_t = \P(\text{secondary event will occur} \given \text{primary event at time 
+  $t$}).   
 \end{equation}
-Here, $t$ may represent a discrete interval of time, like a given day or week. It also may be understood in a continuous-time fashion. 
-For ease of analysis, throughout this paper we consider only discrete timesteps $t$, though the same general principles hold in the continuous case. 
+Here, $t$ may represent a discrete interval of time, such as a given day or 
+week. It also may be understood in a continuous-time fashion. Although this will    
+not be our focus in this paper, the same general principles apply in the
+continuous-time case. For simplicity, we will consider only the discrete-time 
+setting, and we index time steps via integers, as in $t=0,1,2,\dots$.    
 
-Let $\{X\}$ and $\{Y\}$ denote the aggregate time series of new primary and secondary events. %In the case of CFR, for example, $X_t$ and $Y_t$ are the total number of new cases and deaths, respectively, at day $t$. 
-At time $t$, we assume data for all past $s\leq t$ is available, but future data is not. Thus, real-time estimates of severity $p_t$ can only use counts $X_{s\leq t}$ and $Y_{s\leq t}$. 
+Throughout, we denote by $\{X_t\}$ and $\{Y_t\}$ the aggregate time series of 
+new primary and secondary events, respectively. These are often counts, and we
+will generally refer to them as such. At time $t$, we assume data for all past
+$s \leq t$ is available, but future data is not. Therefore real-time estimates of
+$p_t$ can only rely on past counts \smash{$\{X_s\}_{s\leq t}$} and
+\smash{$\{Y_s\}_{s\leq t}$}. In practice, to stabilize estimates, smoothed
+counts are often used in place of raw counts. This may be simply absorbed into 
+the notation for $X_t$ and $Y_t$, and we do not address smoothing explicitly in
+the main text, but refer back to this issue in the appendix.
 
 \paragraph{Lagged estimator.} 
 
-The canonical estimator for time-varying severity rates is a ratio between primary and secondary events, offset by a lag $\ell$. 
-This lagged approach is formally introduced in \citet{thomas2021estimating}, but has also been used in prior works (e.g., \citealp{germany,horita2022global,timevar_ifr,yuan2020monitoring,LIU2023100350,atlantic,wsj}). 
-For real-time estimation, the \textit{lagged ratio} only uses data until the present timestep $t$: 
-% The real-time estimator only uses data until the present timestep $t$: 
-\begin{equation}\label{eq:lagged}
-    \hat{p}_t^\ell = \frac{Y_t}{X_{t-\ell}}.
+The canonical estimator for time-varying severity rates is a ratio between
+the counts of primary and secondary events, offset by a lag $\ell$. This
+estimator is widely-used in epidemiology, both in the academic literature and in
+public health practice and communication (e.g., \citealp{wsj, atlantic,
+  yuan2020monitoring, timevar_ifr, thomas2021estimating, horita2022global,
+  LIU2023100350, germany}). For concreteness, we define the \emph{lagged ratio} 
+at time $t$ as:   
+\begin{equation}
+\label{eq:lagged}
+\hat{p}_t^\ell = \frac{Y_t}{X_{t-\ell}},
 \end{equation}
+where $\ell \geq 0$ is a given parameter (often chosen to maximize
+cross-correlation between $\{X_t\}$ and $\{Y_t\}$).      
 
-To stabilize estimates, smoothed counts are often used in practice \citep{germany,timevar_ifr,LIU2023100350}. For the sake of simplicity of presentation, we generally focus on the versions described above. However, we formalize the smoothed versions in Equations~\eqref{eq:laggedSmooth} and~\eqref{eq:convSmooth}, and analyze them experimentally.
+\paragraph{Convolutional estimator.} 
 
-% Alternative methods use the estimated \textit{delay distribution} that relates
-\paragraph{Convolutional estimator.} Alternative methods utilize the delay distribution that relates
-the two time series. The delay distribution is defined as 
-% \djmcomment{I found
-% the equation below a bit confusing. I edited, but feel free to change back if you
-% disagree. I think the $k$ means ``at time t+k'' not ``after k days''. The second
-% case doesn't seem to rule out that it happens on day $k+j$, $j\geq 0$. This is a
-% (conditional) pmf not a CDF, right? But maybe I'm missing something. The same
-% happens in Equation (3), but I haven't changed it there. Now that I've read
-% through Section 3, is there a cumulative/incidence issue. I think you're using
-% incidence here and cumulative with $\gamma$ below. Is that right?}
-% \jmgcomment{I guess this was misleading! Neither is meant to be cumulative. Your phrasing looks good to me, though I'll run it by Ryan.}
-% I've added comments before and after the displayed equations. Generally, you
-% want to treat these as sentences, so they need to "run in" to the paragraph
-% that contains them.
-\begin{equation*}
-    \pi_k^{(t)} = \mathbb{P}(\text{secondary event at $t+k$}\given\text{primary event at $t$, secondary event occurs}).
-\end{equation*}
-
-\noindent Throughout this work, we assume the delay distribution $\pi$ is the same over all time: $\pi_k^{(t)} =
-\pi_k$ for all $k$ and $t$.
-
-While the true delay distributions are generally unknown, several
-tools exist to estimate them 
-% Several tools exist to estimate delay distributions 
-from aggregate or line-list data \citep{delay_distrs}. 
-% For ease of analysis, we consider discrete
-% delay distributions, though continuous-time approaches are possible. 
-Similarly,
-we truncate the delay distribution at $d$ days, in essence assuming all
-secondary events occur within this period. Finally, we assume delay
-distributions are constant over time, and suppress the dependence on $t$ in the notation.
-% It is necessary to 
-
-The expected number of secondary events at any given day can be expressed in
-terms of historical primary incidence, severity rates, and the delay
-distribution \citep{fusedlasso,nishiura}. Defining $\E_t[\cdot] = \E[\cdot\vert X_{s\leq t}]$,
-%
-\begin{align}\label{eq:model}
-    \E_t[Y_t] &= \sum_{k=0}^d X_{t-k} \mathbb{P}(\text{secondary at $t$}\given\text{primary at }t-k) \nonumber \\ %\infty
-            &= \sum_{k=0}^d X_{t-k} \mathbb{P}(\text{secondary after $k$}\given\text{secondary occurs, primary at }t-k) \nonumber \\
-    &\qquad\qquad\qquad\qquad\times\mathbb{P}(\text{secondary occurs}\given\text{primary at $t-k$}) \nonumber \\
-    &= \sum_{k=0}^d X_{t-k} \pi_k p_{t-k}.%^{(t-k)}
+Alternative methods for estimating severity rates utilize a delay distribution,
+which relates the two time series. The delay distribution at time $t$ and lag
+$k$ is defined as: 
+\[
+\pi_k^{(t)} = \P(\text{secondary event at $t+k$} \given \text{primary event at
+  $t$, secondary event occurs}).  
+\]
+Throughout, we assume that the delay distribution has a finite support
+of $d$ time steps. We also assume the delay distribution is stationary:
+\smash{$\pi_k^{(t)} = \pi_k$} for all $k$ and $t$. (In reality, delay
+distributions may themselves be time-varying, and this creates its own set of
+challenges, which only exacerbate the ones we highlight in this paper for a
+fixed delay distribution.) While the delay distribution is generally unknown,
+several tools exist to estimate them from aggregate or line-list data (see
+\citealp{delay_distrs} for a nice review). Given $\pi$, we can express the
+expected number of secondary events at time $t$ as follows: 
+\begin{align}
+\E[Y_t \given X_{s\leq t}]
+&= \sum_{k=0}^d X_{t-k} \P(\text{secondary at $t$} \given \text{primary at
+  $t-k$}) \nonumber \\   
+&= \sum_{k=0}^d X_{t-k} \P(\text{secondary after $k$ time steps} \given
+  \text{secondary occurs, primary at $t-k$}) \nonumber \\
+&\hspace{200pt} \times\P(\text{secondary occurs} \given\text{primary at $t-k$})
+  \nonumber \\  
+\label{eq:model}
+&= \sum_{k=0}^d X_{t-k} \pi_k p_{t-k}.
 \end{align}
-% $$Y_t = \sum_{k=0}^d X_{t-k} \mathbb{P}(\text{die at $t$ }\vert\text{ hosp at }t-k) = \sum_{k=0}^d X_{t-k} \pi_k p_{t-k}.$$
-%
-This is a convolution of the delay distribution against the product of
-primary incidence and the severity rate. If the severity rate is a constant
-$p$, \eqref{eq:model} simplifies to $\E_t[Y_t] = p\sum_{k=0}^d X_{t-k}\pi_k$.
-\citet{nishiura} rearranged this expression to estimate this time-stationary rate.
-Using a plug-in estimate $\gamma$ of the delay distribution, and smoothing from time $t_0$ to $t$, they defined
-% Using observed counts $Y_t$ and a plug-in estimate of the delay distribution,
-% \citet{nishiura} proposed the following estimator to track a stationary
-% severity rate:
-%
-\begin{equation}\label{eq:nish}
-    \hat{p}_t = \frac{\sum_{s=t_0}^t Y_s}{\sum_{s=t_0}^t \sum_{k=0}^d X_{s-k}\gamma_k}.
+This is a convolution of the delay distribution against the product of primary
+incidence and the severity rate. If the severity rate remains constant, $p_{t-k}
+= p_t$ for all $k$ between $0$ and $d$, then the expression in \eqref{eq:model}
+simplifies to \smash{$\E[Y_t \given X_{s\leq t}] = p_t \sum_{k=0}^d X_{t-k}
+  \pi_k$}. As studied in \citet{UKpaper}, we can rearrange this relationship in 
+order to estimate the severity rate at $t$, after plugging-in an estimate
+$\gamma$ of the delay distribution $\pi$:   
+\begin{equation}
+\label{eq:conv}
+\hat{p}_t^\gamma = \frac{Y_t}{\sum_{k=0}^d X_{t-k} \gamma_k}.
 \end{equation}
-This estimator is widely used in practice \citep{nishiuraEx1, nishiuraEx2, Russell2020}. Assuming the true rate is indeed stationary and the delay distribution is correctly specified, it is unbiased. \citet{UKpaper} adapted \eqref{eq:nish} for the time-varying setting, using only the most recent counts:
-%daily rather than cumulative counts:
+We call this the \emph{convolutional ratio} estimator of the severity rate; in
+the notation here, the superscript in \smash{$\hat{p}_t^\gamma$} emphasizes that
+$\gamma$ is the distribution used in the definition of the estimator
+\eqref{eq:conv}. To reiterate, in moving from \eqref{eq:model} to
+\eqref{eq:conv}, we are implicitly assuming that the severity rate $p_t$ is
+constant over the interval of time from $t-d$ and $t$. Of course, this runs in
+contradiction to the fact that we are trying to estimate a time-varying severity
+rate in the first place. As we will see shortly, this can create significant
+bias in the convolutional ratio.  
 
-\begin{equation}\label{eq:conv}
-    \hat{p}_t^{\gamma} = \frac{Y_t}{\sum_{k=0}^d X_{t-k}\gamma_k}.%^{(t-k)}
+Some further comments are in order. The convolutional ratio has a longer history
+of study and use in the literature in the setting of estimating stationary
+severity rates. Indeed, \citet{nishiura} developed the estimator in this setting,
+and used it to study the CFR in the H1N1 Influenza pandemic of 2009. (The only
+difference to \eqref{eq:conv} is that in the stationary case both the numerator
+and denominator are aggregated over all past.) This estimator, which is also
+often called \emph{delay-adjusted} estimator of the severity rate, is popular
+both in the academic literature and in public health practice (e.g.,
+\citealp{nishiuraEx1, nishiuraEx2, Russell2020, Unnikrishnan2021}), although 
+arguably less popular than the lagged ratio. The R package \texttt{cfr}
+\citep{cfr_package} provides an implementation, for   
+both the stationary and time-varying cases. 
+
+Furthermore, we note that \eqref{eq:conv} can be seen as a generalization of the  
+lagged ratio estimator \eqref{eq:lagged}: when we take $\gamma$ to be a point
+mass at lag $\ell$, i.e., $\gamma_\ell = 1$ and $\gamma_k = 0$ for all $k \not=
+\ell$, then \eqref{eq:conv} reduces to \eqref{eq:lagged}.   
+
+\paragraph{Connection with reproduction numbers.} 
+
+Severity rates bear a natural connection with reproduction numbers. Both the
+true severity rate as defined in \eqref{eq:severity} and the case reproduction
+number $R_t$ are defined as the average number of secondary events produced by a
+single primary event at $t$, but in contrast to severity rates, reproduction
+numbers have infections as the primary and secondary events, where a single
+infection can produce more than one follow-on infection. Analogous to the delay
+distribution $\pi$ in our notation is the generation interval distribution in
+reproduction numbers, which measures the time in between primary and secondary
+infections. 
+
+Severity rates and reproduction numbers can also be estimated similarly. Because
+primary events at $t$ produce secondary events after $t$, their effect is not
+observed in real time. Therefore, standard real-time estimators for severity
+rates \eqref{eq:lagged}, \eqref{eq:conv} and for $R_t$ both analyze the number
+of  secondary events at $t$ produced by relevant primary events. In words, this 
+adopts a ``backwards-looking'' perspective (possible in real time), rather the 
+the ``foward-looking'' perspective inherent to the definition in
+\eqref{eq:severity}. 
+
+For reproduction numbers, the backwards-looking quantity has its own name:
+\emph{instantaneous} $R_t$, which is the average number of secondary infections
+at time $t$ produced by a single primary infection in the past. One of the most
+popular traditional estimators of instantaneous $R_t$ is based on an essentially 
+identical idea to the convolutional ratio \citep{fraser2007, wallinga2007how}: 
+\begin{equation}
+\label{eq:instRt}
+\hat{R}_t = \frac{I_t}{\sum_{k=1}^d I_{t-k} g_k}.
 \end{equation}
-
-% \djmcomment{What is $\gamma$ in the equation above? Is that $p$? It needs to be
-% defined here.} \jmgcomment{Addressed.}
-We refer to \ref{eq:conv} as the \textit{convolutional ratio}. 
-% The convolutional ratio \eqref{eq:conv} can be understood as a
-This estimator can be understood as a generalization of \eqref{eq:lagged}. 
-It reduces to the lagged ratio when ${\gamma}$ is a point-mass distribution 
-where all secondary events occur after $\ell$ days. 
-% They also are equivalent if primary events are constant.
-Otherwise, it may relate the two time series more accurately by means of a smooth delay distribution, since the true distribution is unlikely to be a point mass. 
-
-\citet{cfr_package} used the time-varying convolutional ratio to analyze changing COVID-19 CFRs in the UK. The authors implemented Equations~\eqref{eq:nish} and~\eqref{eq:conv} in the R package \texttt{cfr}, which is available on CRAN. In general, however, the lagged ratio is the more commonly used time-varying estimator.
-
-% Smoothed discussion had been here
-
-
-\paragraph{Connection with reproduction numbers.} Severity rates bear natural connections with reproduction numbers. Both the true
-severity rate as defined in \eqref{eq:severity} and the case
-reproduction number $R_t$ are defined as the average number of secondary events
-produced by a
-single primary event at $t$. In contrast to severity rates, reproduction numbers
-have infections as the primary and secondary events, where a single infection
-can generate more than one secondary event. Comparable to the delay distribution
-$\pi$ is the generation interval distribution $g$, measuring the time between primary and
-secondary infections. 
-
-% \djmcomment{My understanding is that the renewal equation
-% is actually the whole thing: $y_t = R_t\sum_{k=1}^\infty g_{k} y_{t-k}$. Maybe you
-% mean ``generation interval distribution $g$''?} \jmgcomment{Yes, good catch!}
-
-Severity rates and reproduction numbers are also estimated similarly. Because primary events at $t$ produce secondary events after $t$, their effect is not observed in real time. Therefore, standard real-time estimates for $R_t$ and severity rates (\ref{eq:lagged}, \ref{eq:conv}) analyze the number of secondary events at $t$ produced by relevant primary events. 
-For reproduction numbers, this is formally defined as instantaneous $R_t$, the average number of secondary infections at time $t$ produced by a single primary infection in the past. 
-
-Indeed, one of the most popular frameworks to estimate $R_t$ is based on an almost identical expression to the convolutional ratio \citep{fraser2007,wallinga2007how,cori2013new,rtestim}. This expression is a point estimate for instantaneous $R_t$ derived from the renewal equation:
-\begin{equation}\label{eq:instRt}
-    \hat{R}_t = \frac{I_t}{\sum_{k=1}^d I_{t-k}g_k}.
-\end{equation}
-
-The main difference between this ratio and \eqref{eq:conv} is that \eqref{eq:instRt} uses the same aggregate time series, infections, in both the numerator and denominator. In practice, $R_t$ is typically estimated in a Bayesian setting, with a posterior obtained from this transmission model. By contrast, the popular estimator from \citet{wallinga_teunis} is analogous to equation \eqref{eq:severity}, but requires data after time $t$.
+Here, $I_t$ denotes the number of new infections at $t$, and $g$ is the
+generation interval distribution. Note that the difference between
+\eqref{eq:instRt} and \eqref{eq:conv} is that the former uses the same aggregate
+time series, infections, in both the numerator and denominator. While more
+modern frameworks for estimating instantaneous $R_t$ are often Bayesian (e.g.,
+\citealp{cori2013new}), the underlying basic point estimates are still the same.
+% By contrast, the popular estimator from \citet{wallinga_teunis} is analogous
+% to equation \eqref{eq:severity}, but requires data after time $t$.    
 
 \subsection{Well-specified analysis}\label{sec:ws_analysis}
 
@@ -497,6 +518,8 @@ The NHCS curve is a useful benchmark to judge the fidelity of our HFR estimates.
 
 In this section, we explore the performance of the ratio estimators in greater depth. 
 We analyze HFR estimates on real data in Section~\ref{sec:results_real}, and simulated data in Section~\ref{sec:results_sim}. Throughout both, we continue to use aggregate hospitalization counts from HHS throughout the COVID-19 pandemic. 
+The code to reproduce all results in this paper is available at
+\url{https://github.com/jeremy-goldwasser/Severity-Bias}. 
 
 \subsection{COVID-19 data}\label{sec:results_real}
 
@@ -573,7 +596,7 @@ Lastly, we explained that $A_t^\ell>1$ after a fall in primary incidence. This a
 % This brings the lagged ratio closer to the true HFR. 
 % The opposite 
 
-% Analogously, the lagged bias is less \textit{positive} in February 2021 as hospitalizations fall. 
+% Analogously, the lagged bias is less \emph{positive} in February 2021 as hospitalizations fall. 
 % Here, $A_t^\ell < 1$ due to falling hospitalizations, so the additive term is negative. 
 
 \paragraph{}
@@ -583,7 +606,7 @@ We performed several robustness checks to assess the stability of these findings
 \subsection{Simulated data}\label{sec:results_sim}
 
 We further evaluated these methods in a variety of simulation settings. Given a series of time-varying HFRs $p_t$ and delay distribution $\pi$, deaths are defined without noise from \eqref{eq:model}:
-$$Y_t = \sum_{k=0}^d X_{t-k} \mathbb{P}(\text{die at $t$}\given\text{hosp at }t-k) = \sum_{k=0}^d X_{t-k} \pi_k p_{t-k}.$$
+$$Y_t = \sum_{k=0}^d X_{t-k} \P(\text{die at $t$}\given\text{hosp at }t-k) = \sum_{k=0}^d X_{t-k} \pi_k p_{t-k}.$$
 
 Like the experiments in Sections~\ref{sec:ws_analysis} and~\ref{sec:misp}, we
 used real-time HHS hospitalization counts. The simulations in this
@@ -708,7 +731,7 @@ Under-reporting is another central challenge, particularly for CFR.
 Not all infections are reported, reporting rates change across time, and severe
 cases are more likely to be reported than mild cases.
 \citet{reich2012estimating} proposed an estimator for a time-invariant
-\textit{relative} CFR --- the ratio of CFRs between groups --- that learns these
+\emph{relative} CFR --- the ratio of CFRs between groups --- that learns these
 latent reporting rates via the EM algorithm \citep{EM}. \citet{anastasios}
 applied this in the context of COVID-19, analyzing how the chosen delay
 distribution affects its results. The work also identifies other sources of bias, like
