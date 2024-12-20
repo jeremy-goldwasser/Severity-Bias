@@ -143,7 +143,6 @@ delayPlotFinal
 Example C: Primary incidence
 
 ```{r}
-
 max_obs <- max(hosps_window[est_idx]); min_obs <- min(hosps_window[est_idx])
 sigmoid <- function(x) {1/(1+exp(-x))}
 
@@ -182,10 +181,6 @@ hospPlot <- ggplot(df, aes(x = t, y = HFRs, linetype = HFR, color = Type)) +
         legend.margin = margin(t = -10),
         legend.box = "vertical") 
 
-hospPlot
-```
-
-```{r}
 dfHosp <- data.frame(t=rep(as.Date(names(hosps_window)[est_idx]), 3),
                       Hosp=c(hosps_window[est_idx], alt_hosps1[est_idx], alt_hosps2[est_idx]),
                       Type=factor(rep(types, each=length(est_idx)), levels=types))
@@ -205,6 +200,7 @@ hospPlotFinal
 ggsave(file.path(figure_folder, "Simulated", "toy_chging_primary.pdf"),
        plot = hospPlotFinal, device = "pdf", width = 7, height = 7)
 ```
+
 
 
 
