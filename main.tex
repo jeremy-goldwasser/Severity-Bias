@@ -68,8 +68,8 @@ assume they are constant in time \citep{ghani, jewell2007nonparametric,
 rates can occur in response to factors such as new therapeutics, vaccines, and
 variants \citep{nyt}. Time-varying severity rates are often estimated with a
 ratio of primary and secondary aggregate data streams. For example, aggregate 
-case and death counts were widely used to estimate and report COVID-19 CFRs, both
-in the academic literature \citep{yuan2020monitoring, timevar_ifr,
+case and death counts were widely used to estimate and report COVID-19 CFRs, 
+both in the academic literature \citep{yuan2020monitoring, timevar_ifr,
   horita2022global, LIU2023100350, germany} and also in major news outlets like
 The Atlantic \citep{atlantic} and The Wall Street Journal \citep{wsj}. In fact,
 ratio estimators are so common that CFR is often (mis)labeled the case-fatality
@@ -84,7 +84,7 @@ lagged ratio estimator, which divides values of two aggregate data streams. We
 validate these findings empirically, tracking the hospitalization-fatality rate
 (HFR) during COVID-19. The ratio estimators failed to quickly signal increased
 risk in the onset of the Delta wave; later, in the aftermath of the inital
-Omicron wave, they surged while the true HFRs fell. We provide heuristics for
+Omicron wave, they surged while the true HFR fell. We provide heuristics for
 when to expect this bias in practice, and discuss ideas for alternative
 methodology which may avoid it. 
 
@@ -214,10 +214,10 @@ true severity rate as defined in \eqref{eq:severity} and the case reproduction
 number $R_t$ are defined as the average number of secondary events produced by a
 single primary event at $t$, but in contrast to severity rates, reproduction
 numbers have infections as the primary and secondary events, where a single
-infection can produce more than one follow-on infection. Analogous to the delay
-distribution $\pi$ in our notation is the generation interval distribution in
-reproduction numbers, which measures the time in between primary and secondary
-infections. 
+infection can produce more than one follow-on infection. Playing the role of the
+delay distribution $\pi$ in our setting is the generation interval distribution
+in reproduction numbers, which measures the time in between primary and
+secondary infections.  
 
 Severity rates and reproduction numbers can also be estimated similarly. Because
 primary events at $t$ produce secondary events after $t$, their effect is not
@@ -248,8 +248,8 @@ modern frameworks for estimating instantaneous $R_t$ are often Bayesian (e.g.,
 
 \subsection{Well-specified analysis}\label{sec:ws_analysis}
 
-We now analyze the bias of the convolutional ratio \eqref{eq:conv} in what we
-call the \emph{well-specified} case, when the true delay distribution $\pi$ is
+First we analyze the bias of the convolutional ratio \eqref{eq:conv} in what we  
+call the \emph{well-specified} case, where the true delay distribution $\pi$ is 
 known. Formally, for an estimator \smash{$\hat{p}_t$} of $p_t$, we define its
 bias as     
 \[
@@ -258,9 +258,8 @@ bias as
 
 \begin{proposition}
 \label{prop:OracleBias}
-Assume that the true delay distribution $\pi$ is known and fixed over all time,  
-and all secondary events must occur within $d$ time steps. Then the bias of the 
-convolutional ratio \smash{$\hat{p}_t^\pi$} is 
+The bias of the convolutional ratio \smash{$\hat{p}_t^\pi$} (where the true
+delay distribution $\pi$ is known) is 
 \begin{equation}
 \label{eq:OracleBias}
 \bias(\hat{p}_t^\pi)  = \sum_{k=0}^d \Bigg[ \frac{X_{t-k}\pi_k}{\sum_{j=0}^d
@@ -268,17 +267,17 @@ convolutional ratio \smash{$\hat{p}_t^\pi$} is
 \end{equation}
 \end{proposition}
 The proof of Proposition \ref{prop:OracleBias} is elementary and given in
-Appendix \ref{apx:proofs}. The proposition reveals that the bias of the
+Appendix \ref{apx:OracleBias}. The bias \eqref{eq:OracleBias} of the
 convolutional ratio estimator of the severity rate depends on three factors,
-which we discuss next. Figure \ref{fig:bias_ex_main} provides an accompanying
-illustration.  
+which we discuss next. Figure \ref{fig:wellspecified} provides an accompanying
+illustration.     
 
 \begin{enumerate}
 \item \textbf{Changes in severity rate}. The central component of this bias
-  expression is the difference $p_{t-k}-p_t$. When the true severity rate is
-  constant over the $d$ preceding days, the convolutional ratio is unbiased
-  (because this difference is zero). This is in line with the motivation used to
-  derive this estimator, as explained in the last subsection. But when
+  expression is the difference $p_{t-k}-p_t$. When the severity rate is constant
+  over the $d$ preceding time points, the convolutional ratio is unbiased 
+  (because this difference is zero). This falls in line with the motivation used
+  to derive this estimator, as explained in the last subsection. But when 
   severity rates change before $t$, these difference terms will be nonzero, in
   which case the estimator will be generally biased. %\footnote{It is possible
    %that this estimator could still be unbiased in the unlikely event that
@@ -289,7 +288,7 @@ illustration.
 
   To make matters worse, the bias is in the opposite direction of the trend we 
   want to detect; for example, suppose the severity rate is monotonically
-  falling, with $p_t < p_{t-1} < \ldots < p_{t-d}$. The bias will then be
+  falling, with $p_t < p_{t-1} < \dots < p_{t-d}$. The bias will then be
   positive, meaning the ratio estimates do not decline with the true rate. In
   fact, the estimated severity may even rise, not fall. Conversely, when true
   severity rates are rising, the estimates will be too low. 
@@ -306,7 +305,7 @@ illustration.
 \item \textbf{The primary incidence curve.} Changing primary incidence $X_t$ 
   will also affect the bias, presuming the severity rate changes roughly 
   monotonically in the recent past. Intuitively, this up- or down-weights the
-  terms $X_{t-k}\pi_k(p_{t-k} - p_t)$ for dates further from the present, which 
+  terms $X_{t-k}\pi_k (p_{t-k} - p_t)$ at times further from the present, which  
   are likely to contribute the most bias. In general, falling primary incidences
   will amplify the bias, whereas rising events will minimize it. Figure
   \ref{fig:toy_primary} provides an illustration of this phenomenon.   
@@ -338,127 +337,173 @@ illustration.
   explained above on the bias \eqref{eq:OracleBias} in estimating the severity
   rate. We take the primary incidence curve to be COVID-19 hospital admissions,
   as reported to the HHS in early 2022. We then simulate a secondary incidence
-  curve, COVID-19 deaths, from \eqref{eq:model} without noise. The true HFR 
-  curve $p_t$ and delay distribution $\pi$ used in the simulation were ground
-  truth proxies derived from external data sources, as explained in more detail
-  in Section \ref{sec:setup}.}     
-  % , with
-  % NHCS HFRs and HHS hospitalizations during early 2022. 
-  % Panels \ref{fig:toy_hfr} and \ref{fig:toy_primary} 
-  % use the delay distribution
-  % estimated with JHU deaths (Section~\ref{sec:setup}).}
-\label{fig:bias_ex_main}
+  curve, COVID-19 deaths, from \eqref{eq:model} without noise. The underlying
+  HFR curve $p_t$ and delay distribution $\pi$ used in the simulation were
+  derived from external data sources, as explained in more detail in Section
+  \ref{sec:setup}.}      
+\label{fig:wellspecified}
 \end{figure}
       
 Appendix \ref{apx:analysis} provides further analysis, by discussing a
 simplified setting in which the bias \eqref{eq:OracleBias} described in
 Proposition \ref{prop:OracleBias} itself simplifies in elucidating ways.   
 
-\subsection{Misspecified analysis}\label{sec:misp}
+\subsection{Misspecified analysis}
+\label{sec:misp}
 
-The above section considered the bias of the convolutional ratio where the true delay distribution $\pi$ is known. We now consider the more general case, in which it is instead replaced with a plug-in estimate $\gamma$. Note the bias of the lagged estimator is a special case, where the plug-in distribution is a point mass at lag time $\ell$. 
+We now analyze the bias of the convolutional ratio \eqref{eq:conv} for an
+arbitrary distribution $\gamma$. Recall that $\pi$ denotes the true delay
+distribution in \eqref{eq:model}. We refer to the present as the
+\emph{misspecified} case, as $\gamma$ may be (arbitrarily) different from $\pi$.    
 
-\begin{proposition}\label{prop:MispBias}
-Assume that the true delay distribution $\pi$ is constant over time and that its maximal length $d$ exceeds that of the plug-in distribution $\gamma$. 
-Define $A_t^\gamma = \sum_{j=0}^d X_{t-j}\pi_j\, \big/\, \sum_{j=0}^d X_{t-j}\gamma_j$, which compares how the delay distributions convolve against the most recent primary incidence levels. The misspecified bias is
-% The bias of this misspecified estimator can be expressed additively in terms of the rescaled oracle bias plus a misspecification error term.
-
-\begin{equation*}
-          \bias\left(\hat{p}_t^\gamma\right) = A_t^\gamma\bias\left(\hat{p}_t^\pi\right) + p_t\big( A_t^\gamma-1\big).
-\end{equation*}
+\begin{proposition}
+\label{prop:MispBias}
+The bias of the convolutional ratio \smash{$\hat{p}_t^\gamma$} (where the true 
+delay distribution $\pi$ is unknown, and the working delay distribution $\gamma$
+is arbitrary, but also supported on $d$ time steps) is
+\begin{equation}
+\label{eq:MispBias}
+\bias(\hat{p}_t^\gamma) = A_t^\gamma \bias(\hat{p}_t^\pi) + p_t (A_t^\gamma-1),  
+\end{equation}
+where \smash{$A_t^\gamma = \sum_{j=0}^d X_{t-j}\pi_j \,\big/\, \sum_{j=0}^d 
+  X_{t-j} \gamma_j$}. This compares how the delay distributions convolve against  
+the most recent primary incidence levels. 
 \end{proposition}
 
-For the lagged estimator, \eqref{prop:MispBias} becomes
-\begin{equation}\label{eq:LagBias}
-         \bias\left(\hat{p}_t^\ell\right) = \frac{\sum_{j=0}^d X_{t-j}\pi_j}{X_{t-\ell}}\bias\left(\hat{p}_t^\pi\right) + p_t\left( \frac{\sum_{k=0}^d X_{t-k}\pi_k}{X_{t-\ell}}-1\right).
+The proof of Proposition \ref{prop:MispBias} is again elementary, and given in 
+Appendix \ref{apx:MispBias}. Under misspecification, the proposition gives an
+additive decomposition \eqref{eq:MispBias} of the convolutional ratio bias,
+based on the well-specified bias \smash{$\bias(\hat{p}_t^\pi)$} (as studied in
+Proposition \ref{prop:OracleBias}), and a misspecification factor
+\smash{$A_t^\gamma$}. At the outset, we note that if $\pi = \gamma$ (no  
+misspecification), we have \smash{$A_t^\gamma = 1$}, and \eqref{eq:MispBias}
+reduces to the well-specified bias. Generally, values of \smash{$A_t^\gamma >
+  1$} amplify the oracle bias and add positive misspecification bias \smash{$p_t
+  (A_t^\gamma-1) > 0$}; meanwhile, values of \smash{$A_t^\gamma < 1$} shrink the
+oracle bias and add negative misspecification bias \smash{$p_t (A_t^\gamma-1) <
+  0$}. 
+
+Whether or not misspecification contributes a larger magnitude of bias overall
+hence depends on whether or not the sign of the misspecification term \smash{$p_t 
+  (A_t^\gamma-1)$} agrees with the sign of the oracle bias
+\smash{$\bias(\hat{p}_t^\pi)$}. This need not always be the case, though in our
+experience, it is often true in both real and simulated experiments, as we will
+see in Section \ref{sec:results}. Here, to gain more insight, we study the
+behavior of the bias in three settings: 
+\begin{enumerate} 
+\item Smooth $\gamma$ with a lighter tail and smaller mean than $\pi$ (more mass
+  concentrated at recent time points).    
+\item Smooth $\gamma$ with a heavier tail and larger mean than $\pi$ (less mass
+  concentrated at recent time points).    
+\item Nonsmooth $\gamma$, with a point mass at lag $\ell$; we reiterate that in 
+  this case the convolutional ratio reduces to the lagged ratio
+  \smash{$\hat{p}_t^\ell$} in \eqref{eq:lagged}. We also note that its
+  misspecification factor \smash{$A_t^\gamma$} reduces to a quantity we
+  similarly denote \smash{$A_t^\ell = \sum_{j=0}^d X_{t-j}\pi_j \,\big/\,
+    X_{t-\ell}$}, and its bias \eqref{eq:MispBias} reduces to 
+  \begin{equation}
+  \label{eq:LagBias}
+  \bias(\hat{p}_t^\ell) = \frac{\sum_{j=0}^d X_{t-j}\pi_j}{X_{t-\ell}}
+  \bias(\hat{p}_t^\pi) + p_t\bigg (\frac{\sum_{k=0}^d
+    X_{t-k}\pi_k}{X_{t-\ell}} - 1 \bigg). 
 \end{equation}
-
-Proposition \ref{prop:MispBias}, proven in Appendix~\ref{apx:proofs}, provides an
-additive decomposition of the misspecified ratio's bias. The first term scales the oracle bias, whereas the other solely expresses misspecification.  
-In both terms, $A_t^\gamma$ dictates the extent to which the misspecified distribution alters the bias. 
-This term expresses how the delay distributions convolve against the primary incidence curve. 
-When $A_t^\gamma=1$, the bias reduces to the oracle case. Values of $A_t^\gamma$ > 1 will amplify the oracle bias and add positive misspecification bias. 
-Otherwise, $A_t^\gamma<1$ shrinks the oracle bias and adds negative misspecification bias.
-
-Curves with $A_t^\gamma>1$ tend to have more positive bias than the oracle ratio, while $A_t^\gamma<1$ contributes negative bias (Figure \ref{fig:misspecified}, \ref{fig:sims}). 
-The rescaled oracle and misspecification terms move together when oracle bias is positive. 
-In theory, they are at odds with one another when oracle bias is negative. For example, $A_t^\gamma>1$ draws oracle bias further below 0, while adding positive misspecification error. 
-% This occurs even when the rescaled oracle and misspecification terms are at odds with one another. For example, $A_t^\gamma<1$ pulls negative oracle bias upwards towards 0, while adding negative misspecification error. 
-However, the misspecification term consistently wins out when this occurs in our experiments. Section~\ref{sec:results_sim} discusses this and other empirical findings in greater depth.
-
-% This occurs even when the oracle bias and misspecification terms have different signs. 
-% Whenever the oracle bias is positive, for example, 
-% If oracle bias is relatively small, then its multiplicative scaling should have
-% relatively little effect, in which case the misspecification term may drive
-% bias.
-
-We detail the behavior of $A_t^\gamma$ in common settings of interest, under three standard delay distributions.
-\begin{enumerate}
-    \item Smooth delay distribution with a lighter tail than the true distribution $\pi$, and more mass concentrated at recent dates.
-    \item Smooth delay distribution with a heavier tail and lower mean than $\pi$. 
-    \item Lagged delay distribution, a point mass at $\ell$. We refer to its ratio $A_t^\gamma$ as $A_t^\ell$.  Let $\ell$ be near the mean of $\pi$.
 \end{enumerate}
 
+We discuss the behavior of the bias in these three settings, as a function of
+the primary incidence curve (which drives bias through the misspecification
+factor \smash{$A_t^\gamma$}). Figure \ref{fig:misspecified} provides an
+accompanying illustration.
+
 \paragraph{Primary incidence rising.} 
-Consider the case where primary events are rising --- first slowly, then rapidly before leveling off. A light-tailed $\gamma$ will place more weight on recent dates with high counts than $\pi$. Then $\sum_{j=0}^d X_{t-j}\gamma_j > \sum_{j=0}^d X_{t-j}\pi_j$, so $A_t^\gamma < 1$. The opposite occurs for heavy-tailed $\gamma$. Relative to $\pi$, $\gamma$ convolves with more weight on the distant low-count dates, and less on the ongoing surge. This trend holds from the beginning of the wave through its peak.
 
-% The plug-in distribution $\gamma_k=\mathds{1}\{k=\ell\}$ does not always mirror the same smooth delay distribution. 
-The plug-in distribution $\gamma_k=\mathds{1}\{k=\ell\}$ convolves all its mass at $X_{t-\ell}$. 
-During the steepest phase of the rise, this is considerably lower than $X_{t}$. %$X_{t-\ell}$
-In contrast, $\pi$ distributes mass across the $d$ trailing dates. Roughly half of its mass convolves the last $\ell$ days, whose counts exceed $X_{t-\ell}$. 
-The dates before $t-\ell$ have less of an offsetting effect, since incidence has risen at a growing rate. Therefore $\sum_{j=0}^d X_{t-j}\gamma_j > X_{t-\ell}$, so $A_t^\ell>1$.
+Consider the case where primary events are rising---first slowly, then rapidly
+before leveling off. A lighter-tailed $\gamma$ will place more weight
+on recent time points, with higher counts, than $\pi$; thus \smash{$\sum_{j=0}^d  
+  X_{t-j}\gamma_j > \sum_{j=0}^d X_{t-j}\pi_j$}, so \smash{$A_t^\gamma <
+  1$}. The opposite occurs for a heavier-tailed $\gamma$: this
+places more weight on distant low-count time points and less on the ongoing
+surge, so \smash{$A_t^\gamma > 1$}. A point mass distribution $\gamma$ places
+all of its mass on $X_{t-\ell}$, and during the steepest phase of the rise, this
+is considerably less than $X_t$. The true delay $\pi$ distributes mass across
+the  $d$ most recent time points, and a large fraction of its mass will be
+convolved against the last $\ell-1$ time points, whose counts exceed
+$X_{t-\ell}$. The times before $t-\ell$ have less of an offsetting effect, 
+because incidence has risen at a  growing rate. Hence, during a surge we will 
+see \smash{$X_{t-\ell} < \sum_{j=0}^d X_{t-j}\pi_j$}, and \smash{$A_t^\ell >
+  1$}. However, the behavior of \smash{$A_t^\ell$} will be generally more
+erratic than \smash{$A_t^\gamma$} for a smooth distribution $\gamma$, as the
+denominator in the former is less smooth as $t$ varies. 
 
-Figure \ref{fig:misspecified} visualizes this on simulated deaths as hospitalizations rise between December 2021 and mid-January 2022. 
-% Throughout the entire rise, $A_t^\gamma$ is above or below 1 for smooth $\gamma$. 
-Throughout the entire rise, $A_t^\gamma$ is below 1 for the light-tailed distribution, and above 1 with the heavy tail.
-Meanwhile, $A_t^\ell$ spikes to 1.2 during the quick rise in the first half of January.
-This corresponds to the lagged HFR rising to 20\%, while the true HFRs fall to 15\%. 
+Figure \ref{fig:misspecified} visualizes this as hopitalizations (primary
+events) rise between December 2021 and mid-January 2022. Throughout this period
+\smash{$A_t^\gamma$} is below/above 1 for the light-tailed/heavy-tailed
+$\gamma$. Meanwhile, \smash{$A_t^\ell$} spikes to 1.25 in early January.  
+Correspondly, the lagged HFR rises to 20\% when the true one drops to 15\%.    
 
-\paragraph{Primary incidence begins falling.}
-Next, assume primary incidence reaches a maximum and begins to fall. The smooth distributions behave much the same as when incidence was rising. The lower-mean distribution has more mass around the peak than $\pi$, so $A_t^\gamma < 1$. Conversely, $A_t^\gamma>1$ for the heavier-tail distribution because it convolves more mass before the top of the rise.
-
-The lagged bias changes its behavior in this period. While $A_t^\ell$ had exceeded 1 before the peak, it quickly plunges below 1. 
-In fact, $\ell$ days after the peak, the lagged estimator attains the smallest possible value of $A_t^\gamma$, since $X_{t-\ell}$ maximizes its denominator $\sum_{j=0}^d X_{t-j}\gamma_j$. 
-
-In general, $A_t^\gamma$ is most extreme when $\gamma$ is a point-mass distribution at the maximal or minimal value of $X_{t-d}, \ldots, X_t$. This inevitably occurs with the lagged estimator as its convolution sweeps across the primary incidence curve. The convolutional ratios do not reach such extremes by nature of their smooth delay distributions. Hence, the lagged ratio is likely to have larger fluctuations of $A_t^\ell$, and thus higher bias.
-In some settings, it may even attain the worst-case delay distribution in Proposition~\ref{prop:MispBias}. 
-
-In Figure \ref{fig:misspecified}, $A_t^\ell$ reaches 0.8 around the beginning of February 2022. This is precisely $\ell=16$ days after daily new hospitalizations peak above 20,000 in mid-January. The lagged ratio falls accordingly from 20\% to 13\%, with the true HFRs remaining roughly constant at 15\%. In the same period, the misspecified convolutional ratios stay within 2\% of the true HFR.
-
-\paragraph{Primary incidence levels out from a fall.}
-The most jarring instance of misspecification bias occurs as primary incidence continues to fall, then levels out. By construction, the true delay distribution has a heavier tail than the low-mean, light-tailed distribution. It also has a heavier tail than the lagged point mass, which has no tail at all. This has important implications as the peak of the surge fades into the past, and primary incidence levels out. Compared to $\pi$, the light-tailed and lagged distribution convolve little to no mass with the high-count period of the surge. As a result, $A_t^\gamma$ and $A_t^\ell$ both rise above 1. The magnitude of the spike depends on the size of the change in primary incidence.
-
-Figure \ref{fig:misspecified} displays this false spike. Around late March 2022, $A_t^\gamma$ and $A_t^\ell$ reach a maximum near 1.2 and 1.5, respectively. Their corresponding HFRs reach 18\% and 22\% while the true HFR is only 15\%. 
-
-The opposite trend occurs for the heavier-tailed delay distribution. More of its mass convolves with the top of the surge than $\pi$, so its $A_t^\gamma<1$. Figure \ref{fig:misspecified} shows it minimizing at 0.8 in April 2022. Its convolutional ratio has about 2\% lower HFR than the oracle curve.
-
-\paragraph{}
-
-\begin{figure}
-    \centering
-    \includegraphics[width=.8\linewidth]{Figures/Simulated/toy_misp.pdf}
-    \caption{HFR estimates under misspecification. HHS hospitalizations, NHCS HFRs, and noiseless deaths from \eqref{eq:model} (Section~\ref{sec:setup}). True delay distribution is gamma with mean of 20 days. 
-    Convolutional ratio estimates use oracle delay distribution, misshapen gammas (mean 16 and 24), and point mass at correlation-maximizing lag (16).}%(i.e. lag) at oracle mean
-    \label{fig:misspecified}
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\linewidth]{Figures/Simulated/toy_misp.pdf}
+\caption{Examples of convoluational ratio estimates under misspecification. As
+  in Figure \ref{fig:wellspecified}, the primary events are COVID-19
+  hospitalizations, as reported to the HHS, and secondary events are deaths
+  simulated noiselessly from \eqref{eq:model}. The underlying HFR curve $p_t$
+  and delay distribution $\pi$ used in the simulation were fit using external
+  data sources detailed shortly in Section \ref{sec:setup}. The lagged ratio
+  estimator used $\ell=16$, chosen to maximize cross-correlation (between
+  hospitalizations and deaths).} 
+\label{fig:misspecified}
 \end{figure}
 
+\paragraph{Primary incidence falling.}
 
-\subsection{Experimental setup}\label{sec:setup}
-% \djmcomment{I wonder if it wouldn't be better to put this section (2.1) as the last section before you move to Results rather than the first?}
-% \jmgcomment{Tricky. I had originally had it there, but Addison argued the opposite: The analysis has 2 figures that use this data, so it makes sense to introduce earlier. I could go either way.}
-\jmgcomment{Should it be its own whole section?}
-% \djmcomment{References. I personally try to use the \texttt{cleveref} package so
-% that I can write something like ``In \textbackslash cref$\{$sec:blah$\}$\ldots''
-% which gets typeset as ``In Section 3\ldots''. You can use \textbackslash
-% autoref$\{$sec:blah$\}$ (part of \texttt{hyperref} that you're already using) to get
-% similar results, though it is a bit more fragile. Feel free to do neither.
-% However, 2 things that I think are important: (1) you should do
-% Section$\sim$\textbackslash ref\{sec:blah\} with the tilde to make sure that
-% references don't get split across lines; (2) equations should be written as
-% either Equation$\sim$\textbackslash eqref$\{$eq:3$\}$ or Eq.$\sim$\textbackslash
-% eqref\{eq:3\} rather than just \textbackslash eqref\{eq:3\}. Some journals
-% require one or the other, and I don't really have a preference, as long as it's
-% consistent.}
+Next assume primary incidence reaches a maximum and begins to fall. The smooth
+distributions behave much the same as when incidence was rising. The light-tailed
+distribution has more mass around the peak than $\pi$, so \smash{$A_t^\gamma < 
+1$}. Conversely, \smash{$A_t^\gamma > 1$} for the heavier-tail distribution
+because it convolves more mass before the top of the rise. The lagged bias
+changes its behavior in this period; while \smash{$A_t^\ell$} had exceeded 1
+before the peak, it quickly plunges below 1. Exactly $\ell$ time points after 
+the peak, the lagged estimator attains the smallest possible value of
+\smash{$A_t^\ell$}, as $X_{t-\ell}$ maximizes its denominator. Again, the
+lagged ratio is likely to have larger fluctuations of \smash{$A_t^\ell$},
+since its denominator reaches extremes that are not witnessed in
+\smash{$A_t^\gamma$} (the convolution in the denominator of 
+\smash{$A_t^\gamma$} acts as a smoother).   
+
+In Figure \ref{fig:misspecified}, we can see \smash{$A_t^\ell$} drop below 0.8
+near the start of February 2022; this happens precisely $\ell=16$ days after
+daily new hospitalizations peak above 20,000 in mid-January. The lagged 
+ratio falls from 20\% to 12.5\% accordingly, with the true HFRs remaining
+roughly constant around 15\%. In the same period, the convolutional ratios
+(with light- or heavy-tailed $\gamma$) stay quite close to the true HFR.  
+
+\paragraph{Primary incidence levels out from a fall.}
+
+The most jarring instance of misspecification bias occurs as primary incidence
+levels out. The true delay distribution $\pi$ has a heavier tail than the
+low-mean, light-tailed distribution $\gamma$. It also has a heavier tail than
+the point mass distribution, which has no tail at all. This has important
+implications as the peak of the surge fades into the past. Compared to $\pi$,
+the light-tailed $\gamma$ and point mass distribution convolve little to no mass
+with the high-count period of the wave. As a result, both \smash{$A_t^\gamma$}  
+and \smash{$A_t^\ell$} rise above 1, and severity rate estimates spike. The
+magnitude of this spike depends how quickly primary incidence is changing. 
+
+Figure \ref{fig:misspecified} displays this false spike. Around the start of April 2022,
+we see \smash{$A_t^\gamma$} (for light-tailed $\gamma$) and $A_t^\ell$ reach 
+maximums near 1.25 and 1.68, respectively. Their corresponding HFR estimates reach
+18\% and 25\% while the true HFR has fallen below 14\%. This is of course highly 
+problematic as it signals a rise in severity at a very counterintuitive time,
+when hospitalizations are at their lowest. The heavy-tailed delay $\gamma$ has
+the opposite trend and underestimates the true HFR at this time, but by a
+smaller amount. 
+
+\subsection{Experimental setup}
+\label{sec:setup}
+
+Here we describe the data and general experimental setup used in Figures
+\ref{fig:wellspecified} and \ref{fig:misspecified}, and in Section
+\ref{sec:results}.    
 
 \paragraph{Hospitalization-fatality rate.}
 Our experiments analyze the HFR throughout COVID-19. 
@@ -761,26 +806,31 @@ Future work along the lines of \citet{rt_study} could apply our analytical frame
 \bibliographystyle{apalike}
 \bibliography{refs}
 
-\pagebreak
+\clearpage
 \appendix
-\section{Bias Proofs}\label{apx:proofs}
 
-% \subsection{Bias Proof}s
-We first prove Proposition \ref{prop:OracleBias}, the bias of the oracle convolutional ratio. 
-\begin{proof}
+\section{Proofs and further analysis}
+\label{apx:proofs}
+
+\subsection{Proof of Proposition \ref{prop:OracleBias}}
+\label{apx:OracleBias}
+
+Here and henceforth, we abbreviate \smash{$\E_t[\cdot] = \E[\cdot \given
+  \{X_s\}_{s\leq t}]$}. Observe that
     \begin{align*}%\label{eq:OracleBias}
     \text{Bias}(\hat{p}_t^\pi) &= \E_t[\hat{p}_t^\pi] - p_t \\
     &= \frac{\E_t[Y_t]}{\sum_{k=0}^d X_{t-k}\pi_k} - p_t \\ 
     &= \frac{\sum_{k=0}^d X_{t-k}\pi_k p_{t-k}}{\sum_{k=0}^d X_{t-k}\pi_k} - \frac{p_t \sum_{k=0}^d X_{t-k}\pi_k}{\sum_{k=0}^d X_{t-k}\pi_k}\\
     &= \sum_{k=0}^d \frac{X_{t-k}\pi_k}{\sum_{j=0}^d X_{t-j}\pi_j} (p_{t-k}-p_t).
 \end{align*}
-\end{proof}
 The well-specified bias can be understood as a weighted average of $\{p_{t-k}-p_t\}_{k=0}^d$. The attainable absolute bias ranges between $\min_{k=0, \dotsc, d} |p_{t-k}-p_t| = 0$, achieved by $k=0$, and $\max_{k=0, \dotsc, d} |p_{t-k}-p_t|$. This maximal bias is achieved by setting one of the weights
 $X_{t-k}\pi_k/(\sum_{j=0}^d X_{t-j}\pi_j)$ to 1 and the rest to zero,
 either through the delay distribution $\pi$ or through the primary incidence curve $X$. Hence, the explanations for delay distribution and primary incidence are aligned: They inflate the bias by upweighting distant timepoints for which the severity rate was different. If severity rates are monotonically changing, for example, then the maximal bias occurs at $k=d$. 
 
-Next, we prove the bias expression under misspecified delay distribution (Proposition \ref{prop:MispBias}). 
-\begin{proof}
+\subsection{Proof of Proposition \ref{prop:MispBias}}
+\label{apx:MispBias}
+
+Observe that
     \begin{align*}
     \text{Bias}(\hat{p}_t^\gamma) &= \frac{\E_t[Y_t]}{\sum_{k=0}^d X_{t-k}\gamma_k} - p_t \\
     &= \frac{\sum_{k=0}^d X_{t-k}\pi_k p_{t-k}}{\sum_{k=0}^d X_{t-k}\gamma_k} - \frac{\sum_{k=0}^d X_{t-k}\gamma_k p_t}{\sum_{k=0}^d X_{t-k}\gamma_k} \\
@@ -790,7 +840,57 @@ Next, we prove the bias expression under misspecified delay distribution (Propos
      &\qquad\qquad p_t\sum_{k=0}^d \frac{X_{t-k}}{\sum_{j=0}^d X_{t-j}\gamma_j}(\gamma_k -\pi_k)  \\
      &= \frac{\sum_{j=0}^d X_{t-j}\pi_j}{\sum_{j=0}^d X_{t-j}\gamma_j}\text{Bias}(\hat{p}_t^\pi) + p_t\Big[ \frac{\sum_{k=0}^d X_{t-k}\pi_k}{\sum_{j=0}^d X_{t-j}\gamma_j}-1\Big]
 \end{align*}
-\end{proof}
+
+\subsection{Further analysis of \eqref{eq:OracleBias}}
+\label{apx:analysis}
+
+In this section, we present examples that further explain the well-specified bias. These are more contrived that the ones in Section~\ref{sec:ws_analysis}, for example using unrealistic delay distributions. Nevertheless, their bias can be simplified to simple analytic formulas, isolating the three contributing factors.
+% In contrast to the examples in~\ref{sec:ws_analysis}, the ones here use contrived delay distributions and
+
+\begin{figure}
+     \centering
+     \begin{subfigure}[b]{0.45\linewidth}
+         \centering
+         \includegraphics[width=\linewidth]{Figures/Simulated/sim_onehot.pdf}
+         \caption{All deaths after $\ell$ days. HFR ratios equivalent; plotting delays of $\ell=14$ and 28 days.}
+         \label{fig:onehot}
+     \end{subfigure}
+     \hfill
+     \begin{subfigure}[b]{0.45\linewidth}
+         \centering
+         \includegraphics[width=\linewidth]{Figures/Simulated/sim_chging_primary.pdf}
+         \caption{Changing primary incidence. Plotting bias of lagged and convolutional ratios.}
+         \label{fig:chging_primary}
+     \end{subfigure}
+        \caption{Toy examples of biased severity rates.}
+        \label{fig:bias_ex}
+\end{figure}
+
+
+To elucidate the relationship between changing severity rates and the ratio estimators' bias, consider the trivial case where all secondary events occur after exactly $\ell$ days with no noise. By definition, $\pi_k = \mathds{1}\{k=\ell\}$, so the convolutional and lagged ratios are both $\hat{p}_t = \frac{X_{t-\ell}p_{t-\ell}}{X_{t-\ell}} = p_{t-\ell}$ presuming both have access to the oracle delay distribution. Figure \ref{fig:onehot} displays this with the approximate ground truth HFRs from NHCS. 
+
+In this case, the bias is the change in the true severity rate $p_{t-\ell} - p_t$. The estimator is unbiased only when the severity rate is stationary. Otherwise, for example, the ratio will be 20\% too low if the true severity rate was 20\% lower $\ell$ days ago. 
+
+Intuitively, severity rates may be less similar to the present value $p_t$ further back in time. In this simple example, the bias $p_{t-\ell}-p_t$ is generally larger when $\ell=28$ than $\ell=14$ (Fig \ref{fig:onehot}). This expresses the observation that estimates with heavier-tailed delay distributions tend to have more bias. 
+
+Section~\ref{sec:ws_analysis} claims that changes in primary incidence levels affect the magnitude of bias for the convolutional ratio. Here, we present simple examples that formalize this claim. First assume primary incidence is constant, in which case the convolutional and lagged ratios are equal. The time series factors neatly out of the bias expression  Proposition \ref{prop:OracleBias}:
+$$\text{Bias}(\hat{p}_t^{\gamma}) = \text{Bias}(\hat{p}_t^\ell) = \Big(\sum_{k=0}^d \pi_k p_{t-k}\Big)-p_t.$$
+\noindent This is the difference between a weighted average of previous severity rates and the present. Weights for the historical rates are given by the delay distribution, providing further justification for its central role in the bias. 
+
+Next, suppose half of the secondary events occur immediately after the primary event ($t=0$), and the other half after $d$ days. Further assume $p_{t-d}\neq p_t$, so there is some degree of bias. Then
+\begin{align*}
+    \lvert\text{Bias}(\hat{p}_t^{\gamma})\rvert &= \frac{\frac{1}{2}\big\lvert X_{t}(p_t-p_t) + X_{t-d}(p_{t-d}-p_t)\big\rvert}{\frac{1}{2}(X_{t}+X_{t-d})} \\
+    &=\frac{X_{t-d}\lvert p_{t-d}-p_t\rvert}{X_{t-d}(1+\frac{X_{t}}{X_{t-d}})} = \frac{\lvert p_{t-d}-p_t \rvert}{1+\frac{X_{t}}{X_{t-d}}}
+\end{align*}
+
+The absolute bias is monotonically decreasing in $\frac{X_{t}}{X_{t-d}}$, the proportion change in primary incidence. Rising primary incidence ($\frac{X_{t}}{X_{t-d}}>1)$ yields less bias, while falling levels yield more.
+
+Figure \ref{fig:chging_primary} displays this setting. Hospitalizations are defined as $X = \sigma(s)*9000+1000$, where $\sigma$ is the sigmoid function and $s$ takes 300 evenly spaced steps from -9 to 7. The true HFRs fall from 0.5 to 0 over the same number of even steps. Indeed, the convolutional ratio's bias dips as hospitalizations rise, and rises as they fall. 
+
+The figure also plots with lagged ratio with $\ell=\frac{d}{2}$, the mean of the delay distribution. When daily hospitalizations are close to constant, the two estimators converge towards the same ratio. During periods of change, however, the lagged estimator has different bias. It first moves upwards --- the opposite direction as the convolutional bias --- with far greater magnitude. This can be explained by the ratio $A_t^\ell = \frac{X_{t-2\ell}+X_t}{2X_{t-\ell}}$ from Proposition \ref{prop:MispBias}. As hospitalizations begin to steeply rise, $X_{t-2\ell}$ and $X_{t-\ell}$ are similar, but $X_t > X_{t-\ell}$. Hence, $A_t^\ell>1$, contributing positive bias to both the oracle and misspecification terms. As hospitalizations level out near the top, $A_t^\ell < 1$, hence the bias falling lower. The opposite pattern occurs as hospitalizations fall. 
+
+% Since the convolutional ratio uses the true delay distribution, it has oracle bias in Proposition \ref{prop:MispBias}. The lagged ratio has lag at the mean of the delay distribution, $\ell=\frac{d}{2}$. Its behavior can be explained by the ratio $A_t^\ell = \frac{X_{t-2\ell}+X_t}{2X_{t-\ell}}$. As hospitalizations begin to steeply rise, $X_{t-2\ell}$ and $X_{t-\ell}$ are similar, but $X_t > X_{t-\ell}$. Therefore $A_t^\ell>1$, inflating the positive oracle bias term and adding misspecification bias. As hospitalizations level out near the top, $A_t^\ell < 1$, hence the bias falling lower. The opposite pattern occurs as hospitalizations fall. 
+
 
 
 \section{Alternative data sources}
@@ -945,54 +1045,5 @@ Several states have similar biases as the US results (Fig. \ref{fig:basic_est_vs
 \end{figure}
 
 Figure \ref{fig:sims_mean_lag} presents the simulation results from Section~\ref{sec:results_sim} when the lag is the mean of the delay distribution. It clearly indicates the lagged ratio is not markedly better under this lag. This is in step with Figure \ref{fig:lag}, which demonstrated that its performance on real data are robust to choice of lag.
-
-\subsection{Further analysis}\label{apx:analysis}
-In this section, we present examples that further explain the well-specified bias. These are more contrived that the ones in Section~\ref{sec:ws_analysis}, for example using unrealistic delay distributions. Nevertheless, their bias can be simplified to simple analytic formulas, isolating the three contributing factors.
-% In contrast to the examples in~\ref{sec:ws_analysis}, the ones here use contrived delay distributions and
-
-\begin{figure}
-     \centering
-     \begin{subfigure}[b]{0.45\linewidth}
-         \centering
-         \includegraphics[width=\linewidth]{Figures/Simulated/sim_onehot.pdf}
-         \caption{All deaths after $\ell$ days. HFR ratios equivalent; plotting delays of $\ell=14$ and 28 days.}
-         \label{fig:onehot}
-     \end{subfigure}
-     \hfill
-     \begin{subfigure}[b]{0.45\linewidth}
-         \centering
-         \includegraphics[width=\linewidth]{Figures/Simulated/sim_chging_primary.pdf}
-         \caption{Changing primary incidence. Plotting bias of lagged and convolutional ratios.}
-         \label{fig:chging_primary}
-     \end{subfigure}
-        \caption{Toy examples of biased severity rates.}
-        \label{fig:bias_ex}
-\end{figure}
-
-
-To elucidate the relationship between changing severity rates and the ratio estimators' bias, consider the trivial case where all secondary events occur after exactly $\ell$ days with no noise. By definition, $\pi_k = \mathds{1}\{k=\ell\}$, so the convolutional and lagged ratios are both $\hat{p}_t = \frac{X_{t-\ell}p_{t-\ell}}{X_{t-\ell}} = p_{t-\ell}$ presuming both have access to the oracle delay distribution. Figure \ref{fig:onehot} displays this with the approximate ground truth HFRs from NHCS. 
-
-In this case, the bias is the change in the true severity rate $p_{t-\ell} - p_t$. The estimator is unbiased only when the severity rate is stationary. Otherwise, for example, the ratio will be 20\% too low if the true severity rate was 20\% lower $\ell$ days ago. 
-
-Intuitively, severity rates may be less similar to the present value $p_t$ further back in time. In this simple example, the bias $p_{t-\ell}-p_t$ is generally larger when $\ell=28$ than $\ell=14$ (Fig \ref{fig:onehot}). This expresses the observation that estimates with heavier-tailed delay distributions tend to have more bias. 
-
-Section~\ref{sec:ws_analysis} claims that changes in primary incidence levels affect the magnitude of bias for the convolutional ratio. Here, we present simple examples that formalize this claim. First assume primary incidence is constant, in which case the convolutional and lagged ratios are equal. The time series factors neatly out of the bias expression  Proposition \ref{prop:OracleBias}:
-$$\text{Bias}(\hat{p}_t^{\gamma}) = \text{Bias}(\hat{p}_t^\ell) = \Big(\sum_{k=0}^d \pi_k p_{t-k}\Big)-p_t.$$
-\noindent This is the difference between a weighted average of previous severity rates and the present. Weights for the historical rates are given by the delay distribution, providing further justification for its central role in the bias. 
-
-Next, suppose half of the secondary events occur immediately after the primary event ($t=0$), and the other half after $d$ days. Further assume $p_{t-d}\neq p_t$, so there is some degree of bias. Then
-\begin{align*}
-    \lvert\text{Bias}(\hat{p}_t^{\gamma})\rvert &= \frac{\frac{1}{2}\big\lvert X_{t}(p_t-p_t) + X_{t-d}(p_{t-d}-p_t)\big\rvert}{\frac{1}{2}(X_{t}+X_{t-d})} \\
-    &=\frac{X_{t-d}\lvert p_{t-d}-p_t\rvert}{X_{t-d}(1+\frac{X_{t}}{X_{t-d}})} = \frac{\lvert p_{t-d}-p_t \rvert}{1+\frac{X_{t}}{X_{t-d}}}
-\end{align*}
-
-The absolute bias is monotonically decreasing in $\frac{X_{t}}{X_{t-d}}$, the proportion change in primary incidence. Rising primary incidence ($\frac{X_{t}}{X_{t-d}}>1)$ yields less bias, while falling levels yield more.
-
-Figure \ref{fig:chging_primary} displays this setting. Hospitalizations are defined as $X = \sigma(s)*9000+1000$, where $\sigma$ is the sigmoid function and $s$ takes 300 evenly spaced steps from -9 to 7. The true HFRs fall from 0.5 to 0 over the same number of even steps. Indeed, the convolutional ratio's bias dips as hospitalizations rise, and rises as they fall. 
-
-The figure also plots with lagged ratio with $\ell=\frac{d}{2}$, the mean of the delay distribution. When daily hospitalizations are close to constant, the two estimators converge towards the same ratio. During periods of change, however, the lagged estimator has different bias. It first moves upwards --- the opposite direction as the convolutional bias --- with far greater magnitude. This can be explained by the ratio $A_t^\ell = \frac{X_{t-2\ell}+X_t}{2X_{t-\ell}}$ from Proposition \ref{prop:MispBias}. As hospitalizations begin to steeply rise, $X_{t-2\ell}$ and $X_{t-\ell}$ are similar, but $X_t > X_{t-\ell}$. Hence, $A_t^\ell>1$, contributing positive bias to both the oracle and misspecification terms. As hospitalizations level out near the top, $A_t^\ell < 1$, hence the bias falling lower. The opposite pattern occurs as hospitalizations fall. 
-
-% Since the convolutional ratio uses the true delay distribution, it has oracle bias in Proposition \ref{prop:MispBias}. The lagged ratio has lag at the mean of the delay distribution, $\ell=\frac{d}{2}$. Its behavior can be explained by the ratio $A_t^\ell = \frac{X_{t-2\ell}+X_t}{2X_{t-\ell}}$. As hospitalizations begin to steeply rise, $X_{t-2\ell}$ and $X_{t-\ell}$ are similar, but $X_t > X_{t-\ell}$. Therefore $A_t^\ell>1$, inflating the positive oracle bias term and adding misspecification bias. As hospitalizations level out near the top, $A_t^\ell < 1$, hence the bias falling lower. The opposite pattern occurs as hospitalizations fall. 
-
 
 \end{document}
