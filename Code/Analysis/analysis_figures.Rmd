@@ -326,7 +326,7 @@ hospPlot <- ggplot(df3, aes(x = t, y = Hosps)) +
         )
 hospPlot
 
-full_misp_plot <- mispPlotInlaid / ratioPlot / hospPlot + plot_layout(heights = c(4, 2, 2))
+full_misp_plot <- mispPlotInlaid / ratioPlot / hospPlot + plot_layout(heights = c(4.5, 2, 2))
 full_misp_plot
 ggsave(file.path(figure_folder, "Simulated", "toy_misp.pdf"), 
        plot = full_misp_plot, device = "pdf", width = 9, height = 11) 
