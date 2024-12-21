@@ -845,28 +845,44 @@ Future work along the lines of \citet{rt_study} could apply our analytical frame
 
 Here and henceforth, we abbreviate \smash{$\E_t[\cdot] = \E[\cdot \given
   \{X_s\}_{s\leq t}]$}. Observe that
-    \begin{align*}%\label{eq:OracleBias}
-    \text{Bias}(\hat{p}_t^\pi) &= \E_t[\hat{p}_t^\pi] - p_t \\
-    &= \frac{\E_t[Y_t]}{\sum_{k=0}^d X_{t-k}\pi_k} - p_t \\ 
-    &= \frac{\sum_{k=0}^d X_{t-k}\pi_k p_{t-k}}{\sum_{k=0}^d X_{t-k}\pi_k} - \frac{p_t \sum_{k=0}^d X_{t-k}\pi_k}{\sum_{k=0}^d X_{t-k}\pi_k}\\
-    &= \sum_{k=0}^d \frac{X_{t-k}\pi_k}{\sum_{j=0}^d X_{t-j}\pi_j} (p_{t-k}-p_t).
+\begin{align*}
+\bias(\hat{p}_t^\pi) 
+&= \frac{\E_t[Y_t]}{\sum_{k=0}^d X_{t-k}\pi_k} - p_t \\ 
+&= \frac{\sum_{k=0}^d X_{t-k}\pi_k p_{t-k}}{\sum_{k=0}^d X_{t-k}\pi_k} - 
+\frac{p_t \sum_{k=0}^d X_{t-k}\pi_k}{\sum_{k=0}^d X_{t-k}\pi_k} \\
+&= \sum_{k=0}^d \frac{X_{t-k}\pi_k}{\sum_{j=0}^d X_{t-j}\pi_j} (p_{t-k}-p_t). 
 \end{align*}
-The well-specified bias can be understood as a weighted average of $\{p_{t-k}-p_t\}_{k=0}^d$. The attainable absolute bias ranges between $\min_{k=0, \dotsc, d} |p_{t-k}-p_t| = 0$, achieved by $k=0$, and $\max_{k=0, \dotsc, d} |p_{t-k}-p_t|$. This maximal bias is achieved by setting one of the weights
-$X_{t-k}\pi_k/(\sum_{j=0}^d X_{t-j}\pi_j)$ to 1 and the rest to zero,
-either through the delay distribution $\pi$ or through the primary incidence curve $X$. Hence, the explanations for delay distribution and primary incidence are aligned: They inflate the bias by upweighting distant timepoints for which the severity rate was different. If severity rates are monotonically changing, for example, then the maximal bias occurs at $k=d$. 
+ 
+% The well-specified bias can be understood as a weighted average of
+% $\{p_{t-k}-p_t\}_{k=0}^d$. The attainable absolute bias ranges between
+% $\min_{k=0, \dotsc, d} |p_{t-k}-p_t| = 0$, achieved by $k=0$, and $\max_{k=0, 
+%   \dotsc, d} |p_{t-k}-p_t|$. This maximal bias is achieved by setting one of
+%   the weights $X_{t-k}\pi_k/(\sum_{j=0}^d X_{t-j}\pi_j)$ to 1 and the rest to
+%   zero, either through the delay distribution $\pi$ or through the primary
+%   incidence curve $X$. Hence, the explanations for delay distribution and
+%   primary incidence are aligned: They inflate the bias by upweighting distant
+%   timepoints for which the severity rate was different. If severity rates are
+%   monotonically changing, for example, th en the maximal bias occurs at $k=d$.  
 
 \subsection{Proof of Proposition \ref{prop:MispBias}}
 \label{apx:MispBias}
 
 Observe that
-    \begin{align*}
-    \text{Bias}(\hat{p}_t^\gamma) &= \frac{\E_t[Y_t]}{\sum_{k=0}^d X_{t-k}\gamma_k} - p_t \\
-    &= \frac{\sum_{k=0}^d X_{t-k}\pi_k p_{t-k}}{\sum_{k=0}^d X_{t-k}\gamma_k} - \frac{\sum_{k=0}^d X_{t-k}\gamma_k p_t}{\sum_{k=0}^d X_{t-k}\gamma_k} \\
-    &= \sum_{k=0}^d \frac{X_{t-k}}{\sum_{j=0}^d X_{t-j}\gamma_j}(\pi_k p_{t-k}-\gamma_k p_t) \\
-    &= \sum_{k=0}^d \frac{X_{t-k}}{\sum_{j=0}^d X_{t-j}\gamma_j}(\pi_k p_{t-k}-(\pi_k +(\gamma_k-\pi_k)) p_t) \\
-     &= \frac{\sum_{j=0}^d X_{t-j}\pi_j}{\sum_{j=0}^d X_{t-j}\gamma_j}\sum_{k=0}^d \frac{X_{t-k}\pi_k}{\sum_{j=0}^d X_{t-j}\pi_j}(p_{t-k}-p_t) -\\
-     &\qquad\qquad p_t\sum_{k=0}^d \frac{X_{t-k}}{\sum_{j=0}^d X_{t-j}\gamma_j}(\gamma_k -\pi_k)  \\
-     &= \frac{\sum_{j=0}^d X_{t-j}\pi_j}{\sum_{j=0}^d X_{t-j}\gamma_j}\text{Bias}(\hat{p}_t^\pi) + p_t\Big[ \frac{\sum_{k=0}^d X_{t-k}\pi_k}{\sum_{j=0}^d X_{t-j}\gamma_j}-1\Big]
+\begin{align*}
+\bias(\hat{p}_t^\gamma) 
+&= \frac{\E_t[Y_t]}{\sum_{k=0}^d X_{t-k}\gamma_k} - p_t \\
+&= \frac{\sum_{k=0}^d X_{t-k}\pi_k p_{t-k}}{\sum_{k=0}^d X_{t-k}\gamma_k} -
+\frac{\sum_{k=0}^d X_{t-k}\gamma_k p_t}{\sum_{k=0}^d X_{t-k}\gamma_k} \\
+&= \sum_{k=0}^d \frac{X_{t-k}}{\sum_{j=0}^d X_{t-j}\gamma_j}
+(\pi_k p_{t-k} - \gamma_k p_t) \\
+&= \sum_{k=0}^d \frac{X_{t-k}}{\sum_{j=0}^d X_{t-j}\gamma_j}
+(\pi_k p_{t-k}-(\pi_k +(\gamma_k-\pi_k)) p_t) \\
+&= \frac{\sum_{j=0}^d X_{t-j}\pi_j}{\sum_{j=0}^d X_{t-j}\gamma_j}
+\sum_{k=0}^d \frac{X_{t-k}\pi_k}{\sum_{j=0}^d X_{t-j}\pi_j}(p_{t-k}-p_t) -
+p_t\sum_{k=0}^d \frac{X_{t-k}}{\sum_{j=0}^d X_{t-j}\gamma_j}(\gamma_k -\pi_k) \\ 
+&= \frac{\sum_{j=0}^d X_{t-j}\pi_j}{\sum_{j=0}^d X_{t-j}\gamma_j} 
+\bias(\hat{p}_t^\pi) + p_t\bigg[ \frac{\sum_{k=0}^d X_{t-k}\pi_k} 
+{\sum_{j=0}^d X_{t-j}\gamma_j}-1\bigg].
 \end{align*}
 
 \subsection{Further analysis of \eqref{eq:OracleBias}}
