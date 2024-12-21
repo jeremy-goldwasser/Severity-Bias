@@ -473,9 +473,9 @@ since its denominator reaches extremes that are not witnessed in
 In Figure \ref{fig:misspecified}, we can see \smash{$A_t^\ell$} drop below 0.8
 near the start of February 2022; this happens precisely $\ell=16$ days after
 daily new hospitalizations peak above 20,000 in mid-January. The lagged 
-ratio falls from 20\% to 12.5\% accordingly, with the true HFRs remaining
-roughly constant around 15\%. In the same period, the convolutional ratios
-(with light- or heavy-tailed $\gamma$) stay quite close to the true HFR.  
+ratio falls from 20\% to 12.5\% accordingly, with the true HFR remains roughly
+constant, hovering around 15\%. In the same period, the convolutional ratios
+(with light- or heavy-tailed $\gamma$) stay quite close to the true HFR.   
 
 \paragraph{Primary incidence levels out from a fall.}
 
@@ -506,72 +506,100 @@ Here we describe the data and general experimental setup used in Figures
 \ref{sec:results}.    
 
 \paragraph{Hospitalization-fatality rate.}
-Our experiments analyze the HFR throughout COVID-19. 
-While HFR is less commonly reported than CFR, it has a few advantages as an object of study.
-Firstly, time-varying HFR estimates for the US can be validated with a line list. The ``Validation data" section below describes this in detail. To our knowledge, no such resource exists for CFR. 
 
-In addition, hospitalization reporting was much more complete than case reporting throughout the pandemic. Hospitals were mandated to report new daily admissions to the Department of Health and Human Services (HHS) or face penalties \citep{HHS2023}. 
+Our experiments analyze the HFR throughout the COVID-19 pandemic. While HFR may 
+be less common as an object of study compared to CFR, it has a few
+advantages. First and foremost, hospitalization reporting was much more complete
+than case reporting throughout the pandemic. Hospitals were mandated to report
+new daily COVID-19 admissions to the Department of Health and Human Services
+(HHS) \citep{HHS2023}. Due to changes in case ascertainment over time (cases as
+a fraction of infections), it is harder to interpret the CFR in a time-varying
+fashion, i.e., harder to understand what precisely this is reflecting over the
+course of the pandemic.  
 
-Lastly, our analysis assumes the true time-to-death delay distribution has non-negative support. This holds true for HFR, since COVID hospitalizations are aligned by admission date. 
-% Lastly, the delay distribution for HFR is indeed supported on integers starting at $k=0$, since hospitalizations are aligned by admission date. 
-For CFR, however, cases may be reported after deaths due to long reporting delays. 
-Cases were sometimes reported up to 45 days after infection \citep{Jahja2022}; meanwhile, \citet{Lancet_delays} studied a cohort in which the median infection-to-death time was only 18 days.
-Nevertheless, negative case-to-death delays are uncommon enough that the same findings should apply for both CFR and HFR \citet{nishiuraEx2, UKdelay}.
+A second advantage is that hospitalization counts published by the HHS are
+aligned by admission date. This makes it more meaningful to interpret the HFR as
+a reflection of severity, especially as a time-varying quantity. In comparison,
+case counts as aggregated by John Hopkins University (JHU) \citep{JHU} (the
+central resource for comprehensive COVID-19 case data in the US) are aligned by
+report date. Extreme reporting delays (sometimes cases were reported 45 days
+after infections, see, e.g., \citealp{Jahja2022}) make the CFR less meaningful
+to study as a time-varying quantity, even outside from ascertainment issues.  
 
-\paragraph{Aggregate data.}
-To estimate real-time HFRs, we use daily hospitalizations and deaths as
-available in
-the \texttt{epidatr} API, developed by the Delphi Group. Like HHS for
-hospitalizations \citep{HHS2023}, John Hopkins University (JHU) provided the
-definitive resource for real-time death counts \citep{JHUepidatr}. These counts
-reflect the times at which deaths were reported to health authorities, not
-necessarily when they actually happened. Therefore raw JHU death counts are
-highly volatile due to reporting idiosyncrasies like day-of-week effects and
-data dumps. As a result, we used a 7-day trailing average of counts. 
+% \citet{Lancet_delays} studied a cohort in which the median infection-to-death 
+% time was only 18 days. Nevertheless, negative case-to-death delays are
+% uncommon enough that the same findings should apply for both CFR and HFR 
+% \citet{nishiuraEx2, UKdelay}. 
 
-Because the daily aggregates from JHU and HHS were updated over the course of
-the pandemic, we use both the counts available in real time as well as their
-finalized versions. Occasionally, the most recent date with available counts
-lagged several days behind the present. To account for this, we estimated HFRs
-each week, using real-time data that was available two days after each date. 
-Therefore the real-time estimates are actually a two-day backcast of the HFR.
-In the rare event that requested counts were still unavailable, we imputed the
-value with the most recently observed data. 
-%Finally, we smoothed counts over the previous 7 days. 
+Lastly, we were able to find a good ``ground truth proxy'' for the national HFR
+during the COVID-19 pandemic, as published by the National Hospital Care Survey
+(NHCS). This helps guide our simulations and also serves as validation data for
+us, as we describe in more detail below.  
+
+\paragraph{Aggregate data streams.}
+
+To estimate the real-time HFR, we use aggregate counts of daily COVID-19 
+hospitalizations and deaths as made available in the Epidata API
+\citep{Epidata}, developed by the Delphi Group. Like HHS for hospitalizations,
+the JHU Center for Systems Science and Engineering (CSSE) provided the
+definitive resource for real-time death counts during the pandemic. These counts
+reflect times at which deaths were reported to health authorities, not
+necessarily when they actually happened. Hence raw JHU death counts are highly
+volatile due to reporting idiosyncrasies like day-of-week effects and data
+dumps. Hospitalizations are also subject to strong day-of-week effects. We
+therefore smoothed all data with a 7-day trailing average, for both
+hospitalizations and deaths.  
+
+Our real-time estimates of HFR actually use data that was available two days
+after the date in question. This was done to account for a typical two-day
+latency in the most recent data available. In this sense, one can
+actually view our real-time estimates as a two-day backcast of the HFR. In the
+rare event that counts were still unavailable at a two-day lag, we imputed their
+values with the most recently observed data (this is a common scheme, called 
+last-observation-carried-forward or LOCF).      
 
 \paragraph{Hyperparameters.}
-The ratio estimators studied require choices of lag and delay distribution. 
-% The two ratio estimators \eqref{eq:lagged} and \eqref{eq:conv} require choices
-% of lag and delay distribution. 
-% \djmcomment{I try to avoid referring to future
-% equations. So this is another reason to consider moving this subsection to the
-% end. In fact, I might put this paragraph right at the beginning of Section 3
-% (before 3.1). It's a good summary of what comes next there.} 
-Appendix~\ref{apx:robustness} evaluates the
-robustness of findings against different hyperparameter values. The experiments
-in Section~\ref{sec:results_real} use a lag of 20 days, which maximizes the
-cross-correlation between hospitalizations and deaths over all time
-\citep{atlantic}. 
 
-We let the delay distribution be a discrete gamma, a common
-choice \citet{delay_distrs}. We set its length $d$ to 75 days, a conservative choice. 
-For its mean, we used the oracle lag above, as lags are often chosen to be the
-mean of the delay distribution. This mean of 20 matches nicely with a UK study that finds a median hospitalization-to-death time of 11 days \citep{UKdelay},
-and a CDC report that 63\% of COVID deaths are reported within 10 days
-\citep{cdc_deaths_demographic_geographic_2023}. 
-We set the standard deviation to 18, because the delay distributions fit by the UK study had standard deviations that were roughly 90\% of their means. 
-
-It is worth noting that conditions in the UK may be quite different from the US. However, we use this paper's findings because it provided the most comprehensive information on COVID hospitalization-to-death delay distributions.
+The ratio estimators of the HFR require choices of the lag $\ell$ and delay
+distribution $\gamma$. The experiments in Section \ref{sec:results} use a lag of
+$\ell=20$ days, which roughly maximizes the cross-correlation between
+hospitalizations and deaths over the entire pandemic. For $\gamma$, we use a
+discrete gamma distribution, and set its support length to be $d=75$ days, a
+conservative choice. For its mean, we use 20 again; this agrees nicely with a UK
+study which finds a median hospitalization-to-death time of 11 days
+\citep{UKdelay},\footnote{Of course, conditions in the UK may be quite different
+  from the US. However, we rely on the UK study because it provides the most
+  comprehensive information on COVID-19 hospitalization-to-death delay 
+  distributions.}   
+and a CDC report that 63\% of COVID-19 deaths are reported within 10 days  
+\citep{cdc_deaths_demographic_geographic_2023}. We set the standard deviation to 
+18, because the delay distributions fit by the UK study had standard deviations
+that were roughly 90\% of their means. Appendix \ref{apx:robustness} evaluates
+the robustness of findings against different hyperparameter values.  
 
 \paragraph{Validation data.}
-While the true HFRs are unknown, there are sound ways to approximate them. One such approach is to use line-list HFRs from the National Hospital Care Survey \citep{NHCS2023}. The NHCS recorded weekly HFRs from inpatient deaths in a representative subset of 601 hospitals across the US.
 
-HFRs from aggregate hospitalization and death counts are significantly higher than those from NHCS because not all deaths occur in hospitals. A CDC analysis reported the percentage of inpatient deaths every month from 2020 through 2022; roughly 60\% of COVID deaths occurred in hospitals in 2022, down from nearly 70\% in 2021 and 2022. To account for non-inpatient deaths, we divided the NHCS curve by these percentages. Finally, we smoothed the resulting HFRs with a spline. To do so, we used the \texttt{smooth.spline} function in \texttt{R}, which chooses the smoothness hyperparameter with generalized cross validation. 
+While the true HFR curve is unknown, there are sound ways to approximate it; one  
+way is to use estimates from the National Hospital Care Survey (NHCS)
+\citep{NHCS2023}, which records weekly HFRs based on a representative subset 
+of 601 hospitals across the US. These estimates end up being consistently
+biased downwards because they are only based on deaths which occur in the
+hospital. A CDC analysis \citep{ahmad2023covid} found that roughly 60\% of
+COVID-19 deaths occurred in hospitals in 2022, down from nearly 70\% in 2021 and
+2022. To account for non-inpatient deaths, we divide the NHCS estimates by these
+percentages. Lastly, we smooth the resulting HFR estimates with a spline, via
+the \texttt{smooth.spline} function in R (which chooses the smoothness
+hyperparameter by minimizing generalized cross-validation error). This results 
+in our proxy for the ground truth HFR curve $p_t$.  
 
-The NHCS curve is a useful benchmark to judge the fidelity of our HFR estimates. Of course, its values may be inaccurate because it surveys a relatively small subset of hospitals. Results in Section~\ref{sec:results} suggest it is too high in late 2022. Appendix~\ref{apx:alt_gt} discusses other approximations of ground truth HFRs. 
-% We considered two other sources for ground truth HFRs, discussed in Appendix~\ref{apx:alt_gt}. Unlike NHCS, these HFRs are obtained from aggregate counts, not line-list data. Fortunately, they are fairly consistent with the rescaled NHCS data. Of course, the NHCS curve is merely an approximation for the ground truth; its values, especially after mid-2022, may be incorrect. Nevertheless, it is a useful benchmark to judge the fidelity of our HFR estimates.
+This ground truth proxy is a useful benchmark to judge the fidelity of our HFR
+estimates; of course, it is not perfect and it is derived from a relatively
+small subset of hospitals. Results in Section \ref{sec:results} suggest it may
+be too high in late 2022. Appendix \ref{apx:alternatives} discusses alternative  
+approximations of ground truth HFR.   
 
-\section{Results}\label{sec:results}
+\section{Results}
+\label{sec:results}
 
 In this section, we explore the performance of the ratio estimators in greater depth. 
 We analyze HFR estimates on real data in Section~\ref{sec:results_real}, and simulated data in Section~\ref{sec:results_sim}. Throughout both, we continue to use aggregate hospitalization counts from HHS throughout the COVID-19 pandemic. 
@@ -891,10 +919,11 @@ The figure also plots with lagged ratio with $\ell=\frac{d}{2}$, the mean of the
 
 % Since the convolutional ratio uses the true delay distribution, it has oracle bias in Proposition \ref{prop:MispBias}. The lagged ratio has lag at the mean of the delay distribution, $\ell=\frac{d}{2}$. Its behavior can be explained by the ratio $A_t^\ell = \frac{X_{t-2\ell}+X_t}{2X_{t-\ell}}$. As hospitalizations begin to steeply rise, $X_{t-2\ell}$ and $X_{t-\ell}$ are similar, but $X_t > X_{t-\ell}$. Therefore $A_t^\ell>1$, inflating the positive oracle bias term and adding misspecification bias. As hospitalizations level out near the top, $A_t^\ell < 1$, hence the bias falling lower. The opposite pattern occurs as hospitalizations fall. 
 
-
-
 \section{Alternative data sources}
-\subsection{Retrospective deaths}\label{apx:NCHS_deaths}
+\label{apx:alternatives}
+
+\subsection{Retrospective deaths}
+\label{apx:NCHS_deaths}
 
 JHU presented daily deaths in real time, aligned by the date they were reported. In contrast, the National Center for Health Statistics (NCHS) provided weekly totals for deaths aligned by occurrence, and were not available in real time. Thus, delay distributions with NCHS deaths have a lighter tail. 
 
@@ -910,7 +939,8 @@ Figure \ref{fig:jhu_vs_nchs} shows this minor change has a significant effect on
 \end{figure}
 
 
-\subsection{Alternative ground truth}\label{apx:alt_gt}
+\subsection{Alternative ground truth}
+\label{apx:alt_gt}
 
 \begin{figure}
     \centering
