@@ -1,6 +1,7 @@
 
 ```{r}
-data_folder <- here::here("Data", "National_Data")
+data_folder <- here::here("Data", "Real_data")
+results_folder <- here::here("Data", "HFR_estimates")
 code_folder <- here::here("Code", "Analysis")
 figure_folder <- here::here("Figures")
 source(here::here(code_folder, "helper_functions.R"))
@@ -393,6 +394,6 @@ df_hfr_ests_by_source <- data.frame(Date=rep(est_weeks, length(HFRtypes)),
 us_dfs <- list(df_real_time, df_both, df_window_conv, 
                df_window_lag, df_lags, df_delays_9, df_delays_7,
                df_deaths_by_source, df_hfr_types, df_hfr_ests_by_source)
-saveRDS(us_dfs, here::here(data_folder, "US_dfs.RData"))
+saveRDS(us_dfs, here::here(results_folder, "US_dfs.RData"))
 ```
 

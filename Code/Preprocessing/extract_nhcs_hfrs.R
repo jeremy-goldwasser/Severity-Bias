@@ -1,6 +1,5 @@
-data_folder <- here::here("Data", "National_Data")
+data_folder <- here::here("Data", "Real_data")
 
-# data_folder <- "/Users/jeremygoldwasser/Desktop/HFR/repo/HFR/Data/National_Data"
 dat <- read.csv(here::here(data_folder, "COVID-19_Hospital_Data_from_the_National_Hospital_Care_Survey.csv"))
 library(tidyverse)
 library(stats)

@@ -1,6 +1,7 @@
 
 ```{r}
-data_folder <- here::here("Data", "National_Data")
+data_folder <- here::here("Data", "Real_data")
+results_folder <- here::here("Data", "HFR_estimates")
 # code_folder <- here::here("Code", "Analysis")
 figure_folder <- here::here("Figures")
 # source(here::here(code_folder, "helper_functions.R"))
@@ -13,7 +14,7 @@ library(tidyverse)
 ```
 
 ```{r}
-us_dfs <- readRDS(here::here(data_folder, "US_dfs.RData"))
+us_dfs <- readRDS(here::here(results_folder, "US_dfs.RData"))
 df_real_time <- us_dfs[[1]]
 df_both <- us_dfs[[2]]
 df_window_conv <- us_dfs[[3]]

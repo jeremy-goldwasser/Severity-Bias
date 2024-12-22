@@ -6,7 +6,8 @@ date: "2024-09-27"
 
 ```{r}
 library(tidyverse)
-git_directory <- system("git rev-parse --show-toplevel", intern = TRUE)
+# git_directory <- system("git rev-parse --show-toplevel", intern = TRUE)
+git_directory <- here::here()
 
 code_folder <- here::here("Code", "Analysis")
 source(here::here(code_folder, "helper_functions.R"))
@@ -15,7 +16,7 @@ library(extraDistr)
 library(stats)
 library(splines)
 
-data_folder <- here::here(git_directory, "Data", "National_Data")
+data_folder <- here::here(git_directory, "Data", "Real_data")
 ```
 
 

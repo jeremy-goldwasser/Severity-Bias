@@ -1,6 +1,6 @@
 ```{r}
-
-data_folder <- here::here("Data", "National_Data")
+data_folder <- here::here("Data", "Real_data")
+results_folder <- here::here("Data", "HFR_estimates")
 code_folder <- here::here("Code", "Analysis")
 figure_folder <- here::here("Figures")
 source(here::here(code_folder, "helper_functions.R"))
@@ -51,8 +51,8 @@ sim_deaths_long <- compute_noiseless_deaths(hosps, hfrs_nhcs, delay_distr_long, 
 
 
 ```{r}
-# lag_short <- compute_optimal_lag(hosps, sim_deaths_short)
-lag_short <- round(sum(0:d*delay_distr_short))
+lag_short <- compute_optimal_lag(hosps, sim_deaths_short)
+# lag_short <- round(sum(0:d*delay_distr_short))
 
 # Estimate HFRs weekly, & offset to account for potential smoothing 
 # est_dates <- death_dates[seq(1+7*6, length(death_dates), by=7)]
@@ -85,9 +85,9 @@ ggplot(data=dfHFRshort, aes(x = Date, y = HFR, color = Method, linetype=Method))
 
 ```{r}
 # Using correlation-maximizing lag doesn't improve; actually hurts a bit
-# lag_long <- compute_optimal_lag(hosps, sim_deaths_long)
-lag_long <- round(sum(0:d*delay_distr_long))
-print(lag_long)
+lag_long <- compute_optimal_lag(hosps, sim_deaths_long)
+# lag_long <- round(sum(0:d*delay_distr_long))
+# print(lag_long)
 
 # Estimate HFRs weekly
 hfrs_lagged_long <- compute_lagged_hfrs(hosps, sim_deaths_long, lag_long, w=1, dates=est_dates)
@@ -114,7 +114,7 @@ ggplot(data=dfHFRlong, aes(x = Date, y = HFR, color = Method, linetype=Method)) 
 inv_hfrs <- (1/hfrs_nhcs)*min(hfrs_nhcs)*max(hfrs_nhcs)
 sim_deaths_short_inv <- compute_noiseless_deaths(hosps, inv_hfrs, delay_distr_short, death_dates)
 
-# lag_short <- compute_optimal_lag(hosps, sim_deaths_short_inv)
+lag_short <- compute_optimal_lag(hosps, sim_deaths_short_inv)
 
 hfrs_lagged_short_inv <- compute_lagged_hfrs(hosps, sim_deaths_short_inv, lag_short, w=1, dates=est_dates)
 hfrs_conv_short_inv <- compute_conv_hfrs(hosps, sim_deaths_short_inv, est_dates, delay_distr_short, w=1)
@@ -139,7 +139,7 @@ Repeat with longer delay
 inv_hfrs <- (1/hfrs_nhcs)*min(hfrs_nhcs)*max(hfrs_nhcs)
 sim_deaths_long_inv <- compute_noiseless_deaths(hosps, inv_hfrs, delay_distr_long, death_dates)
 
-# lag_long <- compute_optimal_lag(hosps, sim_deaths_long_inv)
+lag_long <- compute_optimal_lag(hosps, sim_deaths_long_inv)
 
 hfrs_lagged_long_inv <- compute_lagged_hfrs(hosps, sim_deaths_long_inv, lag_long, w=1, dates=est_dates)
 hfrs_conv_long_inv <- compute_conv_hfrs(hosps, sim_deaths_long_inv, est_dates, delay_distr_long, w=1)
@@ -176,7 +176,7 @@ flat_hfr <- 0.1
 flat_hfrs <- rep(flat_hfr, length(hfrs_nhcs)); names(flat_hfrs) <- hfr_dates
 sim_deaths_short_flat <- compute_noiseless_deaths(hosps, flat_hfrs, delay_distr_short, death_dates)
 
-# lag_short <- compute_optimal_lag(hosps, sim_deaths_short_flat)
+lag_short <- compute_optimal_lag(hosps, sim_deaths_short_flat)
 
 hfrs_lagged_short_flat <- compute_lagged_hfrs(hosps, sim_deaths_short_flat, lag_short, w=1, dates=est_dates)
 hfrs_conv_short_flat <- compute_conv_hfrs(hosps, sim_deaths_short_flat, est_dates, delay_distr_short, w=1)
@@ -197,7 +197,7 @@ ggplot(data=dfHFRshort_flat, aes(x = Date, y = HFR, color = Method, linetype=Met
 ```{r}
 sim_deaths_long_flat <- compute_noiseless_deaths(hosps, flat_hfrs, delay_distr_long, death_dates)
 
-# lag_long <- compute_optimal_lag(hosps, sim_deaths_long_flat)
+lag_long <- compute_optimal_lag(hosps, sim_deaths_long_flat)
 
 hfrs_lagged_long_flat <- compute_lagged_hfrs(hosps, sim_deaths_long_flat, lag_long, w=1, dates=est_dates)
 hfrs_conv_long_flat <- compute_conv_hfrs(hosps, sim_deaths_long_flat, est_dates, delay_distr_long, w=1)
@@ -216,8 +216,8 @@ ggplot(data=dfHFRlong_flat, aes(x = Date, y = HFR, color = Method, linetype=Meth
 
 ```{r}
 data <- list(dfHFRshort, dfHFRlong, dfHFRshort_inv, dfHFRlong_inv, dfHFRshort_flat, dfHFRlong_flat)
-# saveRDS(data, here::here(data_folder, "sim_dfs_grid_fig_corr_lag.RData"))
-saveRDS(data, here::here(data_folder, "sim_dfs_grid_fig_delay_mean.RData"))
+saveRDS(data, here::here(results_folder, "sim_dfs_grid_fig_corr_lag.RData"))
+# saveRDS(data, here::here(results_folder, "sim_dfs_grid_fig_delay_mean.RData"))
 
 ```
 

@@ -1,5 +1,5 @@
 ```{r}
-data_folder <- here::here("Data", "National_Data")
+results_folder <- here::here("Data", "HFR_estimates")
 figure_folder <- here::here("Figures")
 
 library(ggplot2)
@@ -9,8 +9,8 @@ library(patchwork)
 
 
 ```{r}
-# data <- readRDS(here::here(data_folder, "sim_dfs_grid_fig_corr_lag.RData"))
-data <- readRDS(here::here(data_folder, "sim_dfs_grid_fig_delay_mean.RData"))
+data <- readRDS(here::here(results_folder, "sim_dfs_grid_fig_corr_lag.RData"))
+# data <- readRDS(here::here(results_folder, "sim_dfs_grid_fig_delay_mean.RData"))
 
 for (i in 1:length(data)) {
   data[[i]] = data[[i]] |> 
@@ -78,6 +78,6 @@ Plot
 
 
 ```{r, fig.width=9, fig.height=7}
-ggsave(file.path(figure_folder, "Simulated", "simulated_results_corr_lag.pdf"), plot = Plot, device = "pdf", width = 9, height = 8.5)
-# ggsave(file.path(figure_folder, "Simulated", "simulated_results_delay_mean.pdf"), plot = Plot, device = "pdf", width = 9, height = 8.5)
+# ggsave(file.path(figure_folder, "Simulated", "simulated_results_corr_lag.pdf"), plot = Plot, device = "pdf", width = 9, height = 8.5)
+ggsave(file.path(figure_folder, "Simulated", "simulated_results_delay_mean.pdf"), plot = Plot, device = "pdf", width = 9, height = 8.5)
 ```

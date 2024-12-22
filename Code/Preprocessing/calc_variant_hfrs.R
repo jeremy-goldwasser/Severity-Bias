@@ -5,8 +5,8 @@ library(tidyverse)
 # Load data
 # git_directory <- system("git rev-parse --show-toplevel", intern = TRUE)
 git_directory <- here::here()
-nat_data_path <- here::here(git_directory, "Data", "National_Data")
-variant_path <- here::here(git_directory, "Data", "Variants")
+nat_data_path <- here::here(git_directory, "Data", "Real_data")
+variant_path <- here::here(git_directory, "Data", "Real_data", "Variants")
 
 ###### Preprocess ######
 df <- read.csv(here::here(variant_path, "seq_df_us_biweekly.csv"))

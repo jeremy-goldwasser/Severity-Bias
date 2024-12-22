@@ -1,6 +1,6 @@
 
 ```{r}
-data_folder <- here::here("Data", "National_Data")
+results_folder <- here::here("Data", "HFR_estimates")
 code_folder <- here::here("Code", "Analysis")
 figure_folder <- here::here("Figures")
 source(here::here(code_folder, "helper_functions.R"))
@@ -10,7 +10,7 @@ library(ggplot2)
 ```
 
 ```{r}
-state_data <- readRDS(here::here(data_folder, "state_dfs.RData"))
+state_data <- readRDS(here::here(results_folder, "state_dfs.RData"))
 BiggestStates <- state_data[[1]]
 dfList <- state_data[[2]]
 oracle_lags <- state_data[[3]]
