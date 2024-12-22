@@ -371,7 +371,7 @@ However, the misspecification term consistently wins out when this occurs in our
 We detail the behavior of $A_t^\gamma$ in common settings of interest, under three standard delay distributions.
 \begin{enumerate}
     \item Smooth delay distribution with a lighter tail than the true distribution $\pi$, and more mass concentrated at recent dates.
-    \item Smooth delay distribution with a heavier tail and lower mean than $\pi$. 
+    \item Smooth delay distribution with a heavier tail and higher mean than $\pi$. 
     \item Lagged delay distribution, a point mass at $\ell$. We refer to its ratio $A_t^\gamma$ as $A_t^\ell$.  Let $\ell$ be near the mean of $\pi$.
 \end{enumerate}
 
@@ -497,7 +497,7 @@ It is worth noting that conditions in the UK may be quite different from the US.
 \paragraph{Validation data.}
 While the true HFRs are unknown, there are sound ways to approximate them. One such approach is to use line-list HFRs from the National Hospital Care Survey \citep{NHCS2023}. The NHCS recorded weekly HFRs from inpatient deaths in a representative subset of 601 hospitals across the US.
 
-HFRs from aggregate hospitalization and death counts are significantly higher than those from NHCS because not all deaths occur in hospitals. A CDC analysis reported the percentage of inpatient deaths every month from 2020 through 2022; roughly 60\% of COVID deaths occurred in hospitals in 2022, down from nearly 70\% in 2021 and 2022. To account for non-inpatient deaths, we divided the NHCS curve by these percentages. Finally, we smoothed the resulting HFRs with a spline. To do so, we used the \texttt{smooth.spline} function in \texttt{R}, which chooses the smoothness hyperparameter with generalized cross validation. 
+HFRs from aggregate hospitalization and death counts are significantly higher than those from NHCS because not all deaths occur in hospitals. A CDC analysis reported the percentage of inpatient deaths every month from 2020 through 2022; roughly 60\% of COVID deaths occurred in hospitals in 2022, down from nearly 70\% in 2021 and 2022 \citep{ahmad2023covid}. To account for non-inpatient deaths, we divided the NHCS curve by these percentages. Finally, we smoothed the resulting HFRs with a spline. To do so, we used the \texttt{smooth.spline} function in \texttt{R}, which chooses the smoothness hyperparameter with generalized cross validation. 
 
 The NHCS curve is a useful benchmark to judge the fidelity of our HFR estimates. Of course, its values may be inaccurate because it surveys a relatively small subset of hospitals. Results in Section~\ref{sec:results} suggest it is too high in late 2022. Appendix~\ref{apx:alt_gt} discusses other approximations of ground truth HFRs. 
 % We considered two other sources for ground truth HFRs, discussed in Appendix~\ref{apx:alt_gt}. Unlike NHCS, these HFRs are obtained from aggregate counts, not line-list data. Fortunately, they are fairly consistent with the rescaled NHCS data. Of course, the NHCS curve is merely an approximation for the ground truth; its values, especially after mid-2022, may be incorrect. Nevertheless, it is a useful benchmark to judge the fidelity of our HFR estimates.
