@@ -813,89 +813,88 @@ not have a large effect.
 
 \section{Discussion}
 
-Our analyses illustrate that practitioners should take caution when using
-time-varying severity ratio estimators. They exhibit considerable bias when severity rates
-change, particularly the popular lagged ratio estimator. A major purpose of these
-estimators is to inform stakeholders of changing risks in real time; this bias
-indicates they may fail to do so in a reliable manner.
+Our analyses and experiments illustrate that practitioners should take caution
+when using (standard) ratio estimators for time-varying severity rates. They
+exhibit nontrivial bias as severity rates change, particularly the popular
+lagged ratio. If a major purpose of such estimators is to inform stakeholders of
+changing risks in real time, then such bias indicates they may fail to do so in
+a reliable manner.
 
-% It may not be possible to infer about the oracle bias, since the true severity rates are unknown. However, understanding the central importance of the misspecification term in Proposition \ref{prop:MispBias} enables us to make broad heuristics about biases observed in practice. 
-Analyzing the lagged ratio enables us to make real-time heuristics about its performance in practice. Proposition \ref{prop:MispBias} decomposes its bias into oracle and misspecification terms, the latter of which has been shown to dominate. Based solely on the primary incidence curve, we can expect the lagged ratio to make the following errors:
-\begin{enumerate}
-    \item Unreasonably high severity estimates when primary incidence is rising quickly;
-    \item Rapid declines when primary incidence is falling quickly;
-    \item Unexpected surges when primary incidence has leveled out after falling. 
-\end{enumerate}
+Analyzing the bias, as we have done in Propositions \ref{prop:OracleBias} and 
+\ref{prop:MispBias}, allows us to form real-time heuristics about what to
+expect in practice. For example, based solely on the primary incidence curve, we
+generally expect the lagged ratio to make the following errors: 
+\begin{itemize}
+\item unreasonably high severity estimates when primary incidence is rising
+  quickly; 
+\item rapid declines when primary incidence is falling quickly; 
+\item unexpected surges when primary incidence has leveled out after falling.  
+\end{itemize}
+Practitioners may be able to adjust their reactions accordingly; for example, if 
+the lagged HFR spikes shortly after hospitalizations have declined and reach a
+stable low point, then a savvy epidemiologist can temper her alarm with the
+knowledge it may well be spurious.  
 
-Practitioners can adjust their reactions accordingly when these bias patterns occur in real time. For example, if the lagged HFR spikes shortly after hospitalizations reach a stable low, a savvy epidemiologist can temper her alarm with the knowledge it may well be spurious.
+While the lagged ratio seems ubiquitous in practice, the convolutional ratio
+(when  a reasonable estimate of the delay distribution can be formed) can be
+better behaved and should probably be favored. While it is still subject to
+bias, this tends to be of a smaller magnitude. 
 
-While the lagged ratio is ubiquitous in practice, our analysis of its
-drawbacks suggests other aggregate estimators should be favored. Figure
-\ref{fig:sims} showed the oracle convolutional ratio is much more
-accurate. 
-% Even with a rough estimate of the delay distribution, 
-% it generally displayed improved stability and performance (Figures \ref{fig:misspecified},
-% \ref{fig:basic_est_vs_gt_figs}, and \ref{fig:sims}) --- though it still has large bias.
-It still outperformed the lagged ratio given a misspecified delay distribution, though its bias was also large (Figures \ref{fig:misspecified} and \ref{fig:basic_est_vs_gt_figs}).
-% While \eqref{eq:nish} from \citet{nishiura} is widely used to compute stationary or
-% average HFRs, we have not come across any applications for the time-varying
-% case.
+Going beyond, there is still room to improve the inherently backward-looking
+convolutional ratio. \citet{fusedlasso} proposed an approach that is meant to be
+retrospective in nature, and not real-time. It is also inherently
+forward-looking, and estimates all historical severity rates $p_t$ at once, by
+minimizing  
+\[
+\sum_t (Y_t - \sum_{j=0}^d X_{t-j}\gamma_j p_{t-j})^2 + 
+\lambda \sum_t |p_t - p_{t-1}|,
+\]
+where $\lambda \geq 0$ is a parameter that controls the level of
+regularization. The regularizer above is a total variation (also called fused
+lasso) penalty, and leads to a piecewise constant estimates
+\smash{$\hat{p}_t$}. Adapting this model so that it can be used to produce
+estimates in real-time, and extending it to fit smoother severity rates using
+trend filtering penalties (see, e.g., \citealp{Tibshirani2014}), are interesting
+directions for future work. \citet{Jahja2022} applied trend filtering to a
+similar deconvolution problem, reconstructing latent infections from case
+reports. Their insights on tail regularization may be useful to stabilize
+real-time severity estimates.
 
+% \citet{UKpaper} also proposed a forward-looking method, this one a ratio
+% between relevant primary and secondary events. However, this method is not
+% applicable in real time, as it uses secondary events after $t$ to compute the
+% severity rate. Nevertheless, it is a useful tool for retrospective estimation.  
 
-% Given the drawbacks of these methods, alternative approaches may be preferable when there is reason to believe the true rate is changing. If possible, severity rates can be obtained from line-list data after accounting for right censoring. These rates can then be scaled to a broader population with careful demographic adjustment \citep{verity2020estimates}. 
-
-% More commonly, only aggregate data is available, especially in real time. In that case, other methods may outperform these ratios. \citet{fusedlasso} propose estimating all severity rates at once with a Fused Lasso model, using the relation in \eqref{eq:model}. Unlike the other approaches, this method is inherently forward-looking, where rates at $t$ are exclusively used to produce secondary events after $t$. However, it may suffer from other sources of bias. It is inclined to estimate smoothly-changing severity rates as piecewise constant, and may yield unstable real-time estimates due to scarce data at the tail.
-
-% \citet{fusedlasso} proposed a alternative approach which differs sharply from the ratios discussed in this paper. 
-\citet{fusedlasso} proposed an approach that differs considerably from the ratios discussed in this paper. 
-The method estimates all historical severity rates at once, using the relation in \eqref{eq:model} to fit a fused lasso model. This estimator is inherently forward-looking, where rates at $t$ are exclusively used to produce secondary events after $t$. Given regularization parameter $\lambda$, current time $T$, and start time $t_0$, the fused lasso estimates
-
-$$\hat{p}^\text{FL} = \text{argmin}_{p \geq 0} \sum_{t=t_0}^T (Y_t-\sum_{j=0}^d X_{t-j}\gamma_j p_{t-j})^2 + \lambda\sum_{t=t_0-d+1}^{T}\lvert p_t - p_{t-1}\rvert.$$
-
-This estimator is not succumb to the issues of the backward-looking ratios. However, it may suffer from other sources of bias. It is inclined to estimate smoothly-changing severity rates as piecewise constant, and may yield unstable real-time estimates due to scarce data at the tail. 
-Thorough investigation of its performance is a promising object for future study.
-
-Future work could generalize the above approach beyond piecewise constants. The fused lasso is a special case of trend filtering, a nonparametric regression technique that fits piecewise polynomials \citet{Tibshirani2014}. Higher-order curves may better model trends and improve performance. \citep{Jahja2022} applies trend filtering to a similar deconvolution problem, reconstructing latent infections from case reports. Its insights on tail regularization may be useful to stabilize severity estimates. 
-
-\citet{UKpaper} also proposed a forward-looking method, this one a ratio between relevant primary and secondary events. However, this method is not applicable in real time, as it uses secondary events after $t$ to compute the severity rate. Nevertheless, it is a useful tool for retrospective estimation. 
-
-Another retrospective tool is aggregate COVID deaths from NCHS, a resource that
-was not available in real time (Appendix~\ref{apx:NCHS_deaths}). Unlike JHU,
-whose aggregates align deaths by report date, NCHS counts deaths on the day the
-actually occurred. As a result, the mean of its delay distribution is
-considerably lower, so it produces more accurate ratio estimates (Figures
-\ref{fig:sims} and \ref{fig:jhu_vs_nchs}). Analogously, bias is a more serious
-issue with earlier primary events. For example, case- or infection-fatality
-ratios may be more biased than hospitalization-fatality ratios. 
+% Another retrospective tool is aggregate COVID deaths from NCHS, a resource
+% that was not available in real time (Appendix~\ref{apx:NCHS_deaths}). Unlike
+% JHU, whose aggregates align deaths by report date, NCHS counts deaths on the
+% day the actually occurred. As a result, the mean of its delay distribution is 
+% considerably lower, so it produces more accurate ratio estimates (Figures
+% \ref{fig:sims} and \ref{fig:jhu_vs_nchs}). Analogously, bias is a more serious 
+% issue with earlier primary events. For example, case- or infection-fatality 
+% ratios may be more biased than hospitalization-fatality ratios.  
 
 Severity rates may be biased in ways beyond the statistical bias our work
-focuses on. 
-In Section~\ref{sec:setup}, we mentioned that 
-HFR estimation from aggregates is subject to survivorship bias --- 
-the failure to account for deaths that occurred outside the hospital \citep{lipsitch2015potential}.
-% Section~\ref{sec:setup} mentioned, for example, the fact that
-% estimating HFR from aggregates fails to address the large proportion of deaths
-% that occur outside the hospital; \citep{lipsitch2015potential} refers to this as
-% ``survivorship bias." 
-Under-reporting is another central challenge, particularly for CFR.
-% Another central challenge, this one for CFR estimation, is under-reporting.
-Not all infections are reported, reporting rates change across time, and severe
-cases are more likely to be reported than mild cases.
-\citet{reich2012estimating} proposed an estimator for a time-invariant
-\emph{relative} CFR --- the ratio of CFRs between groups --- that learns these
-latent reporting rates via the EM algorithm \citep{EM}. \citet{anastasios}
-applied this in the context of COVID-19, analyzing how the chosen delay
-distribution affects its results. The work also identifies other sources of bias, like
-differences in case definition and testing eligibility.
+focuses on. In Section \ref{sec:setup}, we mentioned that HFR estimation from
+line-lists can be subject to ``survivorship bias'': the failure to account for 
+deaths occurring outside the hospital \citep{lipsitch2015potential}.
+Under-reporting is another central challenge, particularly for CFR. Not all
+infections are reported, reporting rates change across time, and severe cases
+are more likely to be reported than mild cases. \citet{reich2012estimating}
+proposed an estimator for a time-invariant \emph{relative} CFR---the ratio of
+CFRs between groups---which learns latent reporting rates via the EM
+algorithm. \citet{anastasios} applied this in the context of COVID-19. Their
+work also identifies other sources of bias, like differences in case definition
+and testing eligibility.  
 
-
-% As defined in \eqref{eq:severity}, the severity rate is analogous to case $R_t$. Both concern the average number of secondary events produced by a primary event at time $t$. Moreover, the real-time severity ratios we study are analogous to instantaneous $R_t$, both of which measure how primary events in the past contribute to secondary events at $t$. Indeed, one of the most popular frameworks for estimating instantaneous $R_t$ is strikingly similar to the convolutional ratio \citep{fraser2007,wallinga2007how,cori2013new,rtestim}:
-% \begin{equation}\label{eq:instRt}
-%     \hat{R_t} = \frac{I_t}{\sum_{k=0}^d I_{t-k}g_k}.
-% \end{equation}
-% The most fundamental difference between Eq. \eqref{eq:instRt} and \eqref{eq:conv} is the former expresses the rate for a single time series. 
-As discussed in Section~\ref{sec:defs}, severity rates may be understood in connection with reproduction numbers. This connection extends to their bias as well. For example, we  demonstrated that the convolutional ratio is unbiased if the severity rate and delay distribution in the $d$ days before $t$ are stationary. In a similar vein, \citet{fraser2007} noted that instantaneous $R_t$ is equal to case $R_t$ if conditions remain unchanged. 
-Future work along the lines of \citet{rt_study} could apply our analytical framework to $R_t$ bias, examining the fidelity of instantaneous $R_t$ as a proxy for case $R_t$. 
+As discussed in Section \ref{sec:defs}, severity rates may be understood in
+connection with reproduction numbers. This connection extends to their bias as
+well. For example, we  demonstrated that the convolutional ratio is unbiased if
+the severity rate and delay distribution in the $d$ time points before $t$ are 
+stationary. In a similar vein, \citet{fraser2007} noted that instantaneous $R_t$
+is equal to case $R_t$ if conditions remain unchanged. Future work along the
+lines of \citet{rt_study} could apply our framework to $R_t$ bias, examining the
+fidelity of instantaneous $R_t$ as a proxy for case $R_t$.   
 
 \bibliographystyle{apalike}
 \bibliography{refs}
