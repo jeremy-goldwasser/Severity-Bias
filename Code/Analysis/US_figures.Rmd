@@ -173,8 +173,8 @@ for (i in 1:length(waves)) {
     geom_line(data = dfAgg, aes(y = (Hosps - a) * scale + b, color=Legend_HHS, linetype=Legend_HHS)) +
     ylab(y1name) + 
     scale_linetype_manual(breaks = c("Approximate GT", "Convolutional ratio", "Lagged ratio", "Hospitalizations"),
-                        values = c("Approximate GT" = "solid", "Convolutional ratio" = "dashed", 
-                                   "Lagged ratio"="longdash", "Hospitalizations" = "dotdash")) +
+                        values = c("Approximate GT" = "solid", "Convolutional ratio" = "dotted", 
+                                   "Lagged ratio"="dashed", "Hospitalizations" = "dotdash")) +
     scale_color_manual(breaks = c("Approximate GT", "Convolutional ratio", "Lagged ratio", "Hospitalizations"),
                      values = c("Approximate GT" = "red", "Convolutional ratio" = "green3", 
                                 "Lagged ratio" = "dodgerblue", "Hospitalizations" = "black")) +
