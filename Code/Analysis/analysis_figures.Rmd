@@ -65,7 +65,7 @@ Plot <- ggplot(df, aes(x=t, y=HFRs, color=Variation, linetype=HFR)) +
   guides(linetype = guide_legend(order = 1), color = guide_legend(order = 2)) +
   theme(legend.position = "bottom",
         plot.title=element_text(size=23),
-        legend.text = element_text(size=19),
+        legend.text=element_text(size=19),
         legend.title=element_text(size=19),
         axis.title.y=element_text(size=19),
         legend.spacing.y = unit(0.5, "cm"),
@@ -116,12 +116,12 @@ delayPlot <- ggplot(df, aes(x = t, y = HFRs, linetype = HFR, color = Type)) +
   scale_x_date(date_breaks = "1 month",date_labels = "%b %Y") + 
   theme(legend.position = "bottom",
         plot.title=element_text(size=23),
-        legend.text = element_text(size=19),
+        legend.text=element_text(size=19),
         legend.title=element_text(size=19),
         axis.title.y=element_text(size=19),
         legend.spacing.y = unit(0.5, "cm"),
         legend.margin = margin(t = -10),
-        legend.box = "vertical")
+        legend.box = "vertical") 
 
 dfDistr <- data.frame(t=rep(0:d, 3),
                       Delay=c(delay_distr_short, delay_distr_med, delay_distr_long),
@@ -177,7 +177,7 @@ hospPlot <- ggplot(df, aes(x = t, y = HFRs, linetype = HFR, color = Type)) +
   scale_x_date(date_breaks = "1 month",date_labels = "%b %Y") + 
   theme(legend.position = "bottom",
         plot.title=element_text(size=23),
-        legend.text = element_text(size=19),
+        legend.text=element_text(size=19),
         legend.title=element_text(size=19),
         axis.title.y=element_text(size=19),
         legend.spacing.y = unit(0.5, "cm"),
@@ -266,9 +266,9 @@ mispPlot <- ggplot(df, aes(x = t, y = HFRs, linetype = HFR, color = Type)) +
   scale_x_date(date_breaks = "1 month", labels = NULL) +
   theme(legend.position = "bottom",
         legend.box = "vertical",
-        legend.text = element_text(size = 12),
-        legend.title = element_text(size = 13),
         plot.title = element_text(size = 17),
+        legend.text = element_text(size = 12),
+        legend.title = element_text(size = 12),
         axis.text.x = element_blank(),
         legend.spacing.y = unit(0.5, "cm"),
         legend.margin = margin(t = -10))
@@ -283,8 +283,7 @@ delay_inset <- ggplot(dfDistr, aes(x=t, y=Delay, color=Type)) +
   scale_color_manual(breaks = delayTypes, 
                      values = c("Light-tailed" = "green3", "Original" = "red2", "Heavy-tailed" = "blue")) +  
   theme(legend.position="none",
-        plot.title = element_text(size = 12),
-        axis.title = element_text(size = 10),
+        plot.title = element_text(size = 14),
         axis.text.y = element_blank(),
         axis.ticks.y = element_blank()) + 
   xlab("") +
@@ -311,7 +310,7 @@ ratioPlot <- ggplot(df2, aes(x = t, y = Ratios, color = Type)) +
   theme_bw() + xlab("") + ylab("Factor") + 
   scale_x_date(date_breaks = "1 month", labels = NULL) +
   theme(legend.position = "none",
-        #plot.title = element_text(size = 14),
+        plot.title = element_text(size = 14),
         axis.text.x = element_blank())
 ratioPlot
 
