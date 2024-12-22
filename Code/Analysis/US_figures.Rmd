@@ -23,7 +23,6 @@ df_delays_7 <- us_dfs[[7]]
 df_deaths_by_source <- us_dfs[[8]]
 df_hfr_types <- us_dfs[[9]]
 df_hfr_ests_by_source <- us_dfs[[10]]
-
 ```
 
 
@@ -50,10 +49,7 @@ n_ests <- length(est_weeks)
 n_days_after <- 2 # Most recent date often not posted for over a week
 week_st_idx <- 5 # HHS first issued Nov 16, 2020 (est_week[4]+1); 
 est_weeks_realtime <- est_weeks[week_st_idx:n_ests] 
-
-
 ```
-
 
 
 ```{r}
@@ -70,80 +66,77 @@ shades <- do.call(rbind, lapply(periods, function(x) data.frame(xmin = x[1], xma
 
 
 ```{r}
+df_real_time = df_real_time |>
+  mutate(Method = case_match(Method, "Approx. GT" ~ "Approximate GT", .default = Method))
+
 first_xaxis_date <- as.Date("2021-01-01") #as.Date("2020-10-01")
 rtPlot <- ggplot(data=df_real_time, aes(x = Date, y = HFR, color = Method, linetype=Method)) + 
+  geom_rect(data = shades, aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax),
+            inherit.aes = FALSE, fill = "lightgray", alpha = 0.5) +
   geom_line() + labs(color = "HFR", linetype = "HFR") + 
-  ggtitle("US HFRs, ratio estimates vs approximate ground truth", subtitle="Real-time counts") +
+  ggtitle("Ratio estimates and approximate ground truth", subtitle="Using real-time counts") +
   scale_x_date(breaks = seq(first_xaxis_date, max(df_real_time$Date), by = "3 months"), 
                date_labels = "%b %Y") +
   xlab("") + theme_bw() +
-  geom_rect(data = shades, aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax),
-            inherit.aes = FALSE, fill = "lightgray", alpha = 0.5) +
   theme(legend.position="bottom",
-        legend.text = element_text(size=15),
         plot.title=element_text(size=17),
         plot.subtitle=element_text(size=13),
-        axis.title.y=element_text(size=17),
-
+        legend.text=element_text(size=12),
         legend.title=element_blank())
+
 rtPlot
-# ggsave(file.path(figure_folder, "Real", "US_ests_realtime.pdf"),
-#        plot = rtPlot, device = "pdf", width = 8, height = 5)
 ggsave(file.path(figure_folder, "Real", "US_ests_realtime.pdf"),
        plot = rtPlot, device = "pdf", width = 10, height = 5)
-
-
 ```
 
 Plot results with both
 
 ```{r}
-# geom_line() +
-# guides(linetype = guide_legend(order = 1), color = guide_legend(order = 2)) + # order
-
-
+df_both = df_both |>
+  mutate(type = case_match(type, 
+                           "Ground truth" ~ "Approximate GT", 
+                           "Convolutional" ~ "Convolutional ratio",
+                           "Lagged" ~ "Lagged ratio"),
+         source = case_match(source, 
+                           "GT HFR" ~ "GT", 
+                           "Finalized" ~ "Finalized",
+                           "Real-Time" ~ "Real-time"))
+         
 bothPlot <- ggplot(data=df_both, aes(x = Date, y = HFR, color = type, linetype=source)) +
   geom_line(aes(group = interaction(source, type))) +
-  ggtitle("US HFRs, real-time and finalized counts") +#, subtitle="Real-time counts"
+  ggtitle("Ratio estimates and approximate ground truth", subtitle="Using both real-time and finalized counts") +
   scale_x_date(breaks = seq(as.Date("2020-10-01"), max(df_both$Date), by = "3 months"),
                date_labels = "%b %Y") +
   xlab("") + theme_bw() +
+  scale_linetype_manual(values=c("GT" = "solid", "Finalized" = "dashed", "Real-time" = "dotted"),
+                        breaks=c("Finalized", "Real-time")) +
   theme(legend.position="bottom",
-        legend.text = element_text(size=15),
         plot.title=element_text(size=17),
-        axis.title.y=element_text(size=17),
+        plot.subtitle=element_text(size=13),
+        legend.text=element_text(size=12),
         legend.spacing.y = unit(0.5, "cm"),
         legend.margin = margin(t = -10),
         legend.box = "vertical",
-        legend.title=element_blank()
-        )
+        legend.title=element_blank())
+
 bothPlot
 ggsave(file.path(figure_folder, "Real", "US_ests_realtime_both.pdf"),
-       plot = bothPlot, device = "pdf", width = 8, height = 5)
-
-
-
+       plot = bothPlot, device = "pdf", width = 10, height = 5)
 ```
-
-
 
 ## Zoom in to explain bad windows
 
-
 ```{r}
-hfrsHJn_rt <- df_real_time[df_real_time$Method=="Convolutional Ratio", "HFR"]
-hfrsHJl_rt <- df_real_time[df_real_time$Method=="Lagged Ratio", "HFR"]
+hfrsHJn_rt <- df_real_time[df_real_time$Method=="Convolutional ratio", "HFR"]
+hfrsHJl_rt <- df_real_time[df_real_time$Method=="Lagged ratio", "HFR"]
 hfrsNHCS <- sapply(est_weeks, function(date) {
   mean(hfrs_nhcs[hfr_dates %in% seq(date - 6, date, by="day")], na.rm = TRUE)
 }); names(hfrsNHCS) <- est_weeks
 hfrsNHCS_rt <- hfrsNHCS[week_st_idx:n_ests]
 
-
-
 plot_list <- list()
 y1name <- ""; y2name <- ""#Hospitalizations
 for (i in 1:length(waves)) {
-  
   wave <- waves[i]
   bad_dates <- periods[[i]]
   conv_hfrs_period <- hfrsHJn_rt[est_weeks_realtime %in% bad_dates]
@@ -160,74 +153,57 @@ for (i in 1:length(waves)) {
   dfAgg$Legend_Conv_HFR <- "Convolutional ratio"
   dfAgg$Legend_Lagged_HFR <- "Lagged ratio"
   dfAgg$Legend_HHS <- "Hospitalizations"
-  dfAgg$Legend_GT_HFR <- "GT HFRs"
+  dfAgg$Legend_GT_HFR <- "Approximate GT"
   
-  scale <- min(lagged_hfrs_period) / mean(hosps_period)
-  ymax <- max(lagged_hfrs_period, gt_hfrs_period, conv_hfrs_period, hosps_period*scale)*1.1
+  ymin <- min(hfrsNHCS_rt, hfrsHJl_rt, hfrsHJn_rt)
+  ymax <- max(hfrsNHCS_rt, hfrsHJl_rt, hfrsHJn_rt)
+  scale <- (ymax - ymin) / (max(hosps) - min(hosps))
+  a <- min(hosps)
+  b <- ymin
+  
+ # scale <- min(lagged_hfrs_period) / mean(hosps_period) 
+ # ymax <- max(lagged_hfrs_period, gt_hfrs_period, conv_hfrs_period, hosps_period*scale)*1.1
+  
   p <- ggplot(data = dfAgg, aes(x = Date)) +
     # ggtitle(paste0("HFRs and Hospitalizations, ", wave)) +
     ggtitle(wave) +
     geom_line(data = dfAgg, aes(y = Conv_HFRs, color = Legend_Conv_HFR, linetype = Legend_Conv_HFR)) +
     geom_line(data = dfAgg, aes(y = Lagged_HFRs, color = Legend_Lagged_HFR, linetype = Legend_Lagged_HFR)) +
     geom_line(data = dfAgg, aes(y = GT_HFRs, color = Legend_GT_HFR, linetype = Legend_GT_HFR)) +
-    geom_line(data = dfAgg, aes(y = Hosps * scale, color=Legend_HHS, linetype=Legend_HHS)) +
+    geom_line(data = dfAgg, aes(y = (Hosps - a) * scale + b, color=Legend_HHS, linetype=Legend_HHS)) +
     ylab(y1name) + 
-    scale_linetype_manual(breaks = c("GT HFRs", "Convolutional ratio", "Lagged ratio", "Hospitalizations"),
-                        values = c("GT HFRs" = "solid", "Convolutional ratio" = "dashed", 
-                                   "Lagged ratio"="longdash", "Hospitalizations" = "dotdash")) +
-    scale_color_manual(breaks = c("GT HFRs", "Convolutional ratio", "Lagged ratio", "Hospitalizations"),
-                     values = c("GT HFRs" = "red", "Convolutional ratio" = "green3", 
+    scale_linetype_manual(breaks = c("Approximate GT", "Convolutional ratio", "Lagged ratio", "Hospitalizations"),
+                        values = c("Approximate GT" = "solid", "Convolutional ratio" = "dotted", 
+                                   "Lagged ratio"="dashed", "Hospitalizations" = "dotdash")) +
+    scale_color_manual(breaks = c("Approximate GT", "Convolutional ratio", "Lagged ratio", "Hospitalizations"),
+                     values = c("Approximate GT" = "red", "Convolutional ratio" = "green3", 
                                 "Lagged ratio" = "dodgerblue", "Hospitalizations" = "black")) +
     scale_x_date(date_breaks = "1 month", date_labels = "%b %Y") +
-    scale_y_continuous(breaks = seq(from = 0, to = ymax, by = 0.05), 
-                       limits = c(0, ymax), 
-                       sec.axis = sec_axis(~./scale, name = y2name)) +
+    scale_y_continuous(#breaks = seq(from = ymin, to = ymax, by = 0.05), 
+                       limits = c(ymin, ymax), 
+                       sec.axis = sec_axis(~ (. - b) / scale + a, name = y2name)) +
     xlab("") +
     theme_bw() +
     theme(legend.position="bottom",
           axis.text.x = element_text(angle=45, vjust=0.5),
           plot.title = element_text(size=17),
+          plot.margin = margin(0, 0, 0, 0, "pt"),
           legend.title=element_blank())
   plot(p)
   plot_list <- append(plot_list, list(p))
-
 }
-
 ```
 
 ```{r}
-# wavePlot <- (plot_list[[1]] / plot_list[[2]] / plot_list[[3]]) + 
-#   plot_annotation(title="HFRs and hospitalizations by wave",
-#                   theme=theme(plot.title=element_text(size=17))) +
-#   plot_layout(guides = "collect") &
-#   theme(legend.position = 'bottom',
-#         legend.text = element_text(size=12),
-#         legend.title=element_blank())
-# ggsave(file.path(figure_folder, "Real", "hfrs_by_wave.pdf"),
-#        plot = wavePlot, device = "pdf", width = 7, height = 7)
-
 wavePlot <- (plot_list[[1]] + plot_list[[2]] + plot_list[[3]]) +
-  plot_annotation(title="HFRs and hospitalizations by wave",
-                  theme=theme(plot.title=element_text(size=19))) +
   plot_layout(guides = "collect") &
   theme(legend.position = 'bottom',
         legend.text = element_text(size=15),
         legend.title=element_blank())
+
+wavePlot
 ggsave(file.path(figure_folder, "Real", "hfrs_by_wave.pdf"),
        plot = wavePlot, device = "pdf", width = 10, height = 4)
-
-
-```
-
-```{r, fig.width=10, fig.height=4}
-wavePlot
-
-```
-
-
-```{r, fig.width=7, fig.height=7}
-# wavePlot
-
 ```
 
 # Robustness checks
@@ -238,43 +214,59 @@ wavePlot
 
 Nishiura convolutional estimator
 
-```{r, fig.width=8, fig.height=4}
+```{r, fig.width=10, fig.height=4}
+df_window_conv = df_window_conv |>
+  mutate(Window = recode_factor(Window, "Approx. GT" = "Approximate GT"))
 
 p1 <- ggplot(df_window_conv, aes(x = Date, y = HFR, color = Window, linetype = Window)) +
-  geom_line() + theme_bw() + theme(legend.position="none") +
-  xlab("") + ylab("") + ggtitle("Convolutional ratio") 
+  geom_line() + 
+  xlab("") + ylab("HFR") +
+  ggtitle("Varying window lengths, convolutional ratio") + theme_bw() +
+  guides(color = guide_legend(nrow = 1)) +
+  theme(legend.position="bottom",
+        plot.title=element_text(size=17),
+        legend.text=element_text(size=12),
+        legend.title=element_blank())
+p1
+
+df_window_lag = df_window_lag |>
+  mutate(Window = recode_factor(Window, "Approx. GT" = "Approximate GT"))
 
 p2 <- ggplot(df_window_lag, aes(x = Date, y = HFR, color = Window, linetype = Window)) +
   geom_line() + 
-  ggtitle("Lagged ratio") + theme_bw() +
-  labs(color = "Window size", linetype = "Window size") +
-  theme(legend.text = element_text(size=12),
-        legend.title = element_text(size=13)) +
-  xlab("") + ylab("") 
-p2
+  xlab("") + ylab("HFR") +
+  ggtitle("Varying window lengths, lagged ratio") + theme_bw() +
+  guides(color = guide_legend(nrow = 1)) +
+  theme(legend.position="bottom",
+        plot.title=element_text(size=17),
+        legend.text=element_text(size=12),
+        legend.title=element_blank())
 
-windowPlot <- p1+p2 + plot_annotation(
-  title = 'HFRs by trailing window length',
-  # subtitle = 'JHU Deaths',
-)
-windowPlot
-ggsave(file.path(figure_folder, "Real", "window_size.pdf"), 
-       plot = windowPlot, device = "pdf", width = 10, height = 4) 
+ggsave(file.path(figure_folder, "Real", "window_size_conv.pdf"), 
+       plot = p1, device = "pdf", width = 10, height = 4) 
 
+ggsave(file.path(figure_folder, "Real", "window_size_lagg.pdf"), 
+       plot = p2, device = "pdf", width = 10, height = 4) 
 ```
 
 ### Robustness to choice of lag
 
 ```{r}
+df_lags = df_lags |> 
+  mutate(Lag = recode_factor(Lag, "Approx. GT" = "Approximate GT"))
+
 lagPlot <- ggplot(df_lags, aes(x = Date, y = HFR, color = Lag, linetype = Lag)) +
-  geom_line() + theme_bw() +
-  theme(legend.text = element_text(size=12),
-      legend.title = element_text(size=13)) +
-  ggtitle("HFRs by lag parameter")#, subtitle="JHU deaths, lagged HFR"
+  geom_line() + theme_bw() +  
+  xlab("") + ylab("HFR") + ggtitle("Varying lag parameters") +
+  guides(color = guide_legend(nrow = 1)) +
+  theme(legend.position="bottom",
+        plot.title=element_text(size=17),
+        legend.text=element_text(size=12),
+        legend.title=element_blank())
+
 lagPlot
 ggsave(file.path(figure_folder, "Real", "hfrs_by_lag.pdf"),
        plot = lagPlot, device = "pdf", width = 10, height = 4)
-
 ```
 
 
@@ -283,45 +275,49 @@ ggsave(file.path(figure_folder, "Real", "hfrs_by_lag.pdf"),
 ```{r}
 frac <- 0.9
 name <- "hfrs_by_delay1.pdf"
-message <- "spread out"
+df_delays_9 = df_delays_9 |> 
+  mutate(Method = recode_factor(Method, "GT" = "Approximate GT"))
 
 DelayPlot <- ggplot(data=df_delays_9, aes(x = Date, y = HFR, color = Method, linetype = Method)) + 
-  geom_line() +
-  labs(color = "Gamma mean/SD", linetype = "Gamma mean/SD") + 
-  theme_bw() +
-  theme(legend.text = element_text(size=12),
-      legend.title = element_text(size=13)) +
-  ggtitle(paste0("HFRs by delay distribution, ", message))
+  geom_line() + theme_bw() +  
+  xlab("") + ylab("HFR") + ggtitle("Varying delay means, with larger variance") +
+  guides(color = guide_legend(nrow = 1)) +
+  theme(legend.position="bottom",
+        plot.title=element_text(size=17),
+        legend.text=element_text(size=12),
+        legend.title=element_blank())
 
 DelayPlot
-
-ggsave(file.path(figure_folder, "Real", name), plot = DelayPlot, device = "pdf", width = 8, height = 5) 
+ggsave(file.path(figure_folder, "Real", name), plot = DelayPlot, 
+       device = "pdf", width = 10, height = 4)
 ```
 
 ```{r}
 frac <- 0.7
 name <- "hfrs_by_delay2.pdf"
-message <- "more compact"
+df_delays_7 = df_delays_7 |> 
+  mutate(Method = recode_factor(Method, "GT" = "Approximate GT"))
+
 DelayPlot2 <- ggplot(data=df_delays_7, aes(x = Date, y = HFR, color = Method, linetype = Method)) + 
-  geom_line() + 
-  labs(color = "Gamma mean/SD", linetype = "Gamma mean/SD") + 
-  theme_bw() +
-  theme(legend.text = element_text(size=12),
-      legend.title = element_text(size=13)) +
-  ggtitle(paste0("HFRs by delay distribution, ", message))
+  geom_line() + theme_bw() +  
+  xlab("") + ylab("HFR") + ggtitle("Varying delay means, with smaller variance") +
+  guides(color = guide_legend(nrow = 1)) +
+  theme(legend.position="bottom",
+        plot.title=element_text(size=17),
+        legend.text=element_text(size=12),
+        legend.title=element_blank())
 
 DelayPlot2
-
 ggsave(file.path(figure_folder, "Real", name), plot = DelayPlot2, 
-       device = "pdf", width = 8, height = 5) 
+       device = "pdf", width = 10, height = 4) 
 ```
-
 
 ## Compare different versions of ground truth
 
 ### Load NCHS deaths and compute HFRs
 
 ## Display real-time counts
+
 ```{r}
 deathSourcePlot <- ggplot(df_deaths_by_source, aes(x=Date, y=Deaths, color=Source, linetype=Source)) + 
   geom_line() + theme_bw() +
@@ -340,40 +336,49 @@ ggsave(file.path(figure_folder, "Real", "death_curves.pdf"),
 Compare ground truth
 
 ```{r}
+df_hfr_types = df_hfr_types |>
+  mutate(Method = recode_factor(Method, 
+                                "NHCS Survey" = "NHCS survey",
+                                "NCHS/HHS (retro)" = "NCHS/HHS",
+                                "GT-Variants" = "Variant-based"))
 
 altGT <- ggplot(data=df_hfr_types, aes(x = Date, y = HFR, color = Method, linetype = Method)) + 
   geom_line() + labs(color = "HFR", linetype = "HFR") + 
-  ggtitle("Methods for approximate ground truth") + 
+  ggtitle("Ground truth comparison") + 
   theme_bw() + xlab("") +
   theme(legend.position="bottom",
-        legend.title=element_blank(),
-        legend.text = element_text(size = 14),
-        axis.title.y=element_text(size=14),
-        plot.title = element_text(size = 17))
+        plot.title=element_text(size=17),
+        legend.text=element_text(size=12),
+        legend.title=element_blank())
+
 altGT
 ggsave(file.path(figure_folder, "Real", "ApproxGT.pdf"), 
-       plot = altGT, device = "pdf", width = 8, height = 4) 
-
+       plot = altGT, device = "pdf", width = 10, height = 4) 
 ```
 
 
 Compare JHU and NCHS lagged ratios
 
 ```{r}
+df_hfr_ests_by_source = df_hfr_ests_by_source |>
+  mutate(Method = case_match(Method, 
+                             "Approx. GT" ~ "Approximate GT",
+                             "JHU Estimate" ~ "JHU-based",
+                             "NCHS Estimate" ~ "NCHS-based"))
+
 HFRsourcePlot <- ggplot(data=df_hfr_ests_by_source, aes(x = Date, y = HFR, color = Method, linetype=Method)) + 
   geom_line() + labs(color = "HFR", linetype = "HFR") + 
-  ggtitle("US HFRs, JHU vs NCHS Deaths") +
+  ggtitle("Death data comparison") +
   scale_x_date(breaks = seq(as.Date("2020-10-01"), max(df_hfr_ests_by_source$Date), by = "3 months"), 
                date_labels = "%b %Y") +
   xlab("") + theme_bw() +
   theme(legend.position="bottom",
-        legend.text = element_text(size = 14),
-        axis.title.y=element_text(size=14),
-        plot.title = element_text(size = 17),
+        plot.title=element_text(size=17),
+        legend.text=element_text(size=12),
         legend.title=element_blank())
+
 HFRsourcePlot
 ggsave(file.path(figure_folder, "Real", "jhu_vs_nchs.pdf"), 
-       plot = HFRsourcePlot, device = "pdf", width = 8, height = 4) 
-
+       plot = HFRsourcePlot, device = "pdf", width = 10, height = 4) 
 ```
 

@@ -54,27 +54,30 @@ est_idx <- (d+1):n_pts
 hosps_window <- hosps[(hosp_start_idx-d):(hosp_start_idx+n_ests-1)]
 est_flat <- calc_nish_hfrs(hosps_window, flatter_hfrs, delay_distr_med)
 est_chging <- calc_nish_hfrs(hosps_window, chging_hfrs, delay_distr_med)
-sources <- c("Ground truth", "Estimated"); types <- c("True (NHCS)", "Flatter")
+sources <- c("True", "Estimated"); types <- c("Original", "Flatter")
 df <- data.frame(t=t0+rep(1:n_ests, 4)-1,
                  HFRs=c(chging_hfrs[est_idx], flatter_hfrs[est_idx], est_chging, est_flat),
                  HFR=factor(rep(sources, each=n_ests*2), levels=sources),
-                 Curve=factor(rep(rep(types, each=n_ests), 2), levels=types))
-Plot <- ggplot(df, aes(x=t, y=HFRs, color=Curve, linetype=HFR)) +
-  geom_line() + ggtitle("HFR estimates by true HFR") + xlab("") + theme_bw() + #Date
+                 Variation=factor(rep(rep(types, each=n_ests), 2), levels=types))
+Plot <- ggplot(df, aes(x=t, y=HFRs, color=Variation, linetype=HFR)) +
+  geom_line() + ggtitle("Effect of changing severity rate") + 
+  xlab("") + ylab("HFR") + theme_bw() + #Date
   guides(linetype = guide_legend(order = 1), color = guide_legend(order = 2)) +
   theme(legend.position = "bottom",
         plot.title=element_text(size=23),
-        legend.text = element_text(size=19),
+        legend.text=element_text(size=19),
         legend.title=element_text(size=19),
         axis.title.y=element_text(size=19),
         legend.spacing.y = unit(0.5, "cm"),
         legend.margin = margin(t = -10),
         legend.box = "vertical") + 
-  scale_color_manual(values = c("True (NHCS)" = "black", "Flatter" = "blue"))
-Plot
+  scale_x_date(date_breaks = "1 month",date_labels = "%b %Y") + 
+  scale_color_manual(values = c("Original" = "black", "Flatter" = "blue"))
+
 ggsave(file.path(figure_folder, "Simulated", "toy_chging_hfr.pdf"), 
        plot = Plot, device = "pdf", width = 7, height = 7)
 
+Plot
 ```
 
 
@@ -90,43 +93,42 @@ est_short <- calc_nish_hfrs(hosps_window, chging_hfrs, delay_distr_short)
 est_med <- calc_nish_hfrs(hosps_window, chging_hfrs, delay_distr_med)
 est_long <- calc_nish_hfrs(hosps_window, chging_hfrs, delay_distr_long)
 
-sources <- c("Ground truth", "Estimated")
+sources <- c("True", "Estimated")
 types <- c("12", "20", "28")
 
-# Keep Ground truth in Type for plotting but handle later
+# Keep True in Type for plotting but handle later
 df <- data.frame(
   t = t0+rep(1:n_ests, 4)-1,
   HFRs = c(chging_hfrs[est_idx], est_short, est_med, est_long),
-  HFR = factor(c(rep("Ground truth", n_ests), rep("Estimated", n_ests*3)), levels = sources),
-  Type = factor(c(rep("Ground truth", n_ests), rep(types, each=n_ests)), levels = c("Ground truth", types))  
+  HFR = factor(c(rep("True", n_ests), rep("Estimated", n_ests*3)), levels = sources),
+  Type = factor(c(rep("True", n_ests), rep(types, each=n_ests)), levels = c("True", types))  
 )
 
 delayPlot <- ggplot(df, aes(x = t, y = HFRs, linetype = HFR, color = Type)) +
   geom_line(aes(group = interaction(HFR, Type))) +  # Group by HFR and Type
-  # Manually set color, exclude Ground truth from legend
+  # Manually set color, exclude True from legend
   scale_color_manual(breaks = types,
-    values = c("Ground truth" = "black", "12" = "green3", "20" = "red2", "28" = "blue")) +
-  ggtitle("HFR estimates by true delay distribution") +
+    values = c("True" = "black", "12" = "green3", "20" = "red2", "28" = "blue")) +
+  ggtitle("Effect of true delay distrbution") +
   labs(color="Delay mean") + xlab("") +#Date
-  theme_bw() +
+  theme_bw() + ylab("HFR") + 
   guides(linetype = guide_legend(order = 1), color = guide_legend(order = 2)) +
+  scale_x_date(date_breaks = "1 month",date_labels = "%b %Y") + 
   theme(legend.position = "bottom",
         plot.title=element_text(size=23),
-        legend.text = element_text(size=19),
+        legend.text=element_text(size=19),
         legend.title=element_text(size=19),
         axis.title.y=element_text(size=19),
         legend.spacing.y = unit(0.5, "cm"),
         legend.margin = margin(t = -10),
-        legend.box = "vertical")
-```
+        legend.box = "vertical") 
 
-```{r}
 dfDistr <- data.frame(t=rep(0:d, 3),
                       Delay=c(delay_distr_short, delay_distr_med, delay_distr_long),
                       Type=rep(types, each=d+1))
 delay_inset <- ggplot(dfDistr, aes(x=t, y=Delay, color=Type)) + geom_line() + theme_bw() + 
   scale_color_manual(breaks = types,
-    values = c("Ground truth" = "black", "12" = "green3", "20" = "red2", "28" = "blue")) +
+    values = c("True" = "black", "12" = "green3", "20" = "red2", "28" = "blue")) +
   theme(legend.position="none", plot.background = element_blank(),
         plot.title = element_text(size = 14),
         axis.title = element_text(size = 14)) + 
@@ -136,18 +138,13 @@ delayPlotFinal <- delayPlot + annotation_custom(ggplotGrob(delay_inset), xmin=t0
 
 ggsave(file.path(figure_folder, "Simulated", "toy_delay_distr.pdf"),
        plot = delayPlotFinal, device = "pdf", width = 7, height = 7)
-```
 
-
-```{r, fig.width = 5, fig.height = 5}
 delayPlotFinal
 ```
-
 
 Example C: Primary incidence
 
 ```{r}
-
 max_obs <- max(hosps_window[est_idx]); min_obs <- min(hosps_window[est_idx])
 sigmoid <- function(x) {1/(1+exp(-x))}
 
@@ -156,51 +153,43 @@ alt_hosps2 <- (1-sigmoid(seq(-10, 5, length.out=n_pts)))*(max_obs-min_obs) + min
 names(alt_hosps1) <- names(hosps_window)
 names(alt_hosps2) <- names(hosps_window)
 
-hfrs_true_hosps <- calc_nish_hfrs(hosps_window, chging_hfrs, delay_distr_med)
+hfrs_Original_hosps <- calc_nish_hfrs(hosps_window, chging_hfrs, delay_distr_med)
 hfrs_alt_hosps1 <- calc_nish_hfrs(alt_hosps1, chging_hfrs, delay_distr_med)
 hfrs_alt_hosps2 <- calc_nish_hfrs(alt_hosps2, chging_hfrs, delay_distr_med)
 
-
-```
-
-
-```{r}
-sources <- c("Ground truth", "Estimated")
-types <- c("True", "Rising", "Falling")
+sources <- c("True", "Estimated")
+types <- c("Original", "Rising", "Falling")
 df <- data.frame(
   t = t0+rep(1:n_ests, 4)-1,
-  HFRs = c(chging_hfrs[est_idx], hfrs_true_hosps, hfrs_alt_hosps1, hfrs_alt_hosps2),
-  HFR = factor(c(rep("Ground truth", n_ests), rep("Estimated", n_ests*3)), levels = sources),
-  Type = factor(c(rep("Ground truth", n_ests), rep(types, each=n_ests)), levels = c("Ground truth", types))  
+  HFRs = c(chging_hfrs[est_idx], hfrs_Original_hosps, hfrs_alt_hosps1, hfrs_alt_hosps2),
+  HFR = factor(c(rep("True", n_ests), rep("Estimated", n_ests*3)), levels = sources),
+  Type = factor(c(rep("True", n_ests), rep(types, each=n_ests)), levels = c("True", types))  
 )
 
 hospPlot <- ggplot(df, aes(x = t, y = HFRs, linetype = HFR, color = Type)) +
   geom_line(aes(group = interaction(HFR, Type))) +  # Group by HFR and Type
   scale_color_manual(breaks = types,
-    values = c("Ground truth" = "black", "Rising" = "green3", "True" = "red2", "Falling" = "blue")) +  
-  ggtitle("HFR estimates by primary incidence") +
-  labs(color="Delay mean") + xlab("") +# xlab("Date") +
-  theme_bw() + 
+    values = c("True" = "black", "Rising" = "green3", "Original" = "red2", "Falling" = "blue")) +  
+  ggtitle("Effect of primary incidence") +
+  labs(color="Primary curve") + xlab("") +# xlab("Date") +
+  theme_bw() + ylab("HFR") + 
   guides(linetype = guide_legend(order = 1), color = guide_legend(order = 2)) +
+  scale_x_date(date_breaks = "1 month",date_labels = "%b %Y") + 
   theme(legend.position = "bottom",
         plot.title=element_text(size=23),
-        legend.text = element_text(size=19),
+        legend.text=element_text(size=19),
         legend.title=element_text(size=19),
         axis.title.y=element_text(size=19),
         legend.spacing.y = unit(0.5, "cm"),
         legend.margin = margin(t = -10),
         legend.box = "vertical") 
 
-hospPlot
-```
-
-```{r}
 dfHosp <- data.frame(t=rep(as.Date(names(hosps_window)[est_idx]), 3),
                       Hosp=c(hosps_window[est_idx], alt_hosps1[est_idx], alt_hosps2[est_idx]),
                       Type=factor(rep(types, each=length(est_idx)), levels=types))
 hosp_inset <- ggplot(dfHosp, aes(x=t, y=Hosp, color=Type, group=Type)) + geom_line() + theme_bw() + 
   scale_color_manual(breaks = types,
-    values = c("Rising" = "green3", "True" = "red2", "Falling" = "blue")) +  
+    values = c("Rising" = "green3", "Original" = "red2", "Falling" = "blue")) +  
   theme(legend.position="none", plot.background = element_blank(),
         plot.title = element_text(size = 14)
         ) + 
@@ -218,24 +207,23 @@ ggsave(file.path(figure_folder, "Simulated", "toy_chging_primary.pdf"),
 
 
 
+
 ############ Figure 2 ############
 
 ```{r}
+original_mean <- 20
 shorter_mean <- 16
 longer_mean <- 24
 delay_distr_shorter <- make_delay_distr(Mean=shorter_mean, Sd=round(shorter_mean*.9), d)
-delay_distr_true <- make_delay_distr(Mean=20, Sd=round(shorter_mean*.9), d)
+delay_distr_Original <- make_delay_distr(Mean=original_mean, Sd=round(original_mean*.9), d)
 delay_distr_longer <- make_delay_distr(Mean=longer_mean, Sd=round(longer_mean*.9), d)
 
-```
-
-```{r}
 first_death_date <- max(hfr_dates[1], hosp_dates[1])+d
 last_death_date <- min(hfr_dates[length(hfr_dates)], hosp_dates[length(hosps)])
 
 death_dates <- seq(first_death_date, last_death_date, by="day")
 est_dates <- seq(as.Date("2021-11-01"), as.Date("2022-07-01"), by="day")
-noiseless_deaths <- compute_noiseless_deaths(hosps, hfrs_nhcs, delay_distr_true, est_dates)
+noiseless_deaths <- compute_noiseless_deaths(hosps, hfrs_nhcs, delay_distr_Original, est_dates)
 
 n_ests <- length(est_dates)
 
@@ -243,64 +231,59 @@ n_ests <- length(est_dates)
 gt_hfrs <- hfrs_nhcs[hfr_dates %in% est_dates]
 optimal_lag <- compute_optimal_lag(hosps, noiseless_deaths)
 lagged_hfrs <- compute_lagged_hfrs(hosps, noiseless_deaths, l=optimal_lag, dates=est_dates) 
-conv_hfrs_oracle <- compute_conv_hfrs(hosps, noiseless_deaths, est_dates, delay_distr_true)
+conv_hfrs_oracle <- compute_conv_hfrs(hosps, noiseless_deaths, est_dates, delay_distr_Original)
 conv_hfrs_shorter <- compute_conv_hfrs(hosps, noiseless_deaths, est_dates, delay_distr_shorter)
 conv_hfrs_longer <- compute_conv_hfrs(hosps, noiseless_deaths, est_dates, delay_distr_longer)
-```
 
-```{r}
-
-R_gamma_shorter <- compute_R_gammas(hosps, delay_distr_true, delay_distr_shorter, est_dates)
-R_gamma_true <- compute_R_gammas(hosps, delay_distr_true, delay_distr_true, est_dates)
-R_gamma_longer <- compute_R_gammas(hosps, delay_distr_true, delay_distr_longer, est_dates)
+R_gamma_shorter <- compute_R_gammas(hosps, delay_distr_Original, delay_distr_shorter, est_dates)
+R_gamma_Original <- compute_R_gammas(hosps, delay_distr_Original, delay_distr_Original, est_dates)
+R_gamma_longer <- compute_R_gammas(hosps, delay_distr_Original, delay_distr_longer, est_dates)
 lagged_distr <- rep(0, d+1); lagged_distr[optimal_lag+1] <- 1
-R_gamma_lagged <- compute_R_gammas(hosps, delay_distr_true, lagged_distr, est_dates)
+R_gamma_lagged <- compute_R_gammas(hosps, delay_distr_Original, lagged_distr, est_dates)
 
-```
-
-```{r}
-sources <- c("Ground truth", "Estimated")
-types <- c("True", "Light-tailed", "Heavy-tailed", "Lagged")
-# Keep Ground truth in Type for plotting but handle later
+sources <- c("True", "Estimated")
+types <- c("Original", "Light-tailed", "Heavy-tailed", "Lagged")
+# Keep True in Type for plotting but handle later
 df <- data.frame(
   t = rep(est_dates, 5),
   HFRs = c(gt_hfrs, conv_hfrs_oracle, conv_hfrs_shorter, conv_hfrs_longer, lagged_hfrs),
-  HFR = factor(c(rep("Ground truth", n_ests), rep("Estimated", n_ests*4)), levels = sources),
-  Type = factor(c(rep("Ground truth", n_ests), rep(types, each=n_ests)), 
-                levels = c("Ground truth", types))  
+  HFR = factor(c(rep("True", n_ests), rep("Estimated", n_ests*4)), levels = sources),
+  Type = factor(c(rep("True", n_ests), rep(types, each=n_ests)), 
+                levels = c("True", types))  
 )
+```
 
+```{r}
 mispPlot <- ggplot(df, aes(x = t, y = HFRs, linetype = HFR, color = Type)) +
   geom_line(aes(group = interaction(HFR, Type))) +  # Group by HFR and Type
   scale_color_manual(breaks = types,
-    values = c("Ground truth" = "black", "Light-tailed" = "green3", "True" = "red2", 
+    values = c("True" = "black", "Light-tailed" = "green3", "Original" = "red2", 
                "Heavy-tailed" = "blue", "Lagged" = "magenta")) +  
-  ggtitle("HFR estimates, misspecified delay distribution") +
+  ggtitle("Effect of misspecification") +
   labs(color="Delay distribution") + xlab("Date") +
-  theme_bw() + xlab("") +
+  theme_bw() + xlab("") + ylab("HFR") + 
   guides(linetype = guide_legend(order = 1), color = guide_legend(order = 2)) +
   scale_x_date(date_breaks = "1 month", labels = NULL) +
   theme(legend.position = "bottom",
         legend.box = "vertical",
-        legend.text = element_text(size = 12),
-        legend.title = element_text(size = 13),
         plot.title = element_text(size = 17),
+        legend.text = element_text(size = 12),
+        legend.title = element_text(size = 12),
         axis.text.x = element_blank(),
         legend.spacing.y = unit(0.5, "cm"),
         legend.margin = margin(t = -10))
 mispPlot
 
-delayTypes <- c("Light-tailed", "True", "Heavy-tailed")
+delayTypes <- c("Light-tailed", "Original", "Heavy-tailed")
 dfDistr <- data.frame(t=rep(0:d, 3),
-                      Delay=c(delay_distr_shorter, delay_distr_true, delay_distr_longer),
+                      Delay=c(delay_distr_shorter, delay_distr_Original, delay_distr_longer),
                       Type=rep(delayTypes, each=d+1))
 delay_inset <- ggplot(dfDistr, aes(x=t, y=Delay, color=Type)) + 
   geom_line() + theme_bw() + 
   scale_color_manual(breaks = delayTypes, 
-                     values = c("Light-tailed" = "green3", "True" = "red2", "Heavy-tailed" = "blue")) +  
+                     values = c("Light-tailed" = "green3", "Original" = "red2", "Heavy-tailed" = "blue")) +  
   theme(legend.position="none",
-        plot.title = element_text(size = 12),
-        axis.title = element_text(size = 10),
+        plot.title = element_text(size = 14),
         axis.text.y = element_blank(),
         axis.ticks.y = element_blank()) + 
   xlab("") +
@@ -311,32 +294,30 @@ mispPlotInlaid <- mispPlot +
   annotation_custom(ggplotGrob(delay_inset), xmin=est_dates[1]-15, xmax=est_dates[1]+67, 
                     ymin=.08, ymax=.148)
 mispPlotInlaid
-```
 
-```{r}
 df2 <- data.frame(
   t = rep(est_dates, 4),
-  Ratios = c(R_gamma_true, R_gamma_shorter, R_gamma_longer, R_gamma_lagged),
+  Ratios = c(R_gamma_Original, R_gamma_shorter, R_gamma_longer, R_gamma_lagged),
   Type = factor(rep(types, each=n_ests), levels = types)  
 )
 
 ratioPlot <- ggplot(df2, aes(x = t, y = Ratios, color = Type)) +
   geom_line() +  # Group by HFR and Type
   scale_color_manual(breaks = types,
-    values = c("Light-tailed" = "green3", "True" = "red2", 
+    values = c("Light-tailed" = "green3", "Original" = "red2", 
                "Heavy-tailed" = "blue", "Lagged" = "magenta")) +  
-  ggtitle(expression("Ratios A"^gamma)) +
-  theme_bw() + xlab("") +
+  ggtitle("Misspecification factor") +
+  theme_bw() + xlab("") + ylab("Factor") + 
   scale_x_date(date_breaks = "1 month", labels = NULL) +
   theme(legend.position = "none",
-        #plot.title = element_text(size = 14),
+        plot.title = element_text(size = 14),
         axis.text.x = element_blank())
 ratioPlot
 
 df3 <- data.frame(t = est_dates, Hosps=hosps[hosp_dates %in% est_dates])
 
 hospPlot <- ggplot(df3, aes(x = t, y = Hosps)) +
-  geom_line() +  ggtitle("Hospitalizations") +
+  geom_line() + ylab("Hospitalizations") + ggtitle("Hospitalizations") +
   scale_x_date(date_breaks = "1 month",date_labels = "%b %Y") + 
   theme_bw() +
   xlab("") +
@@ -344,14 +325,10 @@ hospPlot <- ggplot(df3, aes(x = t, y = Hosps)) +
         )
 hospPlot
 
-```
-
-```{r, fig.width=7, fig.height=7}
-full_misp_plot <- mispPlotInlaid / ratioPlot / hospPlot + plot_layout(heights = c(3, 1, 1))
+full_misp_plot <- mispPlotInlaid / ratioPlot / hospPlot + plot_layout(heights = c(4.5, 2, 2))
 full_misp_plot
 ggsave(file.path(figure_folder, "Simulated", "toy_misp.pdf"), 
-       plot = full_misp_plot, device = "pdf", width = 8, height = 7) 
-
+       plot = full_misp_plot, device = "pdf", width = 9, height = 11) 
 ```
 
 

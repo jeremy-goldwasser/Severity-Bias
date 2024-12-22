@@ -12,65 +12,72 @@ library(patchwork)
 # data <- readRDS(here::here(data_folder, "sim_dfs_grid_fig_corr_lag.RData"))
 data <- readRDS(here::here(data_folder, "sim_dfs_grid_fig_delay_mean.RData"))
 
+for (i in 1:length(data)) {
+  data[[i]] = data[[i]] |> 
+    mutate(Method = recode_factor(Method,
+                                  "Ground truth" = "True", 
+                                  "Oracle convolutional ratio" = "Convolutional ratio"))
+}
+
 dfHFRshort <- data[[1]]
 dfHFRlong <- data[[2]]
 dfHFRshort_inv <- data[[3]]
 dfHFRlong_inv <- data[[4]]
 dfHFRshort_flat <- data[[5]]
 dfHFRlong_flat <- data[[6]]
-
 ```
-
 
 
 ```{r, fig.width=9, fig.height=7}
 flat_hfr <- 0.1
 p1 <- ggplot(data=dfHFRshort, aes(x = Date, y = HFR, color = Method, linetype=Method)) + 
   geom_line() + labs(color = "HFR", linetype = "HFR") + 
-  ggtitle("NHCS HFRs",
-          subtitle="Short delay distribution") +
+  ggtitle("NHCS HFR", subtitle="Short delay distribution") +
   xlab("") + theme_bw()
+
 p2 <- ggplot(data=dfHFRlong, aes(x = Date, y = HFR, color = Method, linetype=Method)) + 
   geom_line() + labs(color = "HFR", linetype = "HFR") + 
-  ggtitle("",subtitle="Long delay distribution") +
+  ggtitle("", subtitle="Long delay distribution") +
   xlab("") + theme_bw()
+
 p3 <- ggplot(data=dfHFRshort_inv, aes(x = Date, y = HFR, color = Method, linetype=Method)) + 
   geom_line() + labs(color = "HFR", linetype = "HFR") + 
-  ggtitle("Inverted NHCS HFRs") +
+  ggtitle("Inverted-NHCS HFR", subtitle="Short delay distribution") +
   xlab("") + theme_bw()
+
 p4 <- ggplot(data=dfHFRlong_inv, aes(x = Date, y = HFR, color = Method, linetype=Method)) + 
   geom_line() + labs(color = "HFR", linetype = "HFR") + 
-  ggtitle("") +
+  ggtitle("", subtitle="Long delay distribution") +
   xlab("") + theme_bw() 
 
 p5 <- ggplot(data=dfHFRshort_flat, aes(x = Date, y = HFR, color = Method, linetype=Method)) + 
   geom_line() + labs(color = "HFR", linetype = "HFR") + 
-  ggtitle(expression("Stationary HFR / Ratios A"^gamma)) +
-  scale_y_continuous(sec.axis = sec_axis(~ . / flat_hfr , name = expression("A"^gamma))) +
+  ggtitle("Stationary HFR", subtitle="Short delay distribution") +
+  # scale_y_continuous(sec.axis = sec_axis(~ . / flat_hfr , name = expression("A"^gamma))) +
   xlab("") + theme_bw()
 
 p6 <- ggplot(data=dfHFRlong_flat, aes(x = Date, y = HFR, color = Method, linetype=Method)) + 
   geom_line() + labs(color = "HFR", linetype = "HFR") + 
-  ggtitle("") +
-  scale_y_continuous(sec.axis = sec_axis(~ . / flat_hfr , name = expression("A"^gamma))) +
+  ggtitle("", subtitle="Long delay distribution") +
+  #scale_y_continuous(sec.axis = sec_axis(~ . / flat_hfr , name = expression("A"^gamma))) +
   xlab("") + theme_bw() 
-
 
 Plot <- ((p1|p2) + plot_layout(tag_level = 'new')) / 
   ((p3|p4) + plot_layout(tag_level = 'new')) / 
   ((p5|p6) + plot_layout(tag_level = 'new')) +
-  plot_annotation(title = 'HFRs, simulated deaths',
-                  theme = theme(plot.title = element_text(size = 16))) +#, tag_levels = c('A', '1')
+  plot_annotation(title = 'Ratio estimates under various simulation models', 
+                  theme = theme(plot.title = element_text(size = 17))) +
   plot_layout(guides="collect") & 
   theme(legend.position = "bottom",
-        legend.text = element_text(size=13),
-        legend.title = element_blank())
+        legend.title = element_blank(),
+        legend.text = element_text(size=12),
+        plot.subtitle=element_text(size=13))
+
 Plot
 ```
 
 
 ```{r, fig.width=9, fig.height=7}
-# ggsave(file.path(figure_folder, "Simulated", "simulated_results_corr_lag.pdf"), plot = Plot, device = "pdf", width = 9, height = 7)
-ggsave(file.path(figure_folder, "Simulated", "simulated_results_delay_mean.pdf"), plot = Plot, device = "pdf", width = 9, height = 7)
-
+ggsave(file.path(figure_folder, "Simulated", "simulated_results_corr_lag.pdf"), plot = Plot, device = "pdf", width = 9, height = 8.5)
+# ggsave(file.path(figure_folder, "Simulated", "simulated_results_delay_mean.pdf"), plot = Plot, device = "pdf", width = 9, height = 8.5)
 ```
