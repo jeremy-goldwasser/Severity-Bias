@@ -6,11 +6,8 @@ Data/older
 main*
 !main.pdf
 !main.tex
-!Addison_Edits.pdf
 Figures/pngs
 Drafts/
 Code/older
 .Rproj.user
 *.DS_Store
-.Rhistory
-.DS_Store
