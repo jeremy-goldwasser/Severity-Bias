@@ -14,3 +14,13 @@ All data and experimental results can be fully reproduced using the provided `R`
 
 3. **Generate figures**  
    Create figures using the other scripts in `Code/Analysis`. These scripts run quickly.
+
+## Software Environment
+
+This analysis was conducted using **R version 4.4.1** with the following package versions:
+
+- **lubridate**: 1.9.3  
+- **epidatr**: 1.2.0  
+- **extraDistr**: 1.10.0  
+- **tidyverse**: 2.0.0  
+- **patchwork**: 1.3.0
