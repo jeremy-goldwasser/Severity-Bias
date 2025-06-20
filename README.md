@@ -2,18 +2,21 @@
 
 This repository contains all code, data, and writing for the paper on bias in estimating time-varying severity rates, such as the case fatality rate (CFR).
 
-## Usage
+## Repository Structure and Usage
 
-All data and experimental results can be fully reproduced using the provided `R` scripts.
+All data and experimental results can be fully reproduced using the provided `R` scripts. Below is a brief summary of the contents of each folder to help orient users:
 
-1. **Preprocess real-world data**  
-   Download and preprocess datasets using scripts in `Code/Preprocessing`.
+- `Code/`
+  - `Preprocessing/` – Scripts for downloading and preprocessing real-world data prior to analysis.  
+  - `Analysis/` – Scripts starting with `data_for_*` estimate severity rates, whereas the others generate the figures presented in the manuscript.
 
-2. **Compute severity rates**  
-   Use scripts in `Code/Analysis` starting with `data_for_*` to estimate severity rates, saving results in `Data/HFR_estimates`.
+- `Data/`
+  - `Real_data/` – Collected real-world datasets (e.g., hospitalizations, deaths, etc.).  
+  - `HFR_estimates/` – Data frames containing estimated hospital fatality rates (HFRs) and related quantities, used in figure generation.
 
-3. **Generate figures**  
-   Create figures using the other scripts in `Code/Analysis`. These scripts run quickly.
+- `Figures/`
+  - `Real/` – Figures derived from real-world COVID-19 data.  
+  - `Simulated/` – Figures generated from simulation experiments.
 
 ## Software Environment
 
