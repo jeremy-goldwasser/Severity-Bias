@@ -65,8 +65,9 @@ Plot <- ggplot(df, aes(x=t, y=HFRs, color=Variation, linetype=HFR)) +
   guides(linetype = guide_legend(order = 1), color = guide_legend(order = 2)) +
   theme(legend.position = "bottom",
         plot.title=element_text(size=23),
-        legend.text=element_text(size=19),
-        legend.title=element_text(size=19),
+        legend.text=element_text(size=20),
+        legend.title=element_text(size=20),
+        axis.text.x = element_text(size=14),
         axis.title.y=element_text(size=19),
         legend.spacing.y = unit(0.5, "cm"),
         legend.margin = margin(t = -10),
@@ -75,7 +76,7 @@ Plot <- ggplot(df, aes(x=t, y=HFRs, color=Variation, linetype=HFR)) +
   scale_color_manual(values = c("Original" = "black", "Flatter" = "blue"))
 
 ggsave(file.path(figure_folder, "Simulated", "toy_chging_hfr.pdf"), 
-       plot = Plot, device = "pdf", width = 7, height = 7)
+       plot = Plot, device = "pdf", width = 6, height = 6)
 
 Plot
 ```
@@ -116,8 +117,9 @@ delayPlot <- ggplot(df, aes(x = t, y = HFRs, linetype = HFR, color = Type)) +
   scale_x_date(date_breaks = "1 month",date_labels = "%b %Y") + 
   theme(legend.position = "bottom",
         plot.title=element_text(size=23),
-        legend.text=element_text(size=19),
-        legend.title=element_text(size=19),
+        legend.text=element_text(size=20),
+        legend.title=element_text(size=20),
+        axis.text.x = element_text(size=14),
         axis.title.y=element_text(size=19),
         legend.spacing.y = unit(0.5, "cm"),
         legend.margin = margin(t = -10),
@@ -137,7 +139,7 @@ delay_inset <- ggplot(dfDistr, aes(x=t, y=Delay, color=Type)) + geom_line() + th
 delayPlotFinal <- delayPlot + annotation_custom(ggplotGrob(delay_inset), xmin=t0, xmax=t0+60, ymax=.14)
 
 ggsave(file.path(figure_folder, "Simulated", "toy_delay_distr.pdf"),
-       plot = delayPlotFinal, device = "pdf", width = 7, height = 7)
+       plot = delayPlotFinal, device = "pdf", width = 6, height = 6)
 
 delayPlotFinal
 ```
@@ -177,8 +179,9 @@ hospPlot <- ggplot(df, aes(x = t, y = HFRs, linetype = HFR, color = Type)) +
   scale_x_date(date_breaks = "1 month",date_labels = "%b %Y") + 
   theme(legend.position = "bottom",
         plot.title=element_text(size=23),
-        legend.text=element_text(size=19),
-        legend.title=element_text(size=19),
+        legend.text=element_text(size=20),
+        legend.title=element_text(size=20),
+        axis.text.x = element_text(size=14),
         axis.title.y=element_text(size=19),
         legend.spacing.y = unit(0.5, "cm"),
         legend.margin = margin(t = -10),
@@ -201,7 +204,7 @@ hospPlotFinal <- hospPlot + annotation_custom(ggplotGrob(hosp_inset), xmin=t0, x
 hospPlotFinal
 
 ggsave(file.path(figure_folder, "Simulated", "toy_chging_primary.pdf"),
-       plot = hospPlotFinal, device = "pdf", width = 7, height = 7)
+       plot = hospPlotFinal, device = "pdf", width = 6, height = 6)
 ```
 
 
@@ -267,8 +270,8 @@ mispPlot <- ggplot(df, aes(x = t, y = HFRs, linetype = HFR, color = Type)) +
   theme(legend.position = "bottom",
         legend.box = "vertical",
         plot.title = element_text(size = 17),
-        legend.text = element_text(size = 12),
-        legend.title = element_text(size = 12),
+        legend.text = element_text(size = 13.5),
+        legend.title = element_text(size = 13.5),
         axis.text.x = element_blank(),
         legend.spacing.y = unit(0.5, "cm"),
         legend.margin = margin(t = -10))
@@ -283,7 +286,7 @@ delay_inset <- ggplot(dfDistr, aes(x=t, y=Delay, color=Type)) +
   scale_color_manual(breaks = delayTypes, 
                      values = c("Light-tailed" = "green3", "Original" = "red2", "Heavy-tailed" = "blue")) +  
   theme(legend.position="none",
-        plot.title = element_text(size = 14),
+        plot.title = element_text(size = 15),
         axis.text.y = element_blank(),
         axis.ticks.y = element_blank()) + 
   xlab("") +
@@ -310,7 +313,7 @@ ratioPlot <- ggplot(df2, aes(x = t, y = Ratios, color = Type)) +
   theme_bw() + xlab("") + ylab("Factor") + 
   scale_x_date(date_breaks = "1 month", labels = NULL) +
   theme(legend.position = "none",
-        plot.title = element_text(size = 14),
+        plot.title = element_text(size = 15),
         axis.text.x = element_blank())
 ratioPlot
 
