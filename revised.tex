@@ -72,12 +72,12 @@ The Atlantic \citep{atlantic}, Wall Street Journal \citep{wsj}, and New York Tim
 They were also used by public health organizations like the CDC \citep{ahmad2023covid,mississippi}, and reported by the Trump and Biden administrations \citep{whitehouse2020mcenany, whitehouse2021briefing}. 
 
 
-While several works 
-assume severity rates are constant in time \citep{ghani, jewell2007nonparametric, reich2012estimating, lancet_controversial}, 
+Several works 
+assume severity rates are constant in time \citep{nishiuraEx1, ghani, jewell2007nonparametric, reich2012estimating, lancet_controversial}. However, 
 consequential shifts can occur in response to factors 
 such as new therapeutics, vaccines, and variants. 
 Therefore, many works estimate time-varying severity rates from aggregate data streams.
-Standard approaches do so with a ratio of primary and secondary counts.
+Standard real-time approaches do so with a ratio of primary and secondary counts.
 % Time-varying severity rates are often estimated with a
 % ratio of primary and secondary aggregate data streams. 
 In fact, ratio estimators are so common that CFR is often 
@@ -175,8 +175,8 @@ However, our analyses hold in the case of time-varying delay distributions.
 % challenges, which only exacerbate the ones we highlight in this paper for a
 % fixed delay distribution.) 
 While the delay distribution is generally unknown,
-several tools exist to estimate them from aggregate or line-list data (see
-\citealp{delay_distrs} for a review). Given $\pi$, we can express the
+several tools exist to estimate them from aggregate or line-list data; see
+\citealp{delay_distrs} for a review. Given $\pi$, we can express the
 expected number of secondary events at time $t$ as follows: 
 \begin{align}
 \E[Y_t \given \{X_s\}_{s\leq t}]
@@ -246,7 +246,7 @@ primary events at $t$ produce secondary events after $t$, their effect is not
 observed in real time. Therefore, standard real-time estimators for severity
 rates \eqref{eq:lagged}, \eqref{eq:conv} and for $R_t$ both analyze the number
 of  secondary events at $t$ produced by relevant primary events. In words, this 
-adopts a ``backward-looking'' perspective (possible in real time), rather the 
+adopts a ``backward-looking'' perspective that is possible in real time, rather the 
 the ``forward-looking'' perspective inherent to the definition in
 \eqref{eq:severity}. 
 
@@ -281,8 +281,8 @@ bias as:
 
 \begin{proposition}
 \label{prop:OracleBias}
-The bias of the convolutional ratio \smash{$\hat{p}_t^\pi$} (where the true
-delay distribution $\pi$ is known) is 
+Assume the true delay distribution $\pi$ is known.
+The bias of the well-specified convolutional ratio \smash{$\hat{p}_t^\pi$} is 
 \begin{equation}
 \label{eq:OracleBias}
 \bias(\hat{p}_t^\pi)  = \sum_{k=0}^d \Bigg[ \frac{X_{t-k}\pi_k}{\sum_{j=0}^d
@@ -295,7 +295,7 @@ Appendix \ref{apx:OracleBias}.
 % The bias \eqref{eq:OracleBias} of the
 % convolutional ratio estimator of the severity rate depends on three factors,
 % which we discuss next. 
-Intuitively, the bias of the well-specified convolutional ratio can be interpreted as a weighted average of the difference between trailing and current severity rates. 
+Intuitively, the well-specified bias can be interpreted as a weighted average of the difference between trailing and current severity rates. 
 The weights depend on the delay distribution and primary incidence curve.
 Figure \ref{fig:wellspecified} provides an accompanying illustration.     
 
@@ -622,8 +622,12 @@ analysis that finds a median hospitalization-to-death time of 11 days
 and a CDC analysis that finds 63\% of COVID-19 deaths are reported in 10 days   
 \citep{cdc_deaths_demographic_geographic_2023}. We set the standard deviation to 
 18, because the delay distributions fit by the UK study had standard deviations
-that were roughly 90\% of their means. Appendix \ref{apx:robustness} evaluates
-the robustness of findings against different hyperparameter values.  
+that were roughly 90\% of their means. 
+
+Appendix \ref{apx:robustness} evaluates
+the robustness of findings against different hyperparameter values. 
+We show our findings do not change across a wide range of lags (Figure \ref{fig:lag}) and delay distributions (Figure \ref{fig:delays}).
+% Figure \ref{fig:lag} displays a wide range of possible values
 
 \paragraph{Validation data.}
 
@@ -644,8 +648,11 @@ in our proxy for the ground truth HFR curve $p_t$.
 This ground truth proxy is a useful benchmark to judge the fidelity of our HFR
 estimates; of course, it is not perfect (and derived from a relatively small
 subset of hospitals). Results in Section \ref{sec:results} suggest it may be too
-high in late 2022. Appendix \ref{apx:alternatives} discusses alternative
-approximations to the ground truth HFR.    
+high in late 2022. 
+Appendix \ref{apx:alternatives} discusses alternative
+approximations to the ground truth HFR. 
+These alternatives, shown in Figure \ref{fig:approxGT}, all exhibit similar qualitative behavior. 
+% As a result, this sensitivity analysis reinforces the results of our real-data experiments.
 
 \section{Results}
 \label{sec:results}
@@ -666,10 +673,10 @@ real-time hospitalization and death counts exhibit a fair degree of instability,
 and recall, these were preprocessed with a 7-day trailing average. Even then,
 the convolutional \eqref{eq:conv} and lagged ratio \eqref{eq:lagged} estmators
 each had wild spikes, so we further smoothed the estimates from both methods
-with a 7-day trailing average. Appendix \ref{apx:robustness} studies the
+with a 7-day trailing average. 
+Appendix \ref{apx:robustness} studies the
 sensitivity of the results to the choice of smoothing window in postprocessing.
-This has little qualitative effect on the main shape of the HFR estimates from
-either method.    
+Figure    \ref{fig:window} shows window size has very little qualitative effect on the main shape of the HFR estimates from either method. 
 
 \begin{figure}[t!]
 \centering
@@ -714,8 +721,8 @@ a serious false alarm.  The analysis in Sections \ref{sec:wellspecified} and
 We start by analyzing the convolutional ratio with respect to the well-specified
 bias expression in Proposition \ref{prop:OracleBias}. While this expression
 assumes that the true delay distribution is known, we found that different
-choices of delay distribution generally yield similar bias (Appendix
-\ref{apx:robustness}). This indicates that our convolutional ratio may 
+choices of delay distribution generally yield similar bias; see Figure \ref{fig:delays} in Appendix
+\ref{apx:robustness}. This indicates that our convolutional ratio may 
 not be far from the oracle (well-specified) ratio. 
 
 Proposition \ref{prop:OracleBias} indicates that the bias moves in the opposite
@@ -728,8 +735,10 @@ precipitous decline in hospitalizations, as falling primary incidence has been
 shown to exacerbate the bias. Average daily hospitalizations declined from over
 20,000 in mid-January to only 1,500 by April 1. Lastly, the delay distribution
 is relatively heavy-tailed, because the aggregate deaths here (from JHU) are
-aligned by report date. We find that this has a substantial impact on the bias, 
-as analyzed in Appendix \ref{apx:alternatives}.
+aligned by report date. 
+We find that this has a substantial impact on the bias, 
+as analyzed in Appendix \ref{apx:alternatives}. 
+Figure \ref{fig:jhu_vs_nchs} shows a large gap in bias between ratios computed on NCHS versus JHU deaths.
 
 \paragraph{Misspecified analysis.}
 
@@ -755,11 +764,13 @@ value.
 \paragraph{}
 
 We performed several robustness checks to assess the stability of these
-findings. Appendix \ref{apx:robustness} studies the effect of different
-hyperparameter choices, and also examines the ratio estimators on six US
-states. It also compares HFR estimates using finalized counts, rather than the
-data available in real time. By and large, the ratio estimators yield roughly
+findings. Appendix \ref{apx:robustness} compares HFR estimates using finalized counts, rather than the
+data available in real time (Figure \ref{fig:rt_and_final}).
+It also studies the effect of different
+hyperparameter choices (Figures \ref{fig:window}, \ref{fig:lag}, \ref{fig:delays}), and examines the ratio estimators on six US
+states (Figure \ref{fig:state-level}). By and large, the ratio estimators yield roughly
 the same type of bias throughout.
+
 
 \subsection{Simulated data}
 \label{sec:results_sim}
@@ -885,7 +896,7 @@ not have a large effect.
 \section{Discussion}
 
 Our analyses and experiments illustrate that practitioners should take caution
-when using (standard) ratio estimators for time-varying severity rates. They
+when using standard ratio estimators for time-varying severity rates. They
 exhibit nontrivial bias as severity rates change, particularly the popular
 lagged ratio. If a major purpose of such estimators is to inform stakeholders of
 changing risks in real time, then such bias indicates they may fail to do so in
@@ -927,8 +938,9 @@ This method obtains all historical severity rates $p_t$ at once, by minimizing
 regularization. The regularizer above is a total variation penalty, also called the fused lasso; it produces a piecewise constant fit of the severity rates.
 Unlike the convolutional ratio, this method models the relationship between events without assuming severity rates are locally stationary. 
 Therefore, it may be a less biased alternative.
-Understanding its bias merits further empirical investigation. 
-A clear expression for its bias cannot be derived, as its severity rates are the minimum of an optimization program, and lack a closed-form expression.
+Since the severity rates are defined implicitly via optimization, their bias is analytically intractable and must be assessed empirically.
+% Understanding its bias merits further empirical investigation. 
+% A clear expression for its bias cannot be derived, as its severity rates are the minimum of an optimization program, and lack a closed-form expression.
 
 Unfortunately, while this method was introduced as a real-time tool, it struggles with instability at the most recent timesteps.
 Improving its capabilities for real-time estimation, 
@@ -961,7 +973,7 @@ line-lists can be subject to ``survivorship bias'': the failure to account for
 deaths occurring outside the hospital \citep{lipsitch2015potential}.
 Under-reporting is another central challenge, particularly for CFR. Not all
 infections are reported, reporting rates change across time, and severe cases
-are more likely to be reported than mild cases. \citet{reich2012estimating}
+are more likely to be reported than mild cases \citep{Tsang2021}. \citet{reich2012estimating}
 proposed an estimator for a time-invariant \emph{relative} CFR---the ratio of
 CFRs between groups---which learns latent reporting rates via the EM
 algorithm. \citet{anastasios} applied this in the context of COVID-19. Their
@@ -1177,7 +1189,7 @@ alongside that obtained from NHCS. They have nontrivial differences in
 magnitude, but reassuringly, the three curves move more or less in
 conjunction. The retrospective NCHS ratio is still subject to statistical bias
 similar to \eqref{eq:LagBias}; the variant-based HFR curve is flatter, as it 
-does not account for other sources of (potential) variability in the underlying
+does not account for other sources of potential variability in the underlying
 severity rate.   
 
 \section{Robustness checks}
