@@ -62,10 +62,12 @@ is the hospitalization-fatality rate (HFR) \citep{HFR_linelist3, HFR_linelist1,
 In an ideal setting, severity rates can be obtained directly from a
 comprehensive line-list or claims data set containing individual patient
 outcomes \citep{HFR_linelist3, cfr_line_list}.
-However, in fast-moving epidemics like COVID-19, large-scale tracking of
-individuals has been infeasible, especially in real time. Instead, severity
+However, large-scale tracking of individuals in fast-moving epidemics
+has been infeasible, especially in real time. 
+For example, the CDC's line list during the COVID-19 pandemic excluded large geographic regions, was only updated monthly, and had missing death statuses for a high proportion of individuals \citep{CDC_line_list}.
+Instead, severity
 rates are routinely estimated from aggregate count data. 
-For example, aggregate 
+Aggregate 
 case and death counts were widely used to estimate and report COVID-19 CFRs in the academic literature \citep{yuan2020monitoring,
   horita2022global, LIU2023100350, germany}, as well as in major news outlets including
 The Atlantic \citep{atlantic}, Wall Street Journal \citep{wsj}, and New York Times \citep{nyt}. 
@@ -979,6 +981,7 @@ CFRs between groups---which learns latent reporting rates via the EM
 algorithm. \citet{anastasios} applied this in the context of COVID-19. Their
 work also identifies other sources of bias, like differences in case definition
 and testing eligibility.  
+Finally, examining how hyperparameter tuning strategies affect the bias poses an opportunity for future work.
 
 As discussed in Section \ref{sec:defs}, severity rates may be understood in
 connection with reproduction numbers. This connection extends to their bias as
@@ -988,6 +991,7 @@ stationary. In a similar vein, \citet{fraser2007} noted that instantaneous $R_t$
 is equal to case $R_t$ if conditions remain unchanged. Future work along the
 lines of \citet{rt_study} could apply our framework to $R_t$ bias, examining the
 fidelity of instantaneous $R_t$ as a proxy for case $R_t$.   
+Conversely, one could apply Bayesian perspectives on $R_t$ to the context of severity rates.
 
 \newpage
 \bibliographystyle{apalike}
