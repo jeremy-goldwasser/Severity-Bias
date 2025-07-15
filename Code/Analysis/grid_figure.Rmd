@@ -2,9 +2,9 @@
 results_folder <- here::here("Data", "HFR_estimates")
 figure_folder <- here::here("Figures")
 
-library(ggplot2)
+# library(ggplot2)
 library(patchwork)
-
+library(tidyverse)
 ```
 
 
@@ -52,14 +52,14 @@ p4 <- ggplot(data=dfHFRlong_inv, aes(x = Date, y = HFR, color = Method, linetype
 
 p5 <- ggplot(data=dfHFRshort_flat, aes(x = Date, y = HFR, color = Method, linetype=Method)) + 
   geom_line() + labs(color = "HFR", linetype = "HFR") + 
-  ggtitle("Stationary HFR", subtitle="Short delay distribution") +
-  # scale_y_continuous(sec.axis = sec_axis(~ . / flat_hfr , name = expression("A"^gamma))) +
+  ggtitle(expression("Stationary HFR (ratios and " * A[t]^gamma * ")"), subtitle = "Short delay distribution") +
+  scale_y_continuous(sec.axis = sec_axis(~ . / flat_hfr, name = expression(A[t]^gamma))) +
   xlab("") + theme_bw()
 
 p6 <- ggplot(data=dfHFRlong_flat, aes(x = Date, y = HFR, color = Method, linetype=Method)) + 
   geom_line() + labs(color = "HFR", linetype = "HFR") + 
   ggtitle("", subtitle="Long delay distribution") +
-  #scale_y_continuous(sec.axis = sec_axis(~ . / flat_hfr , name = expression("A"^gamma))) +
+  scale_y_continuous(sec.axis = sec_axis(~ . / flat_hfr, name = expression(A[t]^gamma))) +
   xlab("") + theme_bw() 
 
 Plot <- ((p1|p2) + plot_layout(tag_level = 'new')) / 
@@ -78,6 +78,6 @@ Plot
 
 
 ```{r, fig.width=9, fig.height=7}
-# ggsave(file.path(figure_folder, "Simulated", "simulated_results_corr_lag.pdf"), plot = Plot, device = "pdf", width = 9, height = 8.5)
-ggsave(file.path(figure_folder, "Simulated", "simulated_results_delay_mean.pdf"), plot = Plot, device = "pdf", width = 9, height = 8.5)
+ggsave(file.path(figure_folder, "Simulated", "simulated_results_corr_lag.pdf"), plot = Plot, device = "pdf", width = 9, height = 8.5)
+# ggsave(file.path(figure_folder, "Simulated", "simulated_results_delay_mean.pdf"), plot = Plot, device = "pdf", width = 9, height = 8.5)
 ```

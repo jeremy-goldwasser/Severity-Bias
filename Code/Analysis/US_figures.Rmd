@@ -76,14 +76,14 @@ rtPlot <- ggplot(data=df_real_time, aes(x = Date, y = HFR, color = Method, linet
   geom_rect(data = shades, aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax),
             inherit.aes = FALSE, fill = "lightgray", alpha = 0.5) +
   geom_line() + labs(color = "HFR", linetype = "HFR") + 
-  ggtitle("Ratio estimates and approximate ground truth", subtitle="Using real-time counts") +
+  ggtitle("Ratio estimates and approximate ground truth")+#, subtitle="Using real-time counts") +
   scale_x_date(breaks = seq(first_xaxis_date, max(df_real_time$Date), by = "3 months"), 
                date_labels = "%b %Y") +
   xlab("") + theme_bw() +
   theme(legend.position="bottom",
         plot.title=element_text(size=17),
-        plot.subtitle=element_text(size=13),
-        legend.text=element_text(size=12),
+        # plot.subtitle=element_text(size=13),
+        legend.text=element_text(size=14),
         legend.title=element_blank())
 
 rtPlot
@@ -114,8 +114,8 @@ bothPlot <- ggplot(data=df_both, aes(x = Date, y = HFR, color = type, linetype=s
                         breaks=c("Finalized", "Real-time")) +
   theme(legend.position="bottom",
         plot.title=element_text(size=17),
-        plot.subtitle=element_text(size=13),
-        legend.text=element_text(size=12),
+        plot.subtitle=element_text(size=14),
+        legend.text=element_text(size=14),
         legend.spacing.y = unit(0.5, "cm"),
         legend.margin = margin(t = -10),
         legend.box = "vertical",
@@ -200,7 +200,7 @@ for (i in 1:length(waves)) {
 wavePlot <- (plot_list[[1]] + plot_list[[2]] + plot_list[[3]]) +
   plot_layout(guides = "collect") &
   theme(legend.position = 'bottom',
-        legend.text = element_text(size=15),
+        legend.text = element_text(size=14),
         legend.title=element_blank())
 
 wavePlot
@@ -227,7 +227,7 @@ p1 <- ggplot(df_window_conv, aes(x = Date, y = HFR, color = Window, linetype = W
   guides(color = guide_legend(nrow = 1)) +
   theme(legend.position="bottom",
         plot.title=element_text(size=17),
-        legend.text=element_text(size=12),
+        legend.text=element_text(size=14),
         legend.title=element_blank())
 p1
 
@@ -241,7 +241,7 @@ p2 <- ggplot(df_window_lag, aes(x = Date, y = HFR, color = Window, linetype = Wi
   guides(color = guide_legend(nrow = 1)) +
   theme(legend.position="bottom",
         plot.title=element_text(size=17),
-        legend.text=element_text(size=12),
+        legend.text=element_text(size=14),
         legend.title=element_blank())
 
 ggsave(file.path(figure_folder, "Real", "window_size_conv.pdf"), 
@@ -263,7 +263,7 @@ lagPlot <- ggplot(df_lags, aes(x = Date, y = HFR, color = Lag, linetype = Lag)) 
   guides(color = guide_legend(nrow = 1)) +
   theme(legend.position="bottom",
         plot.title=element_text(size=17),
-        legend.text=element_text(size=12),
+        legend.text=element_text(size=14),
         legend.title=element_blank())
 
 lagPlot
@@ -286,7 +286,7 @@ DelayPlot <- ggplot(data=df_delays_9, aes(x = Date, y = HFR, color = Method, lin
   guides(color = guide_legend(nrow = 1)) +
   theme(legend.position="bottom",
         plot.title=element_text(size=17),
-        legend.text=element_text(size=12),
+        legend.text=element_text(size=14),
         legend.title=element_blank())
 
 DelayPlot
@@ -306,7 +306,7 @@ DelayPlot2 <- ggplot(data=df_delays_7, aes(x = Date, y = HFR, color = Method, li
   guides(color = guide_legend(nrow = 1)) +
   theme(legend.position="bottom",
         plot.title=element_text(size=17),
-        legend.text=element_text(size=12),
+        legend.text=element_text(size=14),
         legend.title=element_blank())
 
 DelayPlot2
@@ -350,7 +350,7 @@ altGT <- ggplot(data=df_hfr_types, aes(x = Date, y = HFR, color = Method, linety
   theme_bw() + xlab("") +
   theme(legend.position="bottom",
         plot.title=element_text(size=17),
-        legend.text=element_text(size=12),
+        legend.text=element_text(size=14),
         legend.title=element_blank())
 
 altGT
@@ -376,7 +376,7 @@ HFRsourcePlot <- ggplot(data=df_hfr_ests_by_source, aes(x = Date, y = HFR, color
   xlab("") + theme_bw() +
   theme(legend.position="bottom",
         plot.title=element_text(size=17),
-        legend.text=element_text(size=12),
+        legend.text=element_text(size=14),
         legend.title=element_blank())
 
 HFRsourcePlot
