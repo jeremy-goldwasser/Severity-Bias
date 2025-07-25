@@ -5,6 +5,7 @@
 \citation{nishiuraEx1,nishiuraEx2,timevar_ifr,lancet_ifr}
 \citation{HFR_linelist3,HFR_linelist1,HFR_linelist2}
 \citation{HFR_linelist3,cfr_line_list}
+\citation{CDC_line_list}
 \citation{yuan2020monitoring,horita2022global,LIU2023100350,germany}
 \citation{atlantic}
 \citation{wsj}
@@ -21,9 +22,9 @@
 \newlabel{sec:methods}{{2}{2}{Methods}{section.2}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {2.1}Severity rate estimators}{2}{subsection.2.1}\protected@file@percent }
 \newlabel{sec:defs}{{2.1}{2}{Severity rate estimators}{subsection.2.1}{}}
-\newlabel{eq:severity}{{1}{2}{Severity rate estimators}{equation.2.1}{}}
+\newlabel{eq:severity}{{1}{2}{Severity rate estimators}{equation.1}{}}
 \@writefile{toc}{\contentsline {paragraph}{Lagged estimator.}{2}{section*.1}\protected@file@percent }
-\newlabel{eq:lagged}{{2}{2}{Lagged estimator}{equation.2.2}{}}
+\newlabel{eq:lagged}{{2}{2}{Lagged estimator}{equation.2}{}}
 \@writefile{toc}{\contentsline {paragraph}{Convolutional estimator.}{2}{section*.2}\protected@file@percent }
 \citation{UKpaper}
 \citation{nishiura}
@@ -31,18 +32,18 @@
 \citation{cfr_package}
 \citation{fraser2007,wallinga2007how}
 \citation{cori2013new}
-\newlabel{eq:model}{{3}{3}{Convolutional estimator}{equation.2.3}{}}
-\newlabel{eq:conv}{{4}{3}{Convolutional estimator}{equation.2.4}{}}
+\newlabel{eq:model}{{3}{3}{Convolutional estimator}{equation.3}{}}
+\newlabel{eq:conv}{{4}{3}{Convolutional estimator}{equation.4}{}}
 \@writefile{toc}{\contentsline {paragraph}{Connection with reproduction numbers.}{3}{section*.3}\protected@file@percent }
-\newlabel{eq:instRt}{{5}{3}{Connection with reproduction numbers}{equation.2.5}{}}
+\newlabel{eq:instRt}{{5}{3}{Connection with reproduction numbers}{equation.5}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {2.2}Well-specified analysis}{4}{subsection.2.2}\protected@file@percent }
 \newlabel{sec:wellspecified}{{2.2}{4}{Well-specified analysis}{subsection.2.2}{}}
 \newlabel{prop:OracleBias}{{1}{4}{}{proposition.1}{}}
-\newlabel{eq:OracleBias}{{6}{4}{}{equation.2.6}{}}
+\newlabel{eq:OracleBias}{{6}{4}{}{equation.6}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {2.3}Misspecified analysis}{4}{subsection.2.3}\protected@file@percent }
 \newlabel{sec:misspecified}{{2.3}{4}{Misspecified analysis}{subsection.2.3}{}}
 \newlabel{prop:MispBias}{{2}{4}{}{proposition.2}{}}
-\newlabel{eq:MispBias}{{7}{4}{}{equation.2.7}{}}
+\newlabel{eq:MispBias}{{7}{4}{}{equation.7}{}}
 \providecommand*\caption@xref[2]{\@setref\relax\@undefined{#1}}
 \newlabel{fig:toy_hfr}{{1a}{5}{\relax }{figure.caption.4}{}}
 \newlabel{sub@fig:toy_hfr}{{a}{5}{\relax }{figure.caption.4}{}}
@@ -53,7 +54,7 @@
 \@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Simple examples which illustrate the effects of the three factors explained above on the bias of the well-specified convolutional ratio \eqref  {eq:OracleBias}. In each figure, the colors correspond to different versions of the factor of interest. The primary incidence curve measures COVID-19 hospital admissions, as reported to the HHS in early 2022. We then simulate a secondary incidence curve, COVID-19 deaths, from \eqref  {eq:model}, without noise. The underlying HFR curve $p_t$ and delay distribution $\pi $ used (in simulating deaths) were derived from external data sources, as explained in more detail in Section \ref {sec:setup}. }}{5}{figure.caption.4}\protected@file@percent }
 \newlabel{fig:wellspecified}{{1}{5}{Simple examples which illustrate the effects of the three factors explained above on the bias of the well-specified convolutional ratio \eqref {eq:OracleBias}. In each figure, the colors correspond to different versions of the factor of interest. The primary incidence curve measures COVID-19 hospital admissions, as reported to the HHS in early 2022. We then simulate a secondary incidence curve, COVID-19 deaths, from \eqref {eq:model}, without noise. The underlying HFR curve $p_t$ and delay distribution $\pi $ used (in simulating deaths) were derived from external data sources, as explained in more detail in Section \ref {sec:setup}}{figure.caption.4}{}}
 \citation{HHS2023}
-\newlabel{eq:LagBias}{{8}{6}{Misspecified analysis}{equation.2.8}{}}
+\newlabel{eq:LagBias}{{8}{6}{Misspecified analysis}{equation.8}{}}
 \@writefile{toc}{\contentsline {paragraph}{Primary incidence rising.}{6}{section*.5}\protected@file@percent }
 \@writefile{toc}{\contentsline {paragraph}{Primary incidence falling.}{6}{section*.7}\protected@file@percent }
 \@writefile{toc}{\contentsline {paragraph}{Primary incidence levels out from a fall.}{6}{section*.8}\protected@file@percent }
@@ -80,7 +81,7 @@
 \@writefile{toc}{\contentsline {paragraph}{Misspecified analysis.}{9}{section*.15}\protected@file@percent }
 \@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Comparing ratio estimates to approximate ground truth HFR on real-time COVID-19 counts in the US, from November 2020 through December 2022.}}{10}{figure.caption.13}\protected@file@percent }
 \newlabel{fig:basic_est_vs_gt_figs}{{3}{10}{Comparing ratio estimates to approximate ground truth HFR on real-time COVID-19 counts in the US, from November 2020 through December 2022}{figure.caption.13}{}}
-\@writefile{toc}{\contentsline {paragraph}{}{10}{section*.16}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{}{11}{section*.16}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {3.2}Simulated data}{11}{subsection.3.2}\protected@file@percent }
 \newlabel{sec:results_sim}{{3.2}{11}{Simulated data}{subsection.3.2}{}}
 \@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Convolutional and lagged ratios over various simulation settings, with three different underlying HFR curves (rows) and two delays (columns). The last row, for stationary HFR, also provides $A_t^\gamma = \setbox \z@ \hbox {\mathsurround \z@ $\textstyle p$}\mathaccent "0362{p}_t^\gamma /p$.}}{12}{figure.caption.17}\protected@file@percent }
@@ -97,45 +98,94 @@
 \citation{rt_study}
 \bibstyle{apalike}
 \bibdata{refs}
-\@writefile{toc}{\contentsline {section}{\numberline {A}Proofs and further analysis}{14}{appendix.A}\protected@file@percent }
-\newlabel{apx:proofs}{{A}{14}{Proofs and further analysis}{appendix.A}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {A.1}Proof of Proposition \ref {prop:OracleBias}}{14}{subsection.A.1}\protected@file@percent }
-\newlabel{apx:OracleBias}{{A.1}{14}{Proof of Proposition \ref {prop:OracleBias}}{subsection.A.1}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {A.2}Proof of Proposition \ref {prop:MispBias}}{14}{subsection.A.2}\protected@file@percent }
-\newlabel{apx:MispBias}{{A.2}{14}{Proof of Proposition \ref {prop:MispBias}}{subsection.A.2}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {A.3}Further analysis of well-specified bias}{14}{subsection.A.3}\protected@file@percent }
-\newlabel{apx:analysis}{{A.3}{14}{Further analysis of well-specified bias}{subsection.A.3}{}}
+\bibcite{adjei2022mortality}{{1}{2022}{{Adjei et~al.}}{{}}}
+\bibcite{ahmad2023covid}{{2}{2023}{{Ahmad et~al.}}{{}}}
+\bibcite{anastasios}{{3}{2020}{{Angelopoulos et~al.}}{{}}}
+\bibcite{lancet_controversial}{{4}{2020}{{Baud et~al.}}{{}}}
+\bibcite{HFR_linelist3}{{5}{2020}{{Bellan et~al.}}{{}}}
+\bibcite{JHU}{{6}{2023}{{Center for Systems Science and Engineering (CSSE) at Johns Hopkins University}}{{}}}
+\bibcite{CDC_line_list}{{7}{2023}{{Centers for Disease Control and Prevention}}{{}}}
+\bibcite{cfr_line_list}{{8}{2021}{{Challen et~al.}}{{}}}
+\bibcite{delay_distrs}{{9}{2024}{{Charniga et~al.}}{{}}}
+\bibcite{cori2013new}{{10}{2013}{{Cori et~al.}}{{}}}
+\bibcite{lancet_ifr}{{11}{2022}{{COVID-19 Forecasting Team}}{{}}}
+\bibcite{HHS2023}{{12}{2023}{{Department of Health and Human Services}}{{}}}
+\bibcite{rt_study}{{13}{2023}{{Eales and Riley}}{{}}}
+\bibcite{Epidata}{{14}{2015}{{Farrow et~al.}}{{}}}
+\bibcite{fraser2007}{{15}{2007}{{Fraser}}{{}}}
+\bibcite{nishiuraEx1}{{16}{2009}{{Garske et~al.}}{{}}}
+\bibcite{ghani}{{17}{2005}{{Ghani et~al.}}{{}}}
+\bibcite{cfr_package}{{18}{2024}{{Gupte et~al.}}{{}}}
+\bibcite{Hodcroft2021}{{19}{2021}{{Hodcroft}}{{}}}
+\bibcite{horita2022global}{{20}{2022}{{Horita and Fukumoto}}{{}}}
+\bibcite{Jahja2022}{{21}{2022}{{Jahja et~al.}}{{}}}
+\bibcite{jewell2007nonparametric}{{22}{2007}{{Jewell et~al.}}{{}}}
+\bibcite{wsj}{{23}{2020}{{Kamp and Krouse}}{{}}}
+\bibcite{mississippi}{{24}{2024}{{Karimi}}{{}}}
+\bibcite{lipsitch2015potential}{{25}{2015}{{Lipsitch et~al.}}{{}}}
+\bibcite{LIU2023100350}{{26}{2023}{{Liu et~al.}}{{}}}
+\bibcite{timevar_ifr}{{27}{2021}{{Luo et~al.}}{{}}}
+\bibcite{atlantic}{{28}{2020}{{Madrigal and Moser}}{{}}}
+\bibcite{nyt}{{29}{2020}{{McNeil}}{{}}}
+\bibcite{cdc_deaths_demographic_geographic_2023}{{30}{2023}{{National Center for Health Statistics (NCHS) at Centers for Disease Control and Prevention}}{{}}}
+\bibcite{NHCS2023}{{31}{2023}{{National Hospital Care Survey (NHCS) at Centers for Disease Control and Prevention}}{{}}}
+\bibcite{nishiura}{{32}{2009}{{Nishiura et~al.}}{{}}}
+\bibcite{UKpaper}{{33}{2022}{{Overton et~al.}}{{}}}
+\bibcite{fusedlasso}{{34}{2022}{{Qu et~al.}}{{}}}
+\bibcite{reich2012estimating}{{35}{2012}{{Reich et~al.}}{{}}}
+\bibcite{HFR_linelist1}{{36}{2021}{{Roth et~al.}}{{}}}
+\bibcite{Russell2020}{{37}{2020a}{{Russell et~al.}}{{}}}
+\bibcite{nishiuraEx2}{{38}{2020b}{{Russell et~al.}}{{}}}
+\bibcite{whitehouse2020mcenany}{{39}{2020}{{The White House}}{{}}}
+\bibcite{whitehouse2021briefing}{{40}{2021}{{The White House}}{{}}}
+\bibcite{thomas2021estimating}{{41}{2021}{{Thomas and Marks}}{{}}}
+\bibcite{Tibshirani2014}{{42}{2014}{{Tibshirani}}{{}}}
+\bibcite{Tsang2021}{{43}{2021}{{Tsang et~al.}}{{}}}
+\bibcite{Unnikrishnan2021}{{44}{2021}{{Unnikrishnan et~al.}}{{}}}
+\bibcite{wallinga2007how}{{45}{2007}{{Wallinga and Lipsitch}}{{}}}
+\bibcite{UKdelay}{{46}{2021}{{Ward and Johnsen}}{{}}}
+\bibcite{germany}{{47}{2023}{{Wjst and Wendtner}}{{}}}
+\bibcite{HFR_linelist2}{{48}{2024}{{Xie et~al.}}{{}}}
+\bibcite{yuan2020monitoring}{{49}{2020}{{Yuan et~al.}}{{}}}
+\@writefile{toc}{\contentsline {section}{\numberline {A}Proofs and further analysis}{17}{appendix.A}\protected@file@percent }
+\newlabel{apx:proofs}{{A}{17}{Proofs and further analysis}{appendix.A}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {A.1}Proof of Proposition \ref {prop:OracleBias}}{17}{subsection.A.1}\protected@file@percent }
+\newlabel{apx:OracleBias}{{A.1}{17}{Proof of Proposition \ref {prop:OracleBias}}{subsection.A.1}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {A.2}Proof of Proposition \ref {prop:MispBias}}{17}{subsection.A.2}\protected@file@percent }
+\newlabel{apx:MispBias}{{A.2}{17}{Proof of Proposition \ref {prop:MispBias}}{subsection.A.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {A.3}Further analysis of well-specified bias}{17}{subsection.A.3}\protected@file@percent }
+\newlabel{apx:analysis}{{A.3}{17}{Further analysis of well-specified bias}{subsection.A.3}{}}
 \citation{Hodcroft2021}
 \citation{adjei2022mortality}
-\newlabel{fig:onehot}{{5a}{15}{All deaths after $\ell $ days. HFR ratios equivalent; plotting delays of $\ell =14$ and 28 days}{figure.caption.18}{}}
-\newlabel{sub@fig:onehot}{{a}{15}{All deaths after $\ell $ days. HFR ratios equivalent; plotting delays of $\ell =14$ and 28 days}{figure.caption.18}{}}
-\newlabel{fig:chging_primary}{{5b}{15}{Changing primary incidence. Plotting bias of lagged and convolutional ratios}{figure.caption.18}{}}
-\newlabel{sub@fig:chging_primary}{{b}{15}{Changing primary incidence. Plotting bias of lagged and convolutional ratios}{figure.caption.18}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Toy examples of biased severity rates.}}{15}{figure.caption.18}\protected@file@percent }
-\newlabel{fig:bias_ex}{{5}{15}{Toy examples of biased severity rates}{figure.caption.18}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {B}Alternative data sources}{15}{appendix.B}\protected@file@percent }
-\newlabel{apx:alternatives}{{B}{15}{Alternative data sources}{appendix.B}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {B.1}Retrospective deaths}{15}{subsection.B.1}\protected@file@percent }
-\newlabel{apx:NCHS_deaths}{{B.1}{15}{Retrospective deaths}{subsection.B.1}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces Comparing lagged ratios based on data from JHU versus NCHS.}}{16}{figure.caption.19}\protected@file@percent }
-\newlabel{fig:jhu_vs_nchs}{{6}{16}{Comparing lagged ratios based on data from JHU versus NCHS}{figure.caption.19}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {B.2}Alternative ground truth}{16}{subsection.B.2}\protected@file@percent }
-\newlabel{apx:alt_gt}{{B.2}{16}{Alternative ground truth}{subsection.B.2}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces Comparing methods for approximating ground truth HFR.}}{16}{figure.caption.20}\protected@file@percent }
-\newlabel{fig:approxGT}{{7}{16}{Comparing methods for approximating ground truth HFR}{figure.caption.20}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {C}Robustness checks}{17}{appendix.C}\protected@file@percent }
-\newlabel{apx:robustness}{{C}{17}{Robustness checks}{appendix.C}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {C.1}Real-time versus finalized data}{17}{subsection.C.1}\protected@file@percent }
-\@writefile{lof}{\contentsline {figure}{\numberline {8}{\ignorespaces Comparing estimates based on real-time versus finalized counts.}}{17}{figure.caption.21}\protected@file@percent }
-\newlabel{fig:rt_and_final}{{8}{17}{Comparing estimates based on real-time versus finalized counts}{figure.caption.21}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {C.2}Hyperparameters}{17}{subsection.C.2}\protected@file@percent }
-\@writefile{lof}{\contentsline {figure}{\numberline {9}{\ignorespaces Comparing different choices of window length in post-smoothing.}}{18}{figure.caption.22}\protected@file@percent }
-\newlabel{fig:window}{{9}{18}{Comparing different choices of window length in post-smoothing}{figure.caption.22}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {C.3}State-level results}{18}{subsection.C.3}\protected@file@percent }
-\@writefile{lof}{\contentsline {figure}{\numberline {10}{\ignorespaces Comparing different choices of lag parameter in the lagged ratio.}}{19}{figure.caption.23}\protected@file@percent }
-\newlabel{fig:lag}{{10}{19}{Comparing different choices of lag parameter in the lagged ratio}{figure.caption.23}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {11}{\ignorespaces Comparing different choices of delay distributions in the convolutional ratio. The top panel shows gamma distributions whose standard deviation is 0.9 times the mean, versus 0.7 times the mean the bottom panel. The legend labels reflect the mean/standard deviation.}}{19}{figure.caption.23}\protected@file@percent }
-\newlabel{fig:delays}{{11}{19}{Comparing different choices of delay distributions in the convolutional ratio. The top panel shows gamma distributions whose standard deviation is 0.9 times the mean, versus 0.7 times the mean the bottom panel. The legend labels reflect the mean/standard deviation}{figure.caption.23}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {12}{\ignorespaces Comparing ratio estimates for individual US states.}}{20}{figure.caption.24}\protected@file@percent }
-\newlabel{fig:state-level}{{12}{20}{Comparing ratio estimates for individual US states}{figure.caption.24}{}}
-\gdef \@abspage@last{20}
+\newlabel{fig:onehot}{{5a}{18}{All deaths after $\ell $ days. HFR ratios equivalent; plotting delays of $\ell =14$ and 28 days}{figure.caption.20}{}}
+\newlabel{sub@fig:onehot}{{a}{18}{All deaths after $\ell $ days. HFR ratios equivalent; plotting delays of $\ell =14$ and 28 days}{figure.caption.20}{}}
+\newlabel{fig:chging_primary}{{5b}{18}{Changing primary incidence. Plotting bias of lagged and convolutional ratios}{figure.caption.20}{}}
+\newlabel{sub@fig:chging_primary}{{b}{18}{Changing primary incidence. Plotting bias of lagged and convolutional ratios}{figure.caption.20}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Toy examples of biased severity rates.}}{18}{figure.caption.20}\protected@file@percent }
+\newlabel{fig:bias_ex}{{5}{18}{Toy examples of biased severity rates}{figure.caption.20}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {B}Alternative data sources}{18}{appendix.B}\protected@file@percent }
+\newlabel{apx:alternatives}{{B}{18}{Alternative data sources}{appendix.B}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {B.1}Retrospective deaths}{18}{subsection.B.1}\protected@file@percent }
+\newlabel{apx:NCHS_deaths}{{B.1}{18}{Retrospective deaths}{subsection.B.1}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces Comparing lagged ratios based on data from JHU versus NCHS.}}{19}{figure.caption.21}\protected@file@percent }
+\newlabel{fig:jhu_vs_nchs}{{6}{19}{Comparing lagged ratios based on data from JHU versus NCHS}{figure.caption.21}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {B.2}Alternative ground truth}{19}{subsection.B.2}\protected@file@percent }
+\newlabel{apx:alt_gt}{{B.2}{19}{Alternative ground truth}{subsection.B.2}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces Comparing methods for approximating ground truth HFR.}}{19}{figure.caption.22}\protected@file@percent }
+\newlabel{fig:approxGT}{{7}{19}{Comparing methods for approximating ground truth HFR}{figure.caption.22}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {C}Robustness checks}{20}{appendix.C}\protected@file@percent }
+\newlabel{apx:robustness}{{C}{20}{Robustness checks}{appendix.C}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {C.1}Real-time versus finalized data}{20}{subsection.C.1}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {8}{\ignorespaces Comparing estimates based on real-time versus finalized counts.}}{20}{figure.caption.23}\protected@file@percent }
+\newlabel{fig:rt_and_final}{{8}{20}{Comparing estimates based on real-time versus finalized counts}{figure.caption.23}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {C.2}Hyperparameters}{20}{subsection.C.2}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {9}{\ignorespaces Comparing different choices of window length in post-smoothing.}}{21}{figure.caption.24}\protected@file@percent }
+\newlabel{fig:window}{{9}{21}{Comparing different choices of window length in post-smoothing}{figure.caption.24}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {C.3}State-level results}{21}{subsection.C.3}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {10}{\ignorespaces Comparing different choices of lag parameter in the lagged ratio.}}{22}{figure.caption.25}\protected@file@percent }
+\newlabel{fig:lag}{{10}{22}{Comparing different choices of lag parameter in the lagged ratio}{figure.caption.25}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {11}{\ignorespaces Comparing different choices of delay distributions in the convolutional ratio. The top panel shows gamma distributions whose standard deviation is 0.9 times the mean, versus 0.7 times the mean the bottom panel. The legend labels reflect the mean/standard deviation.}}{22}{figure.caption.25}\protected@file@percent }
+\newlabel{fig:delays}{{11}{22}{Comparing different choices of delay distributions in the convolutional ratio. The top panel shows gamma distributions whose standard deviation is 0.9 times the mean, versus 0.7 times the mean the bottom panel. The legend labels reflect the mean/standard deviation}{figure.caption.25}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {12}{\ignorespaces Comparing ratio estimates for individual US states.}}{23}{figure.caption.26}\protected@file@percent }
+\newlabel{fig:state-level}{{12}{23}{Comparing ratio estimates for individual US states}{figure.caption.26}{}}
+\gdef \@abspage@last{23}
