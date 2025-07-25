@@ -1,3 +1,11 @@
+# Ignore all diff build artifacts except the PDF
+Revised_Manuscript_with_Track_Changes.*
+!Revised_Manuscript_with_Track_Changes.pdf
+
+# Ignore revised build artifacts except source
+revised.*
+!revised.tex
+
 .Rhistory
 .RData
 Severity-Bias.Rproj
