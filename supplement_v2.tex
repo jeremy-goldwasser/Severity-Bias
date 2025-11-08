@@ -364,5 +364,97 @@ once again emphasizes the role of the delay in bias. The takeaway: fatality
 ratios are generally less trustworthy in states that take longer to report
 deaths.         
 
+\section{CFR analysis}
+
+To illustrate the ubiquity of our analyses across all severity rates, we recreated our simulated experiments with CFR as opposed to HFR. 
+As a recap, the case-fatality rate (CFR) measures the proportion of reported cases that ultimately die. 
+It is often used as a proxy for the infection-fatality rate (IFR), since true infection counts are challenging to estimate, especially in real-time.
+% However, this proxy relationship is challenged by the fact that not all infected individuals show up as positive case reports. 
+% Moreover, the case ascertainment rate varies over time. 
+
+In this section, we recreate Figures 1, 2, and 4, using cases instead of hospitalizations. 
+We restrict our focus to simulated deaths because unlike HFR, a strong external estimate for the true CFR is unavailable in real-time.
+Another reason for this restriction is that CFR is a problematic surrogate for IFR. 
+Not all infected individuals show up as positive case reports, and the case ascertainment rate varies over time.
+Therefore, devising a schema to estimate IFR on COVID-19 data in real-time,and comparing it to notions of the ``true'' IFR and CFR is out of scope for this work.
+% \textcolor{red}{This isn't really true. The retrospective convolutional estimator is good, and we already use it in the Appendix for HFR. The problem is, we don't like it because its mid-Omicron bump illustrates the core shortcoming of CFR: that it's hard to interpret due to unknown and potentially time-varying case ascertainment rates.}
+
+The ground truth CFRs in these simulations follow the same NHCS-based curve in our prior experiments.
+To reflect CFRs, we rescaled this curve such that the average CFR was the overall COVID-19 CFR from 2020-2022.
+Deaths are simulated using the same delay distributions as in HFR. 
+This is justified by our confirmation that the correlation-maximizing lag between U.S. cases and deaths is the same as that between hospitalizations and deaths. 
+
+
+\begin{figure}[htb]
+\centering
+\begin{subfigure}[b]{0.325\linewidth}
+  \centering
+  \includegraphics[width=\linewidth]{Figures/Simulated/toy_chging_cfr.pdf} 
+  \caption{}
+  \label{fig:toy_cfr}
+\end{subfigure}
+\begin{subfigure}[b]{0.325\linewidth}
+  \centering
+  \includegraphics[width=\linewidth]{Figures/Simulated/toy_delay_distr_cfr.pdf}
+  \caption{}
+  \label{fig:toy_delay_cfr}
+\end{subfigure}
+\begin{subfigure}[b]{0.325\linewidth}
+  \centering
+  \includegraphics[width=\linewidth]{Figures/Simulated/toy_chging_primary_cfr.pdf} 
+  \caption{}
+  \label{fig:toy_primary_cfr}
+\end{subfigure}
+\caption{
+  These figures illustrate the same qualitative trends as in Figure 1, 
+  now using CFR instead of HFR. The same three factors—changing severity, delay distribution, 
+  and primary incidence—produce similar effects on the bias of the well-specified convolutional 
+  ratio.}
+\label{fig:wellspecified_cfr}
+\end{figure}
+
+Figure \ref{fig:wellspecified_cfr} presents the CFR counterpart to Figure 1 in the main text. As with HFR, the same qualitative trends emerge: rapid changes in the underlying severity rate produce larger biases, longer delay distributions amplify these distortions, and variations in the primary incidence curve modulate both the direction and magnitude of bias. These parallels confirm that the mechanisms driving bias in the well-specified convolutional ratio are not specific to HFR but generalize directly to CFR.
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.9\linewidth]{Figures/Simulated/toy_misp_cfr.pdf}
+\caption{Analogous to Figure 2, this figure illustrates
+  the effects of delay-distribution misspecification when using CFR instead of HFR.
+  The same qualitative behavior is observed across light-tailed, heavy-tailed,
+  and lagged specifications.}
+\label{fig:misspecified_cfr}
+\end{figure}
+
+
+Figure \ref{fig:misspecified_cfr} shows the effects of delay‐distribution misspecification for CFR. The same qualitative patterns observed for HFR persist: the light‐tailed delay yields upward or downward deviations depending on incidence trends, the heavy‐tailed delay has smaller opposing bias, and the lagged ratio remains the most volatile. 
+These results confirm that the misspecification mechanisms outlined in Proposition 2 extend directly to CFR.
+
+In fact, the bias is even larger than in the HFR case.
+The lagged ratio spikes to 2.5\%, a staggering 150\% above the true CFR of 1\%.
+In contrast, lagged HFRs peaked at 25\% while the true values were 15\%
+The behavior of $A_t^\ell$ explains this discrepancy.
+It peaks around 2.5 for CFR, compared to 1.5 for HFR.
+The larger value for CFR is driven by cases climbing higher and falling steeper than hospitalizations, in relative terms.
+
+
+\begin{figure}[t!]
+\centering
+\includegraphics[width=\linewidth]{Figures/Simulated/simulated_results_cfr.pdf}
+\caption{
+  Ratio estimates under various simulation settings, using CFR instead of HFR.
+  As in Figure~4, the convolutional ratio tracks the true severity curve closely,
+  while the lagged ratio exhibits larger oscillations, particularly under the
+  longer delay. 
+}
+\label{fig:sims_cfr}
+\end{figure}
+
+
+Figure \ref{fig:sims_cfr} shows the simulated results for CFR, paralleling Figure 4 from the main text. The qualitative behaviors mirror those observed for HFR, confirming that the same bias mechanisms apply to CFR-based analyses.
+The convolutional ratio continues to track the true curve relatively closely, while the lagged ratio exhibits exaggerated oscillations, especially under the longer delay. When incidence surges, the lagged CFR overshoots the truth; when incidence falls, it undershoots. These dynamics follow directly from the misspecification behavior of $A_t^\ell$ described in Proposition 2.
+
+Even in the stationary-severity simulations, the lagged ratio remains heavily biased upward whenever $A_t^\ell>1$. Its peaks for CFR roughly twice as large as those seen for HFR. As discussed for Figure \ref{fig:misspecified_cfr}, this difference is driven by the sharper swings in case incidence compared with hospitalizations. Meanwhile, the convolutional ratio’s stability reflects its correct specification of the delay distribution—its advantage holding equally for CFR as for HFR.
+
+
 
 \end{document}

@@ -109,6 +109,8 @@ Once again, these are periods in which it is critical to properly ascertain the 
 While the HFRs dropped in the aftermath of the initial Omicron surge, the lagged ratio's estimates jumped 50\% above the true values.
 % NEW SENTENCE: BROAD APPLICABILITY
 These experiments use hospitalization data, but our analysis applies broadly to the bias of all severity rates.
+% NEW SENTENCE: CFR 
+Indeed, we rerun our simulation experiments on CFR, delivering even more biased results.
 
 We provide practical heuristics for when epidemiologists should expect this bias in practice. 
 These may prevent poor decision-making based on biased estimates of severity rates. 
@@ -121,8 +123,6 @@ Code to reproduce our experimental results is available at \texttt{https://githu
 
 In this section, we introduce the main estimators we study, and analyze their 
 bias. 
-% NEW SENTENCE, AGAIN
-% The bias analysis is relevant for any severity rate, including CFR and IFR. 
 Subsequently, we detail the data used for empirical study and validation. 
 
 \subsection{Severity rate estimators}
@@ -575,7 +575,7 @@ Here we describe the data and general experimental setup used in Figures
 
 \paragraph{Hospitalization-fatality rate.}
 
-Our experiments analyze the HFR throughout the COVID-19 pandemic. While HFR 
+Our experiments primarily analyze the HFR throughout the COVID-19 pandemic. While HFR 
 may be less common as an object of study compared to CFR, it has a few
 advantages. 
 Firstly, we were able to find a good ``ground truth proxy'' for the national HFR 
@@ -609,6 +609,11 @@ to study as a time-varying quantity, even outside of ascertainment issues.
 % during the COVID-19 pandemic, as published by the National Hospital Care Survey
 % (NHCS). This helps guide our simulations and also serves as validation data for
 % us, as we describe in more detail below.  
+
+% NEW PARAGRAPH: ALSO CFR
+To assess the generality of our results, Section S4 of the Supplement conducts the simulated analyses using CFR in place of HFR. 
+In addition to Figure \ref{fig:sims} (forthcoming in the results section), Figures \ref{fig:wellspecified} and \ref{fig:misspecified} are reproduced using case data. 
+In all instances, the resulting trends mirror those for HFR, confirming that the bias mechanisms identified here apply broadly across severity metrics. 
 
 \paragraph{Aggregate data streams.}
 
@@ -922,6 +927,7 @@ not have a large effect.
 % \ref{prop:MispBias}, the oracle term $A_t^\ell \text{Bias}(\hat{p}_t^\pi)$
 % equals only $1.5\%$; meanwhile, the misspecification term $p_t(A_t^\ell-1) =
 % 7\%$, accounting for the majority of the bias.  
+Figure S11 in Section S4 of the Supplement repeats these analyses for CFR, using case data in lieu of hospitalizations. It shows the same qualitative behavior, with the well-specified convolutional ratio remaining decently calibrated and the lagged ratio displaying inaccurate, erratic swings. This indicates that the underlying bias mechanisms generalize directly to CFR and other severity rates.
 
 \section{Discussion}
 
@@ -932,7 +938,8 @@ lagged ratio. If a major purpose of such estimators is to inform stakeholders of
 changing risks in real time, then such bias indicates they may fail to do so in
 a reliable manner.
 % NEW SENTENCE, 3X
-While our experiments use real and simulated data to target HFR, ratio estimates of severity rates like CFR and IFR have identical bias patterns.
+While our main analyses focus on HFR, we additionally replicate the simulated experiments for CFR, confirming that ratio estimates of other severity rates share the same bias patterns.
+% While our experiments use real and simulated data to target HFR, ratio estimates of severity rates like CFR and IFR have identical bias patterns.
 
 Analyzing the bias, as we have done in Propositions \ref{prop:OracleBias} and 
 \ref{prop:MispBias}, allows us to form real-time heuristics about what to
@@ -945,7 +952,7 @@ generally expect the lagged ratio to make the following errors:
 \item unexpected surges when primary incidence has leveled out after falling (Heuristic \#3).  
 \end{itemize}
 Practitioners may be able to adjust their reactions accordingly. For example, if 
-the lagged HFR spikes shortly after hospitalizations have declined and reach a
+the lagged CFR spikes shortly after hospitalizations have declined and reach a
 stable low point, then a savvy epidemiologist can temper their alarm with the
 knowledge it may well be spurious.  
 
