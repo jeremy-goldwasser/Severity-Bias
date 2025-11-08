@@ -20,7 +20,7 @@ for (i in 1:6) {
   State <- BiggestStates[i]
   dfHFR <- dfList[[i]]
   lags <- oracle_lags[[i]]
-  dfHFR = dfHFR |> mutate(Method = recode_factor(Method, "Approx. GT" = "Approximate GT"))
+  dfHFR = dfHFR |> mutate(Method = recode_factor(Method, "Approx. GT" = "External estimate"))# Approximate GT
   p <- ggplot(dfHFR, aes(x = Date, y = HFR, color = Method, linetype = Method)) + 
     geom_line() + 
     xlab("") + ylab("") +
@@ -36,7 +36,7 @@ for (i in 1:6) {
 StatePlot <- (plotlist[[1]] + plotlist[[2]]) /
   (plotlist[[3]] + plotlist[[4]]) /
   (plotlist[[5]] + plotlist[[6]]) +
-  plot_annotation(title="Ratio estimates and approximate ground truth",
+  plot_annotation(title="Ratio and external estimates",
                   theme=theme(plot.title=element_text(size=17))) +
   plot_layout(guides = "collect") &
   theme(legend.position = 'bottom',
@@ -45,7 +45,8 @@ StatePlot <- (plotlist[[1]] + plotlist[[2]]) /
         plot.subtitle=element_text(size=13))
 
 StatePlot
-ggsave(file.path(figure_folder, "Real", "state_level_hfrs.pdf"), 
+real_dir <- "RealV2" # "Real"
+ggsave(file.path(figure_folder, real_dir, "state_level_hfrs.pdf"), 
        plot = StatePlot, device = "pdf", width = 9, height = 8.5) 
 ```
 

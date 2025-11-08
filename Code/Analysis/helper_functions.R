@@ -137,10 +137,13 @@ get_gamma_params <- function(Mean, Sd) {
   return(c(shape, rate))
 }  
 
-make_delay_distr <- function(Mean, Sd, d) {
+make_delay_distr <- function(Mean, Sd, d, normalize=TRUE) {
   params <- get_gamma_params(Mean=Mean, Sd=Sd)
   shape <- params[1]; rate <- params[2]
   DelayShape <- ddgamma(0:d, shape, rate)
+  if (normalize) {
+    DelayShape <- DelayShape/sum(DelayShape)
+  }
   return(DelayShape)
 }
 
