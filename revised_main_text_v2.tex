@@ -33,7 +33,8 @@
 \maketitle
 
 \begin{abstract}
-Severity rates like the case-fatality rate and infection-fatality rate are
+%and infection-fatality rate
+Severity rates like the case-fatality rate and hospitalization-fatality rate are
 key metrics in public health. To guide decision-making in response to changes
 like new variants or vaccines, it is imperative to understand how these rates
 shift in real time. In practice, time-varying severity rates are typically
@@ -61,16 +62,24 @@ Finally, we survey promising alternatives from recent literature, and suggest te
 Several public health metrics of interest express the probability that a second,
 often more severe outcome will follow a primary event. 
 We refer to such metrics as ``severity rates.''
-These include well-known examples such as the case-fatality rate (CFR) and infection-fatality rate (IFR), commonly used to assess the deadliness of an epidemic \citep{nishiuraEx1, nishiuraEx2, timevar_ifr, lancet_ifr}. 
-Another important example 
+Important examples of severity rates are the hospitalization-fatality rate (HFR) 
+% \citep{HFR_linelist3, HFR_linelist1, HFR_linelist2}
+  and case-fatality rate (CFR),
+commonly used to assess the deadliness of an epidemic \citep{nishiuraEx1, nishiuraEx2, timevar_ifr, lancet_ifr}. 
+
   % Another central example of a
 % ``severity rate'', which is a term that we use for metrics of this general form,
-is the hospitalization-fatality rate (HFR) \citep{HFR_linelist3, HFR_linelist1,  
-  HFR_linelist2}.
 
-In an ideal setting, severity rates can be obtained directly from a
-comprehensive line-list or claims data set containing individual patient
-outcomes \citep{HFR_linelist3, cfr_line_list}.
+% These include well-known examples such as the case-fatality rate (CFR)
+% and infection-fatality rate (IFR), 
+% Another well-known metric is the case-fatality rate (CFR),
+% commonly used to assess the deadliness of an epidemic \citep{nishiuraEx1, nishiuraEx2, timevar_ifr, lancet_ifr}. 
+
+In an ideal setting, severity rates can be obtained directly from a %comprehensive
+line-list or claims data set containing individual patient
+outcomes. 
+% \citep{HFR_linelist3, cfr_line_list}
+Many effective works take this approach, such as \citet{cfr_line_list}, \citet{HFR_linelist1}, and \citet{HFR_linelist3}.
 However, large-scale tracking of individuals in fast-moving epidemics
 has been infeasible, especially in real time. 
 For example, the CDC's line list during the COVID-19 pandemic excluded large geographic regions, was only updated monthly, and had missing death statuses for a high proportion of individuals \citep{CDC_line_list}.
@@ -157,7 +166,7 @@ the formulation of the estimators, but refer back to this issue in Section
 
 % NEW SENTENCE, AGAIN
 In the context of CFR, for example, $\{X_t\}$ and $\{Y_t\}$ denote cases and deaths.
-However, the following estimators and their biases are shared for any severity rate $p_t$, including CFR, IFR, and HFR. 
+However, the following estimators and their biases are shared for any severity rate $p_t$, including CFR and HFR. %, IFR,
 
 \paragraph{Lagged estimator.} 
 
@@ -173,7 +182,8 @@ at time $t$ as:
 \hat{p}_t^\ell = \frac{Y_t}{X_{t-\ell}},
 \end{equation}
 where $\ell \geq 0$ is a given parameter (often chosen to maximize
-cross-correlation between $\{X_t\}$ and $\{Y_t\}$).      
+cross-correlation between $\{X_t\}$ and $\{Y_t\}$). 
+Note without loss of generality that the lag itself may be time-varying, adapting to shifts in the delay distribution.
 
 \paragraph{Convolutional estimator.} 
 
@@ -662,9 +672,10 @@ We show our findings do not change across a wide range of lags (Figure S6) and d
 
 \paragraph{Validation data.}
 
-
-While the true HFR curve is unknown, there are sound ways to approximate it. One  
-way is to use estimates from the National Hospital Care Survey (NHCS)
+Due to a lack of ground truth, the bias cannot be rigorously evaluated on real data. 
+However, there are sound ways to better approximate the true HFRs from external sources.
+% While the true HFR curve is unknown, there are sound ways to approximate it. One  
+One way is to use estimates from the National Hospital Care Survey (NHCS)
 \citep{NHCS2023}, which records weekly HFR based on a representative subset 
 of 601 hospitals across the US. These estimates end up being consistently
 biased downwards because they are only based on deaths which occur in the
@@ -676,9 +687,9 @@ the \texttt{smooth.spline} function in R (which chooses the smoothness
 hyperparameter by minimizing generalized cross-validation error). This results 
 in our proxy for the ground truth HFR curve $p_t$.  
 
-This ground truth proxy is a useful benchmark to judge the fidelity of our HFR
-estimates; of course, it is not perfect (and derived from a relatively small
-subset of hospitals). Results in Section \ref{sec:results} suggest it may be too
+This external estimate is a useful benchmark to judge the fidelity of our HFR
+estimates. Of course, it is not perfect, and is derived from a relatively small
+subset of hospitals. Results in Section \ref{sec:results} suggest it may be too
 high in late 2022. 
 Section S3.1 in the Supplement discusses alternative
 approximations to the ground truth HFR. 
@@ -796,7 +807,7 @@ value.
 
 We performed several robustness checks to assess the stability of these
 findings. 
-Section S3 compares the HFR estimates to multiple alternative approximations of the ground truth (Figure S3). 
+Section S3 compares the ratio HFRs to multiple external estimates of the ground truth (Figure S3). 
 It also studies the effect of using finalized count data (Figure S4) and different hyperparameter choices (Figures S5-7).
 Finally, it examines the ratio estimators' behavior on six US states (Figure S8). 
 % Section S3 compares HFR estimates using finalized counts, rather than the
