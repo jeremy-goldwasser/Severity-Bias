@@ -191,7 +191,7 @@ However, this resource was only available in retrospect, so these ``real-time'' 
 \section{Robustness checks}
 \label{apx:robustness}
 
-\subsection{Alternative ground truth}
+\subsection{Alternative external estimates of HFR}
 \label{apx:alt_gt}
 
 \begin{figure}[b!]
@@ -336,7 +336,7 @@ large, so it cannot be used to accurately estimate the HFRs within each state.
 % for the state-level external estimates, we therefore use the
 Instead, our external estimates of the state-level HFRs use the retrospective ratio discussed above (Equation \ref{eq:conv-retro}), with NCHS deaths.
 % forward-looking ratio computed using NCHS deaths, as discussed above.
-Figure \ref{fig:state-level} compares this rough ground truth to the real-time 
+Figure \ref{fig:state-level} compares this external HFR estimate to the real-time 
 convolutional and lagged ratios. 
 For each state, we select the lag for the
 real-time lagged ratio to maximize cross-correlation between hospitalizations and JHU deaths. 
@@ -376,7 +376,7 @@ In this section, we recreate Figures 1, 2, and 4, using cases instead of hospita
 We restrict our focus to simulated deaths because unlike HFR, a strong external estimate for the true CFR is unavailable in real-time.
 Another reason for this restriction is that CFR is a problematic surrogate for IFR. 
 Not all infected individuals show up as positive case reports, and the case ascertainment rate varies over time.
-Therefore, devising a schema to estimate IFR on COVID-19 data in real-time,and comparing it to notions of the ``true'' IFR and CFR is out of scope for this work.
+Therefore, devising a schema to estimate IFR on COVID-19 data in real-time, and comparing it to notions of the ``true'' IFR and CFR is out of scope for this work.
 % \textcolor{red}{This isn't really true. The retrospective convolutional estimator is good, and we already use it in the Appendix for HFR. The problem is, we don't like it because its mid-Omicron bump illustrates the core shortcoming of CFR: that it's hard to interpret due to unknown and potentially time-varying case ascertainment rates.}
 
 The ground truth CFRs in these simulations follow the same NHCS-based curve in our prior experiments.
