@@ -38,9 +38,9 @@ plot(cfrs)
 # d <- 75
 # delay_distr_jhu <- make_delay_distr(oracle_lag_realtime, oracle_lag_realtime*0.9, d)
 # w <- 7
-# first_est_idx <- d+w
+first_est_idx <- d+w
 # 
-# cfr_dates_weekly <- cfr_dates[seq(first_est_idx, length(cfr_dates), by=7)]
+cfr_dates_weekly <- cfr_dates[seq(first_est_idx, length(cfr_dates), by=7)]
 # cfrs_weekly <- cfrs[seq(first_est_idx, length(cfr_dates), by=7)]
 
 
