@@ -667,7 +667,7 @@ that were roughly 90\% of their means.
 
 Section S3 of the Supplement evaluates
 the robustness of findings against different hyperparameter values. 
-We show our findings do not change across a wide range of lags (Figure S6) and delay distributions (Figure S7).
+We show our findings do not change across a wide range of lags (Figure S7) and delay distributions (Figure S8).
 % Figure \ref{fig:lag} displays a wide range of possible values
 
 \paragraph{Validation data.}
@@ -693,7 +693,7 @@ subset of hospitals. Results in Section \ref{sec:results} suggest it may be too
 high in late 2022. 
 Section S3.1 in the Supplement discusses alternative
 approximations to the ground truth HFR. 
-These alternatives, shown in Figure S3, all exhibit similar qualitative behavior. 
+These alternatives, shown in Figure S4, all exhibit similar qualitative behavior. 
 % As a result, this sensitivity analysis reinforces the results of our real-data experiments.
 
 \section{Results}
@@ -718,7 +718,7 @@ each had wild spikes, so we further smoothed the estimates from both methods
 with a 7-day trailing average. 
 Section S3 studies the
 sensitivity of the results to the choice of smoothing window in postprocessing.
-Figure S5 shows window size has very little qualitative effect on the main shape of the HFR estimates from either method. 
+Figure S6 shows window size has very little qualitative effect on the main shape of the HFR estimates from either method. 
 
 \begin{figure}[t!]
 \centering
@@ -763,7 +763,7 @@ a serious false alarm.  The analysis in Sections \ref{sec:wellspecified} and
 We start by analyzing the convolutional ratio with respect to the well-specified
 bias expression in Proposition \ref{prop:OracleBias}. While this expression
 assumes that the true delay distribution is known, we found that different
-choices of delay distribution generally yield similar bias; see Figure S7 in Section 3 of the Supplement. 
+choices of delay distribution generally yield similar bias; see Figure S8 in Section 3 of the Supplement. 
 This indicates that our convolutional ratio may 
 not be far from the oracle (well-specified) ratio. 
 
@@ -780,7 +780,7 @@ is relatively heavy-tailed, because the aggregate deaths here (from JHU) are
 aligned by report date. 
 We find that this has a substantial impact on the bias, 
 as analyzed in Supplement Section S2.2. 
-Figure S2 shows a large gap in bias between ratios computed on NCHS versus JHU deaths.
+Figure S3 shows a large gap in bias between ratios computed on NCHS versus JHU deaths.
 
 \paragraph{Misspecified analysis.}
 
@@ -807,9 +807,9 @@ value.
 
 We performed several robustness checks to assess the stability of these
 findings. 
-Section S3 compares the ratio HFRs to multiple external estimates of the ground truth (Figure S3). 
-It also studies the effect of using finalized count data (Figure S4) and different hyperparameter choices (Figures S5-7).
-Finally, it examines the ratio estimators' behavior on six US states (Figure S8). 
+Section S3 compares the ratio HFRs to multiple external estimates of the ground truth (Figure S4). 
+It also studies the effect of using finalized count data (Figure S5) and different hyperparameter choices (Figures S6-8).
+Finally, it examines the ratio estimators' behavior on six US states (Figure S9). 
 % Section S3 compares HFR estimates using finalized counts, rather than the
 % data available in real time (Figure S4).
 % It also studies the effect of different
@@ -938,7 +938,7 @@ not have a large effect.
 % \ref{prop:MispBias}, the oracle term $A_t^\ell \text{Bias}(\hat{p}_t^\pi)$
 % equals only $1.5\%$; meanwhile, the misspecification term $p_t(A_t^\ell-1) =
 % 7\%$, accounting for the majority of the bias.  
-Figure S11 in Section S4 of the Supplement repeats these analyses for CFR, using case data in lieu of hospitalizations. It shows the same qualitative behavior, with the well-specified convolutional ratio remaining decently calibrated and the lagged ratio displaying inaccurate, erratic swings. This indicates that the underlying bias mechanisms generalize directly to CFR and other severity rates.
+Section S4 of the Supplement repeats these analyses for CFR, using case data in lieu of hospitalizations (Figures S10-12). It shows the same qualitative behavior, with the well-specified convolutional ratio remaining decently calibrated and the lagged ratio displaying inaccurate, erratic swings. This indicates that the underlying bias mechanisms generalize directly to CFR and other severity rates.
 
 \section{Discussion}
 
