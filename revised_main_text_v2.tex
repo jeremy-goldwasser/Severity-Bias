@@ -65,7 +65,7 @@ We refer to such metrics as ``severity rates.''
 Important examples of severity rates are the hospitalization-fatality rate (HFR) 
 % \citep{HFR_linelist3, HFR_linelist1, HFR_linelist2}
   and case-fatality rate (CFR),
-commonly used to assess the deadliness of an epidemic \citep{nishiuraEx1, nishiuraEx2, timevar_ifr, lancet_ifr}. 
+commonly used to assess the deadliness of an epidemic \citep{cfr_line_list, timevar_ifr, lancet_ifr, HFR_linelist3}. %nishiuraEx2, lancet_ifr
 
   % Another central example of a
 % ``severity rate'', which is a term that we use for metrics of this general form,
@@ -76,17 +76,17 @@ commonly used to assess the deadliness of an epidemic \citep{nishiuraEx1, nishiu
 % commonly used to assess the deadliness of an epidemic \citep{nishiuraEx1, nishiuraEx2, timevar_ifr, lancet_ifr}. 
 
 In an ideal setting, severity rates can be obtained directly from a %comprehensive
-line-list or claims data set containing individual patient
-outcomes. 
-% \citep{HFR_linelist3, cfr_line_list}
-Many effective works take this approach, such as \citet{cfr_line_list}, \citet{HFR_linelist1}, and \citet{HFR_linelist3}.
-However, large-scale tracking of individuals in fast-moving epidemics
-has been infeasible, especially in real time. 
-For example, the CDC's line list during the COVID-19 pandemic excluded large geographic regions, was only updated monthly, and had missing death statuses for a high proportion of individuals \citep{CDC_line_list}.
-Instead, severity
-rates are routinely estimated from aggregate count data. 
-Aggregate 
-case and death counts were widely used to estimate and report COVID-19 CFRs in the academic literature \citep{yuan2020monitoring,
+line-list or claims data set containing individual patient outcomes. 
+Such line-lists do not necessarily need to be comprehensive, or even representative of the target population of interest.
+Various techniques can be used to adjust for biases in non-representative line-lists, such as post-stratification on characteristics like age \citep{nishiuraEx2}, race \citep{HFR_linelist2}, and seroprevalence \citep{lancet_ifr}.
+However, real-time tracking of individuals in fast-moving epidemics
+has in many settings been infeasible, even at smaller scales. 
+For example, the CDC's line-list during the COVID-19 pandemic excluded large geographic regions, was only updated monthly, and had missing death statuses for a high proportion of individuals \citep{CDC_line_list}. 
+Techniques like importance reweighting are often insufficient to address these problems.
+
+When real-time severity rates cannot be discerned from line-lists, they 
+are routinely estimated from aggregate count data. 
+Aggregate case and death counts were widely used to estimate and report COVID-19 CFRs in the academic literature \citep{yuan2020monitoring,
   horita2022global, LIU2023100350, germany}, as well as in major news outlets including
 The Atlantic \citep{atlantic}, Wall Street Journal \citep{wsj}, and New York Times \citep{nyt}. 
 They were also used by public health organizations like the CDC \citep{ahmad2023covid,mississippi}, and reported by the Trump and Biden administrations \citep{whitehouse2020mcenany, whitehouse2021briefing}. 
