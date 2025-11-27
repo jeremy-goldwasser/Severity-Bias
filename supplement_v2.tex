@@ -306,7 +306,7 @@ We consider two alternative approaches to approximate the true HFR
 curve, over the COVID-19 pandemic. The first is simply to use the lagged ratio
 based on NCHS data. As discussed above, this benefits from a lighter-tailed
 delay distribution than JHU data. 
-Further, as we able to use data after $t$ to estimate $p_t$, we use the retrospective severity estimator introduced in \citet{UKpaper}:
+Further, as we able to use data after $t$ to estimate $p_t$, we use the retrospective severity estimator introduced in Overton et al., 2022:%\citet{UKpaper}:
 \begin{equation}\label{eq:conv-retro}
     \hat{p}_t = \sum_{k=0}^d
   \frac{{Y}_{t+k}\hat\pi^{(t)}_{k}}{\sum_{j=0}^d
