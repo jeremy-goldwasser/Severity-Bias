@@ -3,6 +3,7 @@
 % Preamble: use same packages as main file
 \input{macros}
 % \usepackage{adjustbox}
+
 \renewcommand{\hat}{\widehat} % DJM: I find the regular hat hard to see
 \newcommand{\given}{\, \vert \,}
 \DeclareMathOperator{\bias}{Bias}
@@ -22,7 +23,8 @@
 
 % \tableofcontents
 
-\section{Proofs and further analysis}
+% \section{Proofs and further analysis}
+\section{Proofs}
 \label{apx:proofs}
 The assumption of stationary delay distribution is not necessary for either bias expression. 
 In the proofs in Sections \ref{apx:OracleBias} and \ref{apx:MispBias},
@@ -74,10 +76,11 @@ p_t\sum_{k=0}^d \frac{X_{t-k}}{\sum_{j=0}^d X_{t-j}\gamma_j}(\gamma_k -\pi_k) \\
 {\sum_{j=0}^d X_{t-j}\gamma_j}-1\Bigg).
 \end{align*}
 
-\subsection{Further analysis of well-specified bias}
+\section{Additional analysis and data sources}
+\subsection{Further analysis of bias}
 \label{apx:analysis}
 
-We present examples that further explain the bias for the well-specified convolutional ratio. These examples are considerably more
+We first present examples that further explain the bias for the well-specified convolutional ratio. These examples are considerably more
 contrived that the ones in Section 2.3. Nonetheless, their bias can be simplified to 
 simple analytic formulas, isolating the three contributing factors. 
 
@@ -91,25 +94,68 @@ Otherwise the ratio will be 20\% too low, for example, if the true severity rate
 20\% lower $\ell$ time steps ago. 
 
 
+% \begin{figure}[tb]
+% \centering
+% \begin{subfigure}[b]{0.495\linewidth}
+%   \centering
+%          \includegraphics[width=\linewidth]{Figures/Simulated/sim_onehot.pdf} 
+%          \caption{All deaths after $\ell$ days. HFR ratios equivalent;
+%          plotting delays of $\ell=14$ and 28 days.} 
+%          \label{fig:onehot}
+%      \end{subfigure}
+%      \hfill
+%      \begin{subfigure}[b]{0.495\linewidth}
+%          \centering
+%          \includegraphics[width=\linewidth]{Figures/Simulated/sim_chging_primary.pdf} 
+%          \caption{Changing primary incidence. Plotting bias of lagged and
+%          convolutional ratios.} 
+%          \label{fig:chging_primary}
+%      \end{subfigure}
+%         \caption{Toy examples of biased severity rates.} 
+%         \label{fig:bias_ex}
+% \end{figure}
+
 \begin{figure}[tb]
 \centering
-\begin{subfigure}[b]{0.495\linewidth}
+
+% ===== Row 1 =====
+\begin{subfigure}[b]{0.49\linewidth}
   \centering
-         \includegraphics[width=\linewidth]{Figures/Simulated/sim_onehot.pdf} 
-         \caption{All deaths after $\ell$ days. HFR ratios equivalent;
-         plotting delays of $\ell=14$ and 28 days.} 
-         \label{fig:onehot}
-     \end{subfigure}
-     \hfill
-     \begin{subfigure}[b]{0.495\linewidth}
-         \centering
-         \includegraphics[width=\linewidth]{Figures/Simulated/sim_chging_primary.pdf} 
-         \caption{Changing primary incidence. Plotting bias of lagged and
-         convolutional ratios.} 
-         \label{fig:chging_primary}
-     \end{subfigure}
-        \caption{Toy examples of biased severity rates.} 
-        \label{fig:bias_ex}
+  \includegraphics[width=\linewidth]{Figures/Simulated/sim_onehot.pdf}
+  \caption{All deaths after $\ell$ days. HFR ratios equal;
+  plotting delays of $\ell=14$ and 28 days.}
+  \label{fig:onehot}
+\end{subfigure}
+\hfill
+\begin{subfigure}[b]{0.49\linewidth}
+  \centering
+  \includegraphics[width=\linewidth]{Figures/Simulated/sim_chging_primary.pdf}
+  \caption{Changing primary incidence. Bias of lagged and
+  convolutional ratios.}
+  \label{fig:chging_primary}
+\end{subfigure}
+
+\vspace{0.75em}
+
+% ===== Row 2 =====
+\begin{subfigure}[b]{0.49\linewidth}
+  \centering
+  \includegraphics[width=\linewidth]{Figures/Simulated/sinusoidal_hfr_lag_vs_conv.pdf}
+  % \caption{Sinusoidal HFR. Convolutional vs. lagged \mbox{ratios}.}
+  \caption{Sinusoidal severity rate and ratio estimates.}
+  \label{fig:sinusoidal}
+\end{subfigure}
+\hfill
+\begin{subfigure}[b]{0.49\linewidth}
+  \centering
+  \includegraphics[width=\linewidth]{Figures/Simulated/step_hfr_lag_vs_conv.pdf}
+  % \caption{Step-function HFR. Convolutional vs. lagged ratios.}
+  \caption{Severity rate shifts via step functions.}
+  \label{fig:stepfun}
+\end{subfigure}
+
+\caption{Toy examples demonstrating biased severity-rate estimators under different delay structures and primary-incidence patterns.}
+\label{fig:bias_ex}
 \end{figure}
 
 
@@ -160,8 +206,65 @@ pattern occurs as hospitalizations fall.
 % hospitalizations level out near the top, $A_t^\ell < 1$, hence the bias
 % falling lower. The opposite pattern occurs as hospitalizations fall. 
 
-\section{Alternative data sources}
-\label{apx:alternatives}
+% \section{Alternative data sources}
+% \label{apx:alternatives}
+
+We consider two additional settings with contrived severity rates, beyond the linear change in Figure \ref{fig:chging_primary}. Figures \ref{fig:sinusoidal} and \ref{fig:stepfun} generate deaths with sinusoidal and piecewise constant HFRs, respectively. They use true US hospitalization counts throughout over two years of the COVID-19 pandemic. Deaths are simulated noiselessly to highlight the estimators' bias. The delay distribution is the same as in the simulated experiments in the main text: A gamma distribution whose mean maximizes the correlation between hospitalization counts from HHS and death counts from JHU. 
+
+Figure \ref{fig:sinusoidal} reveals the ratio estimators have varying capacity for bias when the true severity rate is sinusoidal. In general, the ratios trail behind the true values some number of days. The convolutional ratio mimics the general sinusoidal shape, though its high and low values are about 1\% less stark than the true values. Intuitively, the ratio smooths over the trailing history, so it is incapable of precisely identifying peak and trough values. The lagged ratio, as explained in the main text, depends heavily on the primary incidence curve and its relation to the delay distribution. Consistent with our analysis in Section 3.2, this leads to high values of $A_t^\ell$ inflating HFR estimates in Spring 2022. We see the highest lagged HFR reaching 17\%, while the true severity rate turns over around 14\%. 
+
+% TO DO: ANALYZE THE STEP FUNCTION
+Figure \ref{fig:stepfun} tracks the ratios as the true severity rate jumps up and down by varying degrees. The well-specified convolutional ratio gradually reaches each new plateau and stabilizes. The time for it to adjust depends on the magnitude of the shift. This is consistent with our analysis in Section 2.2, which showed that larger changes in severity rate correspond to more bias. 
+
+The lagged ratio is more heavily dependent on the primary incidence curve, acting through $A_t^\ell$. 
+Proposition 2 shows this term alters the well-specified bias via a multiplicative correction and, more significantly, an additive adjustment.
+How $A_t^\ell$ produces the lagged ratio's high positive, negative, and positive bias with a constant severity rate in early 2022 is explained precisely in Section 3.2. 
+Another example of biased divergence occurs in the Delta wave of summer 2021, in which rising primary incidence triggers a rise in $A_t^\ell$ and thus $\hat p^\ell$.
+However, when primary incidence is roughly constant, the lagged and convolutional ratios coincide. We see this in the latter half of 2022, when hospitalization counts were low.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.9\linewidth]{Figures/Simulated/time_varying_comparison.pdf}
+    \caption{Severity rates where the true delay distribution is time-varying. Dashed lines compute ratios with the true nonstationary delay distributions and their means as the lags. Dotted lines use the same constant distribution and lag -- their means over all time.}
+    \label{fig:timevar}
+\end{figure}
+
+We additionally evaluated these methods when the true delay distribution is time-varying. Our analyses focus on the bias at a single point in time, so their messages should transfer translate to the time-varying setting. 
+To generate realistic delay distributions, we identified the major variant periods using data described in Section \ref{apx:alt_gt}. 
+Within these ranges, we computed the correlation-maximizing lag between HHS hospitalizations and JHU deaths. 
+These lags ranged by a surprising margin: only a handful of days for the Delta wave, and over 30 during Omicron. 
+We then computed the expected hospitalization-to-death delay by mixing these lags with the proportions of each variant in circulation. 
+(This is akin to how we alternatively estimated HFRs in the aforementioned Section.)
+Finally, we parameterized the delay distributions based on these mean delays and their corresponding standard deviations.
+We simulated deaths without noise from these delay distributions and the NCHS-based HFRs.
+
+On this simulated data, we computed the convolutional and lagged ratios in two ways. Firstly, we let them use the true time-varying delay distributions and lags. Under this formulation, the convolutional ratio is well-specified; the lagged ratio is not, as it still reduces the distribution to a point mass, but the mass is at least selected in the proper location.
+The second strategy ignored the time-varying nature of the true model. 
+It instead used stationary quantities: the mean hospitalization-to-death distribution and lag (18 days) over all time. 
+This stationarity induces misspecification bias into both ratio estimators.
+
+% TO DO: DESCRIBE THE TIME-VARYING RESULTS
+The behavior of the biases in Figure \ref{fig:timevar} is consistent with our other analyses. 
+The well-specified convolutional ratio is close to unbiased during stretches for which the delay distribution had low mean. 
+During Omicron, when deaths were reported at a significant delay, it tracks the ground truth HFR at a much longer offset.
+This observation in the time-varying case is identical to our analysis that the well-specified convolutional ratio is more biased under heavier-tailed delay distributions (see, for example, Figure 1b).
+
+The corresponding lagged ratio is also more biased during Omicron than Delta in this experiment. 
+The light-tailed delay distribution indicates the probability mass is more condensed around the lag, so $A_t^\ell$ is not significantly greater than 1 as hospitalizations rise in Delta.
+However, as Omicron surged around the start of 2022, the lag is over 30 days.
+Hospitalizations were much lower at this offset, so $A_t^\ell$ has the capacity to get very large, and thus produce a high amount of bias.
+The bias is greatest around the peak in late January, when the lagged ratio is more than double the true HFR of 15\%.
+Interestingly, the positive bias that spring is less pronounced than in previous experiments. This is because the longer lag here captures more distant hospitalizations, which brings down $A_t^\ell$ somewhat.
+
+The misspecified ratios with stationary parameters exhibit more bias. 
+In the Delta wave, where the delay distribution and lag were too long, both estimators were much too high. They placed too much emphasis on low counts as the surge was beginning, resulting in significant positive bias. 
+This was particularly pronounced for the lagged ratio, which was positively biased even under the accurate lag. 
+It peaked off the figure at 60\%, triple the true HFR.
+
+During Omicron, the ratios' delay distributions and lags were too short. 
+This led to \textit{less} bias than the appropriately-specified ratios during the surge and decline, since these parameters accurately reflected current conditions. 
+However, it produced high positive bias for both estimators after the surge leveled out in April 2022. 
+As in the main text, the lagged ratio is extremely biased, since its denominator entirely fails to reflect the bygone surge. It reaches over 30\% as the true HFR falls towards 10\%. 
 
 \subsection{Retrospective deaths}
 \label{apx:NCHS_deaths}
@@ -174,32 +277,46 @@ should have a lighter tail in comparison to that relating hospitalization to
 death report. Therefore, since that heavier-tailed delays generally introduce
 greater bias, we would expect the ratio estimates computed from JHU deaths to
 have greater bias than those from NCHS deaths. Figure \ref{fig:jhu_vs_nchs}
-shows that this is indeed the case. NCHS data, which was only available in
-retrospect, leads to lagged HFR estimates with substantially less bias.    
+shows that this is indeed the case. 
+% NCHS data, which was only available in retrospect, leads to lagged HFR estimates with substantially less bias. 
+NCHS data leads to lagged HFR estimates with substantially less bias. 
+However, this resource was only available in retrospect, so these ``real-time'' estimates could not actually be produced until long after the dates in question.
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=\linewidth]{Figures/Real/jhu_vs_nchs.pdf}
+\includegraphics[width=\linewidth]{Figures/RealV2/jhu_vs_nchs.pdf}
 \caption{Comparing lagged ratios based on data from JHU versus NCHS.}
 \label{fig:jhu_vs_nchs}
 \end{figure}
 
-\subsection{Alternative ground truth}
+\section{Robustness checks}
+\label{apx:robustness}
+
+\subsection{Alternative external estimates of HFR}
 \label{apx:alt_gt}
 
 \begin{figure}[b!]
 \centering
-\includegraphics[width=\linewidth]{Figures/Real/ApproxGT.pdf}
-\caption{Comparing methods for approximating ground truth HFR.}
+\includegraphics[width=\linewidth]{Figures/RealV2/ApproxGT.pdf}
+\caption{Comparing methods that use external data to retrospectively approximate HFR.}
 \label{fig:approxGT}
 \end{figure}
 
-We consider two alternative approaches to approximate the ground truth HFR
+We consider two alternative approaches to approximate the true HFR
 curve, over the COVID-19 pandemic. The first is simply to use the lagged ratio
 based on NCHS data. As discussed above, this benefits from a lighter-tailed
-delay distribution than JHU data. Further, as we are looking to approximate
-ground truth in retrospect, we modify this estimator to be forward-looking:
-\smash{$\hat{p}_t^\ell = Y_{t+\ell} / X_t$}. The second approach we consider is
+delay distribution than JHU data. 
+Further, as we able to use data after $t$ to estimate $p_t$, we use the retrospective severity estimator introduced in Overton et al., 2022:%\citet{UKpaper}:
+\begin{equation}\label{eq:conv-retro}
+    \hat{p}_t = \sum_{k=0}^d
+  \frac{{Y}_{t+k}\hat\pi^{(t)}_{k}}{\sum_{j=0}^d
+  {X}_{t+k-j}\hat\pi^{(t+k-j)}_{j}}. 
+\end{equation}
+% ; we refer the reader to this paper for details on its estimator.
+% Further, as we are looking to approximate
+% ground truth in retrospect, we modify this estimator to be forward-looking:
+% \smash{$\hat{p}_t^\ell = Y_{t+\ell} / X_t$}. 
+The second approach we consider is
 to compute a single HFR by dividing total deaths by total hospitalizations in
 each major variant period,  
 % during the period where it accounted for over 50\% of activate cases 
@@ -209,16 +326,16 @@ strain, Alpha, Delta, and Omicron. However, because Omicron began with an
 enormous surge that quickly subsided, we split it into early and late periods.
 %following \citep{adjei2022mortality}
 
-Figure \ref{fig:approxGT} displays these two alternative ground truth curves,
-alongside that obtained from NHCS. They have nontrivial differences in
+Figure \ref{fig:approxGT} displays these two alternative HFR estimates,
+alongside the curve obtained from NHCS. They have nontrivial differences in
 magnitude, but reassuringly, the three curves move more or less in
 conjunction. The retrospective NCHS ratio is still subject to statistical bias
 similar to equation (7); the variant-based HFR curve is flatter, as it 
 does not account for other sources of potential variability in the underlying
 severity rate.   
 
-\section{Robustness checks}
-\label{apx:robustness}
+% \section{Robustness checks}
+% \label{apx:robustness}
 
 \subsection{Real-time versus finalized data}
 
@@ -239,8 +356,8 @@ reporting quirks.
 % described in Section~\ref{sec:wellspecified}. 
 
 \begin{figure}[htb]
-\includegraphics[width=\linewidth]{Figures/Real/US_ests_realtime_both.pdf}
-%\includegraphics[width=\linewidth]{Figures/Real/death_curves.pdf}
+\includegraphics[width=\linewidth]{Figures/RealV2/US_ests_realtime_both.pdf}
+%\includegraphics[width=\linewidth]{Figures/RealV2/death_curves.pdf}
 \caption{Comparing estimates based on real-time versus finalized counts.}    
 \label{fig:rt_and_final}
 \end{figure}
@@ -263,8 +380,8 @@ smoothing over a longer history.
 
 \begin{figure}[h!]
 \centering
-\includegraphics[width=.95\linewidth]{Figures/Real/window_size_conv.pdf}
-\includegraphics[width=.95\linewidth]{Figures/Real/window_size_lagg.pdf}
+\includegraphics[width=.95\linewidth]{Figures/RealV2/window_size_conv.pdf}
+\includegraphics[width=.95\linewidth]{Figures/RealV2/window_size_lagg.pdf}
 \caption{Comparing different choices of window length in post-smoothing.}
 \label{fig:window}
 \end{figure}
@@ -280,13 +397,13 @@ spurious surge in spring 2022.
 
 \begin{figure}[p]
 \centering
-\includegraphics[width=\linewidth]{Figures/Real/hfrs_by_lag.pdf}
+\includegraphics[width=\linewidth]{Figures/RealV2/hfrs_by_lag.pdf}
 \caption{Comparing different choices of lag parameter in the lagged ratio.}
 \label{fig:lag}
 
 \bigskip
-\includegraphics[width=\linewidth]{Figures/Real/hfrs_by_delay1.pdf}
-\includegraphics[width=\linewidth]{Figures/Real/hfrs_by_delay2.pdf}
+\includegraphics[width=\linewidth]{Figures/RealV2/hfrs_by_delay1.pdf}
+\includegraphics[width=\linewidth]{Figures/RealV2/hfrs_by_delay2.pdf}
 \caption{Comparing different choices of delay distributions in the convolutional
   ratio. The top panel shows gamma distributions whose standard deviation is 0.9
   times the mean, versus 0.7 times the mean the bottom panel. The legend labels
@@ -316,19 +433,23 @@ misspecification.
 
 We repeat our analysis the six large US states, finding similar trends. The NHCS
 survey was conducted on a subset of hospitals meant to represent the US at
-large, so for the state-level approximate ground truth, we therefore use the
-forward-looking lagged ratio computed using NCHS deaths, as discussed above.
-Figure \ref{fig:state-level} compares this rough ground truth to the real-time 
-convolutional and lagged ratios. For each state, we select the lag for the
-approximate ground truth curve to maximize cross-correlation between
-hospitalizations and NCHS deaths, and the lag in the real-time lagged ratio to
-maximize cross-correlation between hospitalizations and JHU deaths. We then use
-a discrete gamma distribution with mean equal to the latter lag, and standard
+large, so it cannot be used to accurately estimate the HFRs within each state.
+% for the state-level external estimates, we therefore use the
+Instead, our external estimates of the state-level HFRs use the retrospective ratio discussed above (Equation \ref{eq:conv-retro}), with NCHS deaths.
+% forward-looking ratio computed using NCHS deaths, as discussed above.
+Figure \ref{fig:state-level} compares this external HFR estimate to the real-time 
+convolutional and lagged ratios. 
+For each state, we select the lag for the
+real-time lagged ratio to maximize cross-correlation between hospitalizations and JHU deaths. 
+% approximate ground truth curve to maximize cross-correlation between
+% hospitalizations and NCHS deaths
+We then use
+a discrete gamma distribution with mean equal to this lag, and standard
 deviation 90\% of its mean, for the convolutional ratio.
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=\linewidth]{Figures/Real/state_level_hfrs.pdf}
+\includegraphics[width=\linewidth]{Figures/RealV2/state_level_hfrs.pdf}
 \caption{Comparing ratio estimates for individual US states.} 
 \label{fig:state-level}
  \end{figure}
@@ -343,6 +464,98 @@ of at most 17. Their HFR estimates are still biased, but overall less so. This
 once again emphasizes the role of the delay in bias. The takeaway: fatality
 ratios are generally less trustworthy in states that take longer to report
 deaths.         
+
+\section{CFR analysis}
+
+To illustrate the ubiquity of our analyses across all severity rates, we recreated our simulated experiments with CFR as opposed to HFR. 
+As a recap, the case-fatality rate (CFR) measures the proportion of reported cases that ultimately die. 
+It is often used as a proxy for the infection-fatality rate (IFR), since true infection counts are challenging to estimate, especially in real-time.
+% However, this proxy relationship is challenged by the fact that not all infected individuals show up as positive case reports. 
+% Moreover, the case ascertainment rate varies over time. 
+
+In this section, we recreate Figures 1, 2, and 4, using cases instead of hospitalizations. 
+We restrict our focus to simulated deaths because unlike HFR, a strong external estimate for the true CFR is unavailable in real-time.
+Another reason for this restriction is that CFR is a problematic surrogate for IFR. 
+Not all infected individuals show up as positive case reports, and the case ascertainment rate varies over time.
+Therefore, devising a schema to estimate IFR on COVID-19 data in real-time, and comparing it to notions of the ``true'' IFR and CFR is out of scope for this work.
+% \textcolor{red}{This isn't really true. The retrospective convolutional estimator is good, and we already use it in the Appendix for HFR. The problem is, we don't like it because its mid-Omicron bump illustrates the core shortcoming of CFR: that it's hard to interpret due to unknown and potentially time-varying case ascertainment rates.}
+
+The ground truth CFRs in these simulations follow the same NHCS-based curve in our prior experiments.
+To reflect CFRs, we rescaled this curve such that the average CFR was the overall COVID-19 CFR from 2020-2022.
+Deaths are simulated using the same delay distributions as in HFR. 
+This is justified by our confirmation that the correlation-maximizing lag between US cases and deaths is the same as that between hospitalizations and deaths. 
+
+
+\begin{figure}[htb]
+\centering
+\begin{subfigure}[b]{0.325\linewidth}
+  \centering
+  \includegraphics[width=\linewidth]{Figures/Simulated/toy_chging_cfr.pdf} 
+  \caption{}
+  \label{fig:toy_cfr}
+\end{subfigure}
+\begin{subfigure}[b]{0.325\linewidth}
+  \centering
+  \includegraphics[width=\linewidth]{Figures/Simulated/toy_delay_distr_cfr.pdf}
+  \caption{}
+  \label{fig:toy_delay_cfr}
+\end{subfigure}
+\begin{subfigure}[b]{0.325\linewidth}
+  \centering
+  \includegraphics[width=\linewidth]{Figures/Simulated/toy_chging_primary_cfr.pdf} 
+  \caption{}
+  \label{fig:toy_primary_cfr}
+\end{subfigure}
+\caption{
+  These figures illustrate the same qualitative trends as in Figure 1, 
+  now using CFR instead of HFR. The same three factors—changing severity, delay distribution, 
+  and primary incidence—produce similar effects on the bias of the well-specified convolutional 
+  ratio.}
+\label{fig:wellspecified_cfr}
+\end{figure}
+
+Figure \ref{fig:wellspecified_cfr} presents the CFR counterpart to Figure 1 in the main text. As with HFR, the same qualitative trends emerge: rapid changes in the underlying severity rate produce larger biases, longer delay distributions amplify these distortions, and variations in the primary incidence curve modulate both the direction and magnitude of bias. These parallels confirm that the mechanisms driving bias in the well-specified convolutional ratio are not specific to HFR but generalize directly to CFR.
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.9\linewidth]{Figures/Simulated/toy_misp_cfr.pdf}
+\caption{Analogous to Figure 2, this figure illustrates
+  the effects of delay-distribution misspecification when using CFR instead of HFR.
+  The same qualitative behavior is observed across light-tailed, heavy-tailed,
+  and lagged specifications.}
+\label{fig:misspecified_cfr}
+\end{figure}
+
+
+Figure \ref{fig:misspecified_cfr} shows the effects of delay‐distribution misspecification for CFR. The same qualitative patterns observed for HFR persist: the light‐tailed delay yields upward or downward deviations depending on incidence trends, the heavy‐tailed delay has smaller opposing bias, and the lagged ratio remains the most volatile. 
+These results confirm that the misspecification mechanisms outlined in Proposition 2 extend directly to CFR.
+
+In fact, the bias is even larger than in the HFR case.
+The lagged ratio spikes to 2.5\%, a staggering 150\% above the true CFR of 1\%.
+In contrast, lagged HFRs peaked at 25\% while the true values were 15\%
+The behavior of $A_t^\ell$ explains this discrepancy.
+It peaks around 2.5 for CFR, compared to 1.5 for HFR.
+The larger value for CFR is driven by cases climbing higher and falling steeper than hospitalizations, in relative terms.
+
+
+\begin{figure}[t!]
+\centering
+\includegraphics[width=\linewidth]{Figures/Simulated/simulated_results_cfr.pdf}
+\caption{
+  Ratio estimates under various simulation settings, using CFR instead of HFR.
+  As in Figure~4, the convolutional ratio tracks the true severity curve closely,
+  while the lagged ratio exhibits larger oscillations, particularly under the
+  longer delay. 
+}
+\label{fig:sims_cfr}
+\end{figure}
+
+
+Figure \ref{fig:sims_cfr} shows the simulated results for CFR, paralleling Figure 4 from the main text. The qualitative behaviors mirror those observed for HFR, confirming that the same bias mechanisms apply to CFR-based analyses.
+The convolutional ratio continues to track the true curve relatively closely, while the lagged ratio exhibits exaggerated oscillations, especially under the longer delay. When incidence surges, the lagged CFR overshoots the truth; when incidence falls, it undershoots. These dynamics follow directly from the misspecification behavior of $A_t^\ell$ described in Proposition 2.
+
+Even in the stationary-severity simulations, the lagged ratio remains heavily biased upward whenever $A_t^\ell>1$. Its peaks for CFR roughly twice as large as those seen for HFR. As discussed for Figure \ref{fig:misspecified_cfr}, this difference is driven by the sharper swings in case incidence compared with hospitalizations. Meanwhile, the convolutional ratio’s stability reflects its correct specification of the delay distribution—its advantage holding equally for CFR as for HFR.
+
 
 
 \end{document}
